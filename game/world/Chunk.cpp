@@ -1,7 +1,7 @@
 #include "Chunk.h"
 
-#include "World.h"
 #include "BlockGeometry.h"
+#include "World.h"
 
 Chunk::Chunk(glm::ivec3 id) : m_Chunk(id) { std::cout << "Chunk()\n"; }
 
@@ -46,8 +46,8 @@ void Chunk::Generate()
         // World Generation
         GenerateSurface();
         GenerateBedrock();
-        // GenerateCaves();
         GenerateTrees();
+        GenerateFlowers();
         GenerateSand();
         GenerateWater();
 
@@ -184,6 +184,64 @@ void Chunk::GenerateTrees()
     }
 }
 
+void Chunk::GenerateFlowers()
+{
+    float noise1;
+    float noise2;
+    int y;
+    int water_height = 30;
+    int mountain_height = 70;
+
+    for (int x = 2; x < CHUNK_WIDTH - 2; x++)
+    {
+        for (int z = 2; z < CHUNK_WIDTH - 2; z++)
+        {
+            y = GetHeight(x, z);
+
+            // Check if generating a tree above water level
+            if (y < water_height + 3 || water_height > mountain_height)
+            {
+                continue;
+            }
+
+            // Check to not generate a floating tree
+            if (GetBlock({x, y - 1, z}).ID == ID::Air)
+            {
+                continue;
+            }
+
+            noise1 = ChunkGenerator::GetFastNoise((m_Chunk.x * CHUNK_WIDTH) + x + 1, (m_Chunk.z * CHUNK_WIDTH) + z);
+            noise2 = ChunkGenerator::GetMediumNoise((m_Chunk.x * CHUNK_WIDTH) + x + 1, (m_Chunk.z * CHUNK_WIDTH) + z);
+            float noise3 =
+                ChunkGenerator::GetFastNoise((m_Chunk.x * CHUNK_WIDTH) + x + 2, (m_Chunk.z * CHUNK_WIDTH) + z);
+
+            if (noise1 > 0.75f && noise2 > 0.1f)
+            {
+                if (GetBlock({x, y + 1, z}).ID == ID::Air)
+                {
+                    if (noise3 < 0.25f)
+                    {
+                        SetBlock({x, y + 1, z}, Blocks::Red_Flower());
+                        continue;
+                    }
+                    if (noise3 < 0.5f)
+                    {
+                        SetBlock({x, y + 1, z}, Blocks::Yellow_Flower());
+                        continue;
+                    }
+                    if (noise3 < 0.75f)
+                    {
+                        SetBlock({x, y + 1, z}, Blocks::Red_Mushroom());
+                        continue;
+                    }
+                    SetBlock({x, y + 1, z}, Blocks::Brown_Mushroom());
+                    continue;
+                }
+            }
+        }
+    }
+}
+
 void Chunk::GenerateBedrock()
 {
     float noise;
@@ -209,28 +267,6 @@ void Chunk::GenerateBedrock()
                 continue;
             if (noise > 0.80f)
                 SetBlock({x, 4, z}, Blocks::Bedrock());
-        }
-    }
-}
-
-void Chunk::GenerateCaves()
-{
-    float noise;
-
-    for (int x = 0; x < CHUNK_WIDTH; x++)
-    {
-        for (int y = 0; y < CHUNK_HEIGHT; y++)
-        {
-            for (int z = 0; z < CHUNK_WIDTH; z++)
-            {
-                if (GetBlock({x, y, z}).ID != 1)
-                    continue;
-
-                noise = ChunkGenerator::GetCaveNoise(x + m_Chunk.x * CHUNK_WIDTH, y, z + m_Chunk.z * CHUNK_WIDTH);
-
-                if (noise > 0.8f)
-                    SetBlock({x, y, z}, Blocks::Air());
-            }
         }
     }
 }
@@ -389,14 +425,7 @@ void Chunk::GenerateMesh()
                 }
 
                 BlockGeometry::RenderFullBlock(currentBlock, {x, y, z}, {px, nx, py, ny, pz, nz}, geometry);
-
-
             }
         }
     }
-
-    // std::cout << "Solid Vertices: " << m_SolidGeometry.Vertices.size() << "\n";
-    // std::cout << "Solid Indices: " << m_SolidGeometry.Indices.size() << "\n";
-    // std::cout << "Transparent Vertices: " << m_TransparentGeometry.Vertices.size() << "\n";
-    // std::cout << "Transparent Indices: " << m_TransparentGeometry.Indices.size() << "\n\n";
 }

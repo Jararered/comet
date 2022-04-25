@@ -33,8 +33,8 @@ struct Chunk
 
     void GenerateSurface();
     void GenerateTrees();
+    void GenerateFlowers();
     void GenerateBedrock();
-    void GenerateCaves();
     void GenerateWater();
     void GenerateSand();
 
