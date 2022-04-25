@@ -4,12 +4,15 @@ Lock Renderer::QueueLock;
 
 void Renderer::Initialize()
 {
-    // Creates the static instance in memory
     Instance();
 
+    // Enables z buffer depth testing, prevents incorrect depth rendering
     glEnable(GL_DEPTH_TEST);
 
+    // Culls the back face of geometry
     glCullFace(GL_BACK);
+
+    // For transparent objects, enables alpha values are considered when drawing.
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     IMGUI_CHECKVERSION();
@@ -17,7 +20,6 @@ void Renderer::Initialize()
     ImGui::StyleColorsDark();
 
     ImGuiIO &io = ImGui::GetIO();
-    // (void)io;
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
@@ -119,7 +121,8 @@ void Renderer::DrawMeshQueue()
         glDrawElements(GL_TRIANGLES, mesh.Count(), GL_UNSIGNED_INT, (void *)0);
         drawCalls++;
     }
-    Instance().m_DrawCallsPerFrame = drawCalls;
+
+    SetDrawCallsPerFrame(drawCalls);
 }
 
 void Renderer::DrawInterfaceQueue()
@@ -205,17 +208,19 @@ void Renderer::ProcessMeshQueues()
     {
         if (index.y > 0)
         {
-            if (Instance().m_TransparentMeshMap.find(index) != Instance().m_TransparentMeshMap.end())
+            if (auto entry = Instance().m_TransparentMeshMap.find(index); entry != Instance().m_TransparentMeshMap.end())
             {
-                Instance().m_TransparentMeshMap.at(index).Finalize();
+                // Instance().m_TransparentMeshMap.at(index).Finalize();
+                entry->second.Finalize();
                 Instance().m_TransparentMeshMap.erase(index);
             }
         }
         else
         {
-            if (Instance().m_SolidMeshMap.find(index) != Instance().m_SolidMeshMap.end())
+            if (auto entry = Instance().m_SolidMeshMap.find(index); entry != Instance().m_SolidMeshMap.end())
             {
-                Instance().m_SolidMeshMap.at(index).Finalize();
+                // Instance().m_SolidMeshMap.at(index).Finalize();
+                entry->second.Finalize();
                 Instance().m_SolidMeshMap.erase(index);
             }
         }

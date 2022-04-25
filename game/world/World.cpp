@@ -11,7 +11,7 @@ void World::Initialize()
     std::filesystem::create_directory("world");
 
     ChunkGenerator::Initialize();
-    BlockLibrary::Initialize();
+    Blocks::Initialize();
     EntityHandler::Initialize();
 
     // Shader/Texture Setup
@@ -21,7 +21,7 @@ void World::Initialize()
 
     World::SetSeed(1);
     World::SetShader(blockShader);
-    World::SetRenderDistance(8);
+    World::SetRenderDistance(1);
 
     Instance().m_ChunkDataMap.clear();
     Instance().m_ChunkRenderMap.clear();
@@ -71,9 +71,9 @@ Block World::GetBlock(glm::ivec3 worldPos)
     glm::ivec3 index = GetChunkIndex(worldPos);
     glm::ivec3 chunkCoord = GetChunkCoord(worldPos);
 
-    if (Instance().m_ChunkDataMap.find(index) != Instance().m_ChunkDataMap.end())
+    if (auto entry = Instance().m_ChunkDataMap.find(index); entry != Instance().m_ChunkDataMap.end())
     {
-        return Instance().m_ChunkDataMap.at(index).GetBlock(chunkCoord);
+        return entry->second.GetBlock(chunkCoord);
     }
     else
     {
@@ -91,12 +91,11 @@ void World::SetBlock(glm::ivec3 worldPos, Block blockToSet)
     glm::ivec3 index = GetChunkIndex(worldPos);
     glm::ivec3 chunkCoord = GetChunkCoord(worldPos);
 
-    if (Instance().m_ChunkDataMap.find(index) != Instance().m_ChunkDataMap.end())
+    if (auto entry = Instance().m_ChunkDataMap.find(index); entry != Instance().m_ChunkDataMap.end())
     {
-        // Block blockToReplace = Instance().m_ChunkDataMap.at(index).GetBlock(chunkCoord);
-        Instance().m_ChunkDataMap.at(index).SetBlock({chunkCoord.x, chunkCoord.y, chunkCoord.z}, blockToSet);
-        Instance().m_ChunkDataMap.at(index).SetModified(true);
-        Instance().m_ChunkDataMap.at(index).GenerateMesh();
+        entry->second.SetBlock({chunkCoord.x, chunkCoord.y, chunkCoord.z}, blockToSet);
+        entry->second.SetModified(true);
+        entry->second.GenerateMesh();
 
         Renderer::UpdateMeshInQueue(index);
         Renderer::UpdateMeshInQueue({index.x, index.y + 1, index.z});
@@ -211,9 +210,11 @@ void World::Generate()
     {
         // Generates chunk data
         // TODO: chunk destructor is called here, big memory issue here
-        world.m_ChunkDataMap.insert_or_assign(index, Chunk(index));
-        world.m_ChunkDataMap.at(index).Allocate();
-        world.m_ChunkDataMap.at(index).Generate();
+        auto entry = world.m_ChunkDataMap.insert_or_assign(index, Chunk(index));
+        // world.m_ChunkDataMap.at(index).Allocate();
+        // world.m_ChunkDataMap.at(index).Generate();
+        entry.first->second.Allocate();
+        entry.first->second.Generate();
     }
     world.m_ChunksToGenerate.clear();
 

@@ -2,68 +2,47 @@
 
 #include <comet.pch>
 
+#include "Block.h"
+
 // Enum for convenience
 enum ID
 {
-    Air,         // 0
-    Stone,       // 1
-    Grass,       // 2
-    Dirt,        // 3
-    Cobblestone, // 4
-    Oak_Planks,  // 5
-    Oak_Sapling, // 6
-    // Spruce_Sapling, //
-    // Birch_Sapling,  //
-    Bedrock,  // 7
-    Water,    // 8
-    Water2,   // 9
-    Lava,     // 10
-    Lava2,    // 11
-    Sand,     // 12
-    Gravel,   // 13
-    Gold_Ore, // 14
-    Iron_Ore, // 15
-    Coal_Ore, // 16
-    Oak_Log,  // 17
-    // Spruce_Log,
-    // Birch_Log,
-    Oak_Leaves, // 18
-    // Spruce_Leaves,
-    // Birch_Leaves,
-    Sponge,             // 19
-    Glass,              // 20
-    Lapis_Lazuli_Ore,   // 21
-    Lapis_Lazuli_Block, // 22
-    Dispenser,          // 23
-    Sandstone,          // 24
-    Noteblock,          // 25
-    _Bed,               // 26
-    Powered_Rail,       // 27
-    Detector_Rail,      // 28
-    Stickey_Piston,     // 29
-    Cobweb,             // 30
-    _Dead_Oak_Sapling,  // 31
-    // _Grass,
-    // _Fern,
-    _Dead_Sapling, // 32
-    Piston,        // 33
-    _Piston_Head,  // 34
-    White_Wool,    // 35
-    // Orange_Wool,
-    // Magenta_Wool,
-    // Light_Blue_Wool,
-    // Yellow_Wool,
-    // Light_Green_Wool,
-    // Pink_Wool,
-    // Dark_Gray_Wool,
-    // Light_Gray_Wool,
-    // Cyan_Wool,
-    // Purple_Wool,
-    // Blue_Wool,
-    // Brown_Wool,
-    // Dark_Green_Wool,
-    // Red_Wool,
-    // Black_Wool,
+    Air,                       // 0
+    Stone,                     // 1
+    Grass,                     // 2
+    Dirt,                      // 3
+    Cobblestone,               // 4
+    Oak_Planks,                // 5
+    Oak_Sapling,               // 6
+    Bedrock,                   // 7
+    Water,                     // 8
+    Water2,                    // 9
+    Lava,                      // 10
+    Lava2,                     // 11
+    Sand,                      // 12
+    Gravel,                    // 13
+    Gold_Ore,                  // 14
+    Iron_Ore,                  // 15
+    Coal_Ore,                  // 16
+    Oak_Log,                   // 17
+    Oak_Leaves,                // 18
+    Sponge,                    // 19
+    Glass,                     // 20
+    Lapis_Lazuli_Ore,          // 21
+    Lapis_Lazuli_Block,        // 22
+    Dispenser,                 // 23
+    Sandstone,                 // 24
+    Noteblock,                 // 25
+    _Bed,                      // 26
+    Powered_Rail,              // 27
+    Detector_Rail,             // 28
+    Stickey_Piston,            // 29
+    Cobweb,                    // 30
+    _Dead_Oak_Sapling,         // 31
+    _Dead_Sapling,             // 32
+    Piston,                    // 33
+    _Piston_Head,              // 34
+    White_Wool,                // 35
     _Grass_Top,                // 36
     Yellow_Flower,             // 37
     Red_Flower,                // 38
@@ -72,37 +51,92 @@ enum ID
     Gold_Block,                // 41
     Iron_Block,                // 42
     Smoothstone_Stacked_Slabs, // 43
-    // Sandstone_Stacked_Slabs,
-    // Oak_Stacked_Slabs,
-    // Cobblestone_Stacked_Slabs,
-    Smoothstone_Slab, // 44
-    // Sandstone_Slab,
-    // Oak_Plank_Slab,
-    // Cobblestone_Slab,
-    Bricks,            // 45
-    TNT,               // 46
-    Bookshelf,         // 47
-    Mossy_Cobblestone, // 48
-    Obsidian,          // 49
-    Torch,             // 50
-    Fire,              // 51
-    Monster_Spawner,   // 52
-    Oak_Stairs,        // 53
-    Chest,             // 54
-    _Redstone,         // 55
-    Diamond_Ore,       // 56
-    Diamond_Block,     // 57
-    Crafting_Table,    // 58
+    Smoothstone_Slab,          // 44
+    Bricks,                    // 45
+    TNT,                       // 46
+    Bookshelf,                 // 47
+    Mossy_Cobblestone,         // 48
+    Obsidian,                  // 49
+    Torch,                     // 50
+    Fire,                      // 51
+    Monster_Spawner,           // 52
+    Oak_Stairs,                // 53
+    Chest,                     // 54
+    _Redstone,                 // 55
+    Diamond_Ore,               // 56
+    Diamond_Block,             // 57
+    Crafting_Table,            // 58
 };
 
-class BlockLibrary
+class Blocks
 {
   public:
     inline static auto &Instance()
     {
-        static BlockLibrary instance;
+        static Blocks instance;
         return instance;
     }
+
+    // ID, Transparent, Solid, Cross-Shape
+    inline static Block Air() { return Block(ID::Air, true, false, false); }
+    inline static Block Stone() { return Block(ID::Stone, false, true, false); }
+    inline static Block Grass() { return Block(ID::Grass, false, true, false); }
+    inline static Block Dirt() { return Block(ID::Dirt, false, true, false); }
+    inline static Block Cobblestone() { return Block(ID::Cobblestone, false, true, false); }
+    inline static Block Oak_Planks() { return Block(ID::Oak_Planks, false, true, false); }
+    inline static Block Oak_Sapling() { return Block(ID::Oak_Sapling, true, false, true); }
+    inline static Block Bedrock() { return Block(ID::Bedrock, false, true, false); }
+    inline static Block Water() { return Block(ID::Water, true, false, false); }
+    inline static Block Water2() { return Block(ID::Water2, false, true, false); }
+    inline static Block Lava() { return Block(ID::Lava, false, true, false); }
+    inline static Block Lava2() { return Block(ID::Lava2, false, true, false); }
+    inline static Block Sand() { return Block(ID::Sand, false, true, false); }
+    inline static Block Gravel() { return Block(ID::Gravel, false, true, false); }
+    inline static Block Gold_Ore() { return Block(ID::Gold_Ore, false, true, false); }
+    inline static Block Iron_Ore() { return Block(ID::Iron_Ore, false, true, false); }
+    inline static Block Coal_Ore() { return Block(ID::Coal_Ore, false, true, false); }
+    inline static Block Oak_Log() { return Block(ID::Oak_Log, false, true, false); }
+    inline static Block Oak_Leaves() { return Block(ID::Oak_Leaves, true, true, false); }
+    inline static Block Sponge() { return Block(ID::Sponge, false, true, false); }
+    inline static Block Glass() { return Block(ID::Glass, true, true, false); }
+    inline static Block Lapis_Lazuli_Ore() { return Block(ID::Lapis_Lazuli_Ore, false, true, false); }
+    inline static Block Lapis_Lazuli_Block() { return Block(ID::Lapis_Lazuli_Block, false, true, false); }
+    inline static Block Dispenser() { return Block(ID::Dispenser, false, true, false); }
+    inline static Block Sandstone() { return Block(ID::Sandstone, false, true, false); }
+    inline static Block Noteblock() { return Block(ID::Noteblock, false, true, false); }
+    inline static Block _Bed() { return Block(ID::_Bed, false, true, false); }
+    inline static Block Powered_Rail() { return Block(ID::Powered_Rail, true, false, false); }
+    inline static Block Detector_Rail() { return Block(ID::Detector_Rail, true, false, false); }
+    inline static Block Stickey_Piston() { return Block(ID::Stickey_Piston, false, true, false); }
+    inline static Block Cobweb() { return Block(ID::Cobweb, true, false, true); }
+    inline static Block _Dead_Oak_Sapling() { return Block(ID::_Dead_Oak_Sapling, false, true, false); }
+    inline static Block _Dead_Sapling() { return Block(ID::_Dead_Sapling, false, true, false); }
+    inline static Block Piston() { return Block(ID::Piston, false, true, false); }
+    inline static Block _Piston_Head() { return Block(ID::_Piston_Head, false, true, false); }
+    inline static Block White_Wool() { return Block(ID::White_Wool, false, true, false); }
+    inline static Block _Grass_Top() { return Block(ID::_Grass_Top, false, true, false); }
+    inline static Block Yellow_Flower() { return Block(ID::Yellow_Flower, true, false, true); }
+    inline static Block Red_Flower() { return Block(ID::Red_Flower, true, false, true); }
+    inline static Block Brown_Mushroom() { return Block(ID::Brown_Mushroom, true, false, true); }
+    inline static Block Red_Mushroom() { return Block(ID::Red_Mushroom, true, false, true); }
+    inline static Block Gold_Block() { return Block(ID::Gold_Block, false, true, false); }
+    inline static Block Iron_Block() { return Block(ID::Iron_Block, false, true, false); }
+    inline static Block Smoothstone_Stacked_Slabs() { return Block(ID::Smoothstone_Stacked_Slabs, false, true, false); }
+    inline static Block Smoothstone_Slab() { return Block(ID::Smoothstone_Slab, false, true, false); }
+    inline static Block Bricks() { return Block(ID::Bricks, false, true, false); }
+    inline static Block TNT() { return Block(ID::TNT, false, true, false); }
+    inline static Block Bookshelf() { return Block(ID::Bookshelf, false, true, false); }
+    inline static Block Mossy_Cobblestone() { return Block(ID::Mossy_Cobblestone, false, true, false); }
+    inline static Block Obsidian() { return Block(ID::Obsidian, false, true, false); }
+    inline static Block Torch() { return Block(ID::Torch, true, false, false); }
+    inline static Block Fire() { return Block(ID::Fire, true, false, true); }
+    inline static Block Monster_Spawner() { return Block(ID::Monster_Spawner, true, true, false); }
+    inline static Block Oak_Stairs() { return Block(ID::Oak_Stairs, false, true, false); }
+    inline static Block Chest() { return Block(ID::Chest, false, true, false); }
+    inline static Block _Redstone() { return Block(ID::_Redstone, false, true, false); }
+    inline static Block Diamond_Ore() { return Block(ID::Diamond_Ore, false, true, false); }
+    inline static Block Diamond_Block() { return Block(ID::Diamond_Block, false, true, false); }
+    inline static Block Crafting_Table() { return Block(ID::Crafting_Table, false, true, false); }
 
     static void Initialize()
     {
@@ -139,9 +173,9 @@ class BlockLibrary
         Instance().m_BlockIndices.at(ID::Stickey_Piston) = {84, 84, 82, 85, 84, 84}; // Wrong
         Instance().m_BlockIndices.at(ID::Cobweb) = {11, 11, 11, 11, 11, 11};
         Instance().m_BlockIndices.at(ID::_Dead_Oak_Sapling) = {43, 43, 43, 43, 43, 43}; // Wrong
-        Instance().m_BlockIndices.at(ID::_Dead_Sapling) = {43, 43, 43, 43, 43, 43}; // Wrong
-        Instance().m_BlockIndices.at(ID::Piston) = {84, 84, 83, 85, 84, 84}; // Wrong
-        Instance().m_BlockIndices.at(ID::_Piston_Head) = {83, 83, 83, 83, 83, 83}; // Wrong
+        Instance().m_BlockIndices.at(ID::_Dead_Sapling) = {43, 43, 43, 43, 43, 43};     // Wrong
+        Instance().m_BlockIndices.at(ID::Piston) = {84, 84, 83, 85, 84, 84};            // Wrong
+        Instance().m_BlockIndices.at(ID::_Piston_Head) = {83, 83, 83, 83, 83, 83};      // Wrong
         Instance().m_BlockIndices.at(ID::White_Wool) = {64, 64, 64, 64, 64, 64};
         Instance().m_BlockIndices.at(ID::_Grass_Top) = {0, 0, 0, 0, 0, 0};
         Instance().m_BlockIndices.at(ID::Yellow_Flower) = {13, 13, 13, 13, 13, 13};
@@ -174,9 +208,9 @@ class BlockLibrary
     }
 
   private:
-    BlockLibrary(){};
-    BlockLibrary(BlockLibrary const &);
-    void operator=(BlockLibrary const &);
+    Blocks(){};
+    Blocks(Blocks const &);
+    void operator=(Blocks const &);
 
     std::array<std::array<unsigned char, 6>, 256> m_BlockIndices;
 };

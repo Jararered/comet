@@ -31,7 +31,7 @@ class Player : public Entity
     // Purposfully setting this to an invalid index so that an update happens when
     // spawning in chunk 0, 0, 0
     glm::ivec3 m_ChunkIndex = {0, 1, 0};
-    Block m_SelectedBlock = Block(18, true, true);
+    Block m_SelectedBlock = Block(30, true, true);
     Block m_LastBlockInsideOf;
     bool m_InWater;
 

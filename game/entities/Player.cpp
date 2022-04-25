@@ -20,13 +20,13 @@ void Player::FrameUpdate()
 
     m_Position = Camera::Position();
     Block blockInsideOf = World::GetBlock(round(m_Position));
-    if (blockInsideOf.ID() == ID::Water && blockInsideOf.ID() != m_LastBlockInsideOf.ID())
+    if (blockInsideOf.ID == ID::Water && blockInsideOf.ID != m_LastBlockInsideOf.ID)
     {
         SetInWater(true);
         Renderer::SetOverlayColor({-0.1f, -0.1f, 0.3f});
     }
 
-    if (blockInsideOf.ID() != ID::Water && m_LastBlockInsideOf.ID() == ID::Water)
+    if (blockInsideOf.ID != ID::Water && m_LastBlockInsideOf.ID == ID::Water)
     {
         SetInWater(false);
         Renderer::SetOverlayColor({0.0f, 0.0f, 0.0f});
@@ -54,7 +54,7 @@ void Player::PlaceBlock()
     while (glm::length(direction) < 5.0f)
     {
         direction += glm::normalize(direction) * step;
-        if (World::GetBlock(round(position + direction)).ID() != 0)
+        if (World::GetBlock(round(position + direction)).ID != 0)
         {
             // If there is a block on the first check, player is either
             // inside of a block or way too close.
@@ -80,7 +80,7 @@ void Player::BreakBlock()
     while (glm::length(direction) < 5.0f)
     {
         direction += glm::normalize(direction) * step;
-        if (World::GetBlock(round(position + direction)).ID() != 0)
+        if (World::GetBlock(round(position + direction)).ID != 0)
         {
             World::SetBlock(round(position + direction), Block(0, true));
             return;
@@ -112,17 +112,17 @@ void Player::ProcessScrolls()
 {
     newOffset = MouseHandler::ScrollOffset();
 
-    if (newOffset > oldOffset)
-    {
-        m_SelectedBlock = Block(m_SelectedBlock.ID() + 1);
-        std::cout << static_cast<int>(m_SelectedBlock.ID()) << std::endl;
-    }
+    // if (newOffset > oldOffset)
+    // {
+    //     m_SelectedBlock = Block(m_SelectedBlock.ID + 1);
+    //     std::cout << static_cast<int>(m_SelectedBlock.ID) << std::endl;
+    // }
 
-    if (newOffset < oldOffset)
-    {
-        m_SelectedBlock = Block(m_SelectedBlock.ID() - 1);
-        std::cout << static_cast<int>(m_SelectedBlock.ID()) << std::endl;
-    }
+    // if (newOffset < oldOffset)
+    // {
+    //     m_SelectedBlock = Block(m_SelectedBlock.ID - 1);
+    //     std::cout << static_cast<int>(m_SelectedBlock.ID) << std::endl;
+    // }
 
     oldOffset = MouseHandler::ScrollOffset();
 }
