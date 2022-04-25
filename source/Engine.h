@@ -38,7 +38,6 @@ class Engine
     bool m_ShouldClose = false;
     double m_TimeDelta = 0.0; // ms
     double m_TimeLast = 0.0;  // ms
-    bool m_UsingGUI;
 
   public:
     static bool IsShouldClose() { return Instance().m_ShouldClose; }
@@ -49,7 +48,4 @@ class Engine
 
     static double TimeLast() { return Instance().m_TimeLast; }
     static void SetTimeLast(double TimeLast) { Instance().m_TimeLast = TimeLast; }
-
-    static bool IsUsingGUI() { return Instance().m_UsingGUI; }
-    static void SetUsingGUI(bool UsingGUI) { Instance().m_UsingGUI = UsingGUI; }
 };
