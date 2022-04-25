@@ -21,7 +21,7 @@ void World::Initialize()
 
     World::SetSeed(1);
     World::SetShader(blockShader);
-    World::SetRenderDistance(1);
+    World::SetRenderDistance(8);
 
     Instance().m_ChunkDataMap.clear();
     Instance().m_ChunkRenderMap.clear();

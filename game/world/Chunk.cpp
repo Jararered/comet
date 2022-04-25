@@ -382,7 +382,7 @@ void Chunk::GenerateMesh()
                     nz = nzBlock.ID == ID::Water || !nzBlock.IsTransparent ? false : true;
                 }
 
-                if (currentBlock.ID == 30)
+                if (currentBlock.IsCrossGeometry)
                 {
                     BlockGeometry::RenderCrossBlock(currentBlock, {x, y, z}, geometry);
                     continue;

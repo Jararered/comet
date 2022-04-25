@@ -63,7 +63,7 @@ void Player::PlaceBlock()
                 return;
             }
 
-            World::SetBlock(round(positionLast), m_SelectedBlock);
+            World::SetBlock(round(positionLast), Blocks::GetBlockFromID(m_SelectedBlock));
             return;
         }
         positionLast = position + direction;
@@ -112,17 +112,17 @@ void Player::ProcessScrolls()
 {
     newOffset = MouseHandler::ScrollOffset();
 
-    // if (newOffset > oldOffset)
-    // {
-    //     m_SelectedBlock = Block(m_SelectedBlock.ID + 1);
-    //     std::cout << static_cast<int>(m_SelectedBlock.ID) << std::endl;
-    // }
+    if (newOffset > oldOffset)
+    {
+        m_SelectedBlock = m_SelectedBlock + 1;
+        std::cout << static_cast<int>(m_SelectedBlock) << std::endl;
+    }
 
-    // if (newOffset < oldOffset)
-    // {
-    //     m_SelectedBlock = Block(m_SelectedBlock.ID - 1);
-    //     std::cout << static_cast<int>(m_SelectedBlock.ID) << std::endl;
-    // }
+    if (newOffset < oldOffset)
+    {
+        m_SelectedBlock = m_SelectedBlock - 1;
+        std::cout << static_cast<int>(m_SelectedBlock) << std::endl;
+    }
 
     oldOffset = MouseHandler::ScrollOffset();
 }

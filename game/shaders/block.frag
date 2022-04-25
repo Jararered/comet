@@ -27,5 +27,12 @@ void main()
     vec4 result = vec4((ambient + diffuse) / 2.0, 1.0);
     vec4 transparency = vec4(1.0, 1.0, 1.0, v_Transparency);
 
-    FragColor = texture(u_Texture, v_TextureCoordinates) * result * transparency + vec4(u_OverlayColor, 0.0);
+    vec4 textureColors = texture(u_Texture, v_TextureCoordinates);
+
+    if (textureColors.a == 0.0)
+    {
+        discard;
+    }
+
+    FragColor = textureColors * result * transparency + vec4(u_OverlayColor, 0.0);
 }

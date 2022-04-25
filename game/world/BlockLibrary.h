@@ -202,6 +202,131 @@ class Blocks
         Instance().m_BlockIndices.at(ID::Crafting_Table) = {60, 60, 43, 4, 59, 59};
     }
 
+    static Block GetBlockFromID(unsigned char id)
+    {
+        switch (id)
+        {
+        case (ID::Air):
+            return Air();
+        case (ID::Stone):
+            return Stone();
+        case (ID::Grass):
+            return Grass();
+        case (ID::Dirt):
+            return Dirt();
+        case (ID::Cobblestone):
+            return Cobblestone();
+        case (ID::Oak_Planks):
+            return Oak_Planks();
+        case (ID::Oak_Sapling):
+            return Oak_Sapling();
+        case (ID::Bedrock):
+            return Bedrock();
+        case (ID::Water):
+            return Water();
+        case (ID::Water2):
+            return Water2();
+        case (ID::Lava):
+            return Lava();
+        case (ID::Lava2):
+            return Lava2();
+        case (ID::Sand):
+            return Sand();
+        case (ID::Gravel):
+            return Gravel();
+        case (ID::Gold_Ore):
+            return Gold_Ore();
+        case (ID::Iron_Ore):
+            return Iron_Ore();
+        case (ID::Coal_Ore):
+            return Coal_Ore();
+        case (ID::Oak_Log):
+            return Oak_Log();
+        case (ID::Oak_Leaves):
+            return Oak_Leaves();
+        case (ID::Sponge):
+            return Sponge();
+        case (ID::Glass):
+            return Glass();
+        case (ID::Lapis_Lazuli_Ore):
+            return Lapis_Lazuli_Ore();
+        case (ID::Lapis_Lazuli_Block):
+            return Lapis_Lazuli_Block();
+        case (ID::Dispenser):
+            return Dispenser();
+        case (ID::Sandstone):
+            return Sandstone();
+        case (ID::Noteblock):
+            return Noteblock();
+        case (ID::_Bed):
+            return _Bed();
+        case (ID::Powered_Rail):
+            return Powered_Rail();
+        case (ID::Detector_Rail):
+            return Detector_Rail();
+        case (ID::Stickey_Piston):
+            return Stickey_Piston();
+        case (ID::Cobweb):
+            return Cobweb();
+        case (ID::_Dead_Oak_Sapling):
+            return _Dead_Oak_Sapling();
+        case (ID::_Dead_Sapling):
+            return _Dead_Sapling();
+        case (ID::Piston):
+            return Piston();
+        case (ID::_Piston_Head):
+            return _Piston_Head();
+        case (ID::White_Wool):
+            return White_Wool();
+        case (ID::_Grass_Top):
+            return _Grass_Top();
+        case (ID::Yellow_Flower):
+            return Yellow_Flower();
+        case (ID::Red_Flower):
+            return Red_Flower();
+        case (ID::Brown_Mushroom):
+            return Brown_Mushroom();
+        case (ID::Red_Mushroom):
+            return Red_Mushroom();
+        case (ID::Gold_Block):
+            return Gold_Block();
+        case (ID::Iron_Block):
+            return Iron_Block();
+        case (ID::Smoothstone_Stacked_Slabs):
+            return Smoothstone_Stacked_Slabs();
+        case (ID::Smoothstone_Slab):
+            return Smoothstone_Slab();
+        case (ID::Bricks):
+            return Bricks();
+        case (ID::TNT):
+            return TNT();
+        case (ID::Bookshelf):
+            return Bookshelf();
+        case (ID::Mossy_Cobblestone):
+            return Mossy_Cobblestone();
+        case (ID::Obsidian):
+            return Obsidian();
+        case (ID::Torch):
+            return Torch();
+        case (ID::Fire):
+            return Fire();
+        case (ID::Monster_Spawner):
+            return Monster_Spawner();
+        case (ID::Oak_Stairs):
+            return Oak_Stairs();
+        case (ID::Chest):
+            return Chest();
+        case (ID::_Redstone):
+            return _Redstone();
+        case (ID::Diamond_Ore):
+            return Diamond_Ore();
+        case (ID::Diamond_Block):
+            return Diamond_Block();
+        case (ID::Crafting_Table):
+            return Crafting_Table();
+        }
+    }
+
     static std::array<unsigned char, 6> GetIndices(unsigned char blockID)
     {
         return Instance().m_BlockIndices.at(blockID);

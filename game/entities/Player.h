@@ -9,6 +9,7 @@
 
 #include "world/Chunk.h"
 #include "world/World.h"
+#include "world/BlockLibrary.h"
 
 class Player : public Entity
 {
@@ -31,7 +32,7 @@ class Player : public Entity
     // Purposfully setting this to an invalid index so that an update happens when
     // spawning in chunk 0, 0, 0
     glm::ivec3 m_ChunkIndex = {0, 1, 0};
-    Block m_SelectedBlock = Block(30, true, true);
+    unsigned char m_SelectedBlock = Blocks::Red_Flower().ID;
     Block m_LastBlockInsideOf;
     bool m_InWater;
 
@@ -42,8 +43,8 @@ class Player : public Entity
     glm::ivec3 ChunkIndex() const { return m_ChunkIndex; }
     void SetChunkIndex(const glm::ivec3 &ChunkIndex) { m_ChunkIndex = ChunkIndex; }
 
-    Block SelectedBlock() const { return m_SelectedBlock; }
-    void SetSelectedBlock(const Block &SelectedBlock) { m_SelectedBlock = SelectedBlock; }
+    unsigned char SelectedBlock() const { return m_SelectedBlock; }
+    void SetSelectedBlock(unsigned char id) { m_SelectedBlock = id; }
 
     bool IsInWater() const { return m_InWater; }
     void SetInWater(bool InWater) { m_InWater = InWater; }
