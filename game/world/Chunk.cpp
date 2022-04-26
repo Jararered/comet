@@ -34,6 +34,11 @@ void Chunk::Generate()
         cereal::BinaryInputArchive archive(is);
         archive(m_BlockData);
 
+        for (auto &block : m_BlockData)
+        {
+            block = Blocks::GetBlockFromID(block.ID);
+        }
+
         SetGenerated(false);
     }
     else
@@ -407,12 +412,21 @@ void Chunk::GenerateMesh()
                     nz = nzBlock.ID == ID::Water || !nzBlock.IsTransparent ? false : true;
                 }
 
+                if (currentBlock.Shape == Block::Shapes::Cube)
+                {
+                    Block::RenderCubeBlock(currentBlock, {x, y, z}, {px, nx, py, ny, pz, nz}, &m_Geometry);
+                    continue;
+                }
                 if (currentBlock.Shape == Block::Shapes::Flower)
                 {
                     Block::RenderFlowerBlock(currentBlock, {x, y, z}, &m_Geometry);
                     continue;
                 }
-                Block::RenderCubeBlock(currentBlock, {x, y, z}, {px, nx, py, ny, pz, nz}, &m_Geometry);
+                if (currentBlock.Shape == Block::Shapes::Torch)
+                {
+                    Block::RenderTorchBlock(currentBlock, {x, y, z}, &m_Geometry);
+                    continue;
+                }
             }
         }
     }
