@@ -1,6 +1,7 @@
 #include "Chunk.h"
 
 #include "World.h"
+#include "world/WorldConfig.h"
 
 Chunk::Chunk(glm::ivec3 id) : m_Chunk(id) {}
 
@@ -323,9 +324,9 @@ void Chunk::GenerateMesh()
     m_Geometry.Indices.clear();
     m_Geometry.Offset = 0;
 
-    Block currentBlock;
-    Block pxBlock, nxBlock, pyBlock, nyBlock, pzBlock, nzBlock;
-    bool px, nx, py, ny, pz, nz;
+    Block currentBlock, pxBlock, nxBlock, pyBlock, nyBlock, pzBlock, nzBlock;
+    bool px = false, nx = false, py = false, ny = false, pz = false, nz = false;
+    int worldx = 0, worldz = 0;
 
     for (int x = 0; x < CHUNK_WIDTH; x++)
     {
@@ -341,17 +342,20 @@ void Chunk::GenerateMesh()
                     continue;
                 }
 
+                worldx = x + m_Chunk.x * CHUNK_WIDTH;
+                worldz = z + m_Chunk.z * CHUNK_WIDTH;
+
                 // Getting block IDs of surrounding blocks
                 if (x == 0)
                 {
                     pxBlock = GetBlock({x + 1, y, z});
-                    nxBlock = World::GetBlock({x + m_Chunk.x * CHUNK_WIDTH - 1, y, z + m_Chunk.z * CHUNK_WIDTH});
+                    nxBlock = World::GetBlock({worldx - 1, y, worldz});
                 }
                 else
                 {
                     if (x == CHUNK_WIDTH - 1)
                     {
-                        pxBlock = World::GetBlock({x + m_Chunk.x * CHUNK_WIDTH + 1, y, z + m_Chunk.z * CHUNK_WIDTH});
+                        pxBlock = World::GetBlock({worldx + 1, y, worldz});
                         nxBlock = GetBlock({x - 1, y, z});
                     }
                     else
@@ -367,13 +371,13 @@ void Chunk::GenerateMesh()
                 if (z == 0)
                 {
                     pzBlock = GetBlock({x, y, z + 1});
-                    nzBlock = World::GetBlock({x + m_Chunk.x * CHUNK_WIDTH, y, z + m_Chunk.z * CHUNK_WIDTH - 1});
+                    nzBlock = World::GetBlock({worldx, y, worldz - 1});
                 }
                 else
                 {
                     if (z == CHUNK_WIDTH - 1)
                     {
-                        pzBlock = World::GetBlock({x + m_Chunk.x * CHUNK_WIDTH, y, z + m_Chunk.z * CHUNK_WIDTH + 1});
+                        pzBlock = World::GetBlock({worldx, y, worldz + 1});
                         nzBlock = GetBlock({x, y, z - 1});
                     }
                     else
@@ -404,12 +408,12 @@ void Chunk::GenerateMesh()
                 // Water rendering
                 if (currentBlock.ID == ID::Water)
                 {
-                    px = pxBlock.ID == ID::Water || !pxBlock.IsTransparent ? false : true;
-                    nx = nxBlock.ID == ID::Water || !nxBlock.IsTransparent ? false : true;
-                    py = pyBlock.ID == ID::Water || !pyBlock.IsTransparent ? false : true;
-                    ny = nyBlock.ID == ID::Water || !nyBlock.IsTransparent ? false : true;
-                    pz = pzBlock.ID == ID::Water || !pzBlock.IsTransparent ? false : true;
-                    nz = nzBlock.ID == ID::Water || !nzBlock.IsTransparent ? false : true;
+                    px = (pxBlock.ID == ID::Water || !pxBlock.IsTransparent) ? false : true;
+                    nx = (nxBlock.ID == ID::Water || !nxBlock.IsTransparent) ? false : true;
+                    py = (pyBlock.ID == ID::Water || !pyBlock.IsTransparent) ? false : true;
+                    ny = (nyBlock.ID == ID::Water || !nyBlock.IsTransparent) ? false : true;
+                    pz = (pzBlock.ID == ID::Water || !pzBlock.IsTransparent) ? false : true;
+                    nz = (nzBlock.ID == ID::Water || !nzBlock.IsTransparent) ? false : true;
                 }
 
                 if (currentBlock.Shape == Block::Shapes::Cube)
