@@ -28,6 +28,7 @@ struct Block
     static void RenderCubeBlock(Block currentBlock, glm::ivec3 Coordinate, std::array<bool, 6> BlockFacesToRender,
                                 Geometry *geometry);
     static void RenderFlowerBlock(Block currentBlock, glm::ivec3 Coordinate, Geometry *geometry);
+    static void RenderTorchBlock(Block currentBlock, glm::ivec3 Coordinate, Geometry *geometry);
 
     template <class Archive> void serialize(Archive &ar) { ar(ID); }
 };
