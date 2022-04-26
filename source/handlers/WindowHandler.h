@@ -32,8 +32,8 @@ class WindowHandler
     void WindowCloseCallback();
 
     GLFWwindow *m_Window = nullptr;
-    int m_WindowHeight;
-    int m_WindowWidth;
+    int m_WindowHeight = 0;
+    int m_WindowWidth = 0;
 
   public:
     static GLFWwindow *Window() { return Instance().m_Window; }

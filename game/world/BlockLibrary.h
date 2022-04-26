@@ -78,65 +78,68 @@ class Blocks
     }
 
     // ID, Transparent, Solid, Cross-Shape
-    inline static Block Air() { return Block(ID::Air, true, false, false); }
-    inline static Block Stone() { return Block(ID::Stone, false, true, false); }
-    inline static Block Grass() { return Block(ID::Grass, false, true, false); }
-    inline static Block Dirt() { return Block(ID::Dirt, false, true, false); }
-    inline static Block Cobblestone() { return Block(ID::Cobblestone, false, true, false); }
-    inline static Block Oak_Planks() { return Block(ID::Oak_Planks, false, true, false); }
-    inline static Block Oak_Sapling() { return Block(ID::Oak_Sapling, true, false, true); }
-    inline static Block Bedrock() { return Block(ID::Bedrock, false, true, false); }
-    inline static Block Water() { return Block(ID::Water, true, false, false); }
-    inline static Block Water2() { return Block(ID::Water2, false, true, false); }
-    inline static Block Lava() { return Block(ID::Lava, false, true, false); }
-    inline static Block Lava2() { return Block(ID::Lava2, false, true, false); }
-    inline static Block Sand() { return Block(ID::Sand, false, true, false); }
-    inline static Block Gravel() { return Block(ID::Gravel, false, true, false); }
-    inline static Block Gold_Ore() { return Block(ID::Gold_Ore, false, true, false); }
-    inline static Block Iron_Ore() { return Block(ID::Iron_Ore, false, true, false); }
-    inline static Block Coal_Ore() { return Block(ID::Coal_Ore, false, true, false); }
-    inline static Block Oak_Log() { return Block(ID::Oak_Log, false, true, false); }
-    inline static Block Oak_Leaves() { return Block(ID::Oak_Leaves, true, true, false); }
-    inline static Block Sponge() { return Block(ID::Sponge, false, true, false); }
-    inline static Block Glass() { return Block(ID::Glass, true, true, false); }
-    inline static Block Lapis_Lazuli_Ore() { return Block(ID::Lapis_Lazuli_Ore, false, true, false); }
-    inline static Block Lapis_Lazuli_Block() { return Block(ID::Lapis_Lazuli_Block, false, true, false); }
-    inline static Block Dispenser() { return Block(ID::Dispenser, false, true, false); }
-    inline static Block Sandstone() { return Block(ID::Sandstone, false, true, false); }
-    inline static Block Noteblock() { return Block(ID::Noteblock, false, true, false); }
-    inline static Block _Bed() { return Block(ID::_Bed, false, true, false); }
-    inline static Block Powered_Rail() { return Block(ID::Powered_Rail, true, false, false); }
-    inline static Block Detector_Rail() { return Block(ID::Detector_Rail, true, false, false); }
-    inline static Block Stickey_Piston() { return Block(ID::Stickey_Piston, false, true, false); }
-    inline static Block Cobweb() { return Block(ID::Cobweb, true, false, true); }
-    inline static Block _Dead_Oak_Sapling() { return Block(ID::_Dead_Oak_Sapling, false, true, false); }
-    inline static Block _Dead_Sapling() { return Block(ID::_Dead_Sapling, false, true, false); }
-    inline static Block Piston() { return Block(ID::Piston, false, true, false); }
-    inline static Block _Piston_Head() { return Block(ID::_Piston_Head, false, true, false); }
-    inline static Block White_Wool() { return Block(ID::White_Wool, false, true, false); }
-    inline static Block _Grass_Top() { return Block(ID::_Grass_Top, false, true, false); }
-    inline static Block Yellow_Flower() { return Block(ID::Yellow_Flower, true, false, true); }
-    inline static Block Red_Flower() { return Block(ID::Red_Flower, true, false, true); }
-    inline static Block Brown_Mushroom() { return Block(ID::Brown_Mushroom, true, false, true); }
-    inline static Block Red_Mushroom() { return Block(ID::Red_Mushroom, true, false, true); }
-    inline static Block Gold_Block() { return Block(ID::Gold_Block, false, true, false); }
-    inline static Block Iron_Block() { return Block(ID::Iron_Block, false, true, false); }
-    inline static Block Smoothstone_Stacked_Slabs() { return Block(ID::Smoothstone_Stacked_Slabs, false, true, false); }
-    inline static Block Smoothstone_Slab() { return Block(ID::Smoothstone_Slab, false, true, false); }
-    inline static Block Bricks() { return Block(ID::Bricks, false, true, false); }
-    inline static Block TNT() { return Block(ID::TNT, false, true, false); }
-    inline static Block Bookshelf() { return Block(ID::Bookshelf, false, true, false); }
-    inline static Block Mossy_Cobblestone() { return Block(ID::Mossy_Cobblestone, false, true, false); }
-    inline static Block Obsidian() { return Block(ID::Obsidian, false, true, false); }
-    inline static Block Torch() { return Block(ID::Torch, true, false, false); }
-    inline static Block Fire() { return Block(ID::Fire, true, false, true); }
-    inline static Block Monster_Spawner() { return Block(ID::Monster_Spawner, true, true, false); }
-    inline static Block Oak_Stairs() { return Block(ID::Oak_Stairs, false, true, false); }
-    inline static Block Chest() { return Block(ID::Chest, false, true, false); }
-    inline static Block _Redstone() { return Block(ID::_Redstone, false, true, false); }
-    inline static Block Diamond_Ore() { return Block(ID::Diamond_Ore, false, true, false); }
-    inline static Block Diamond_Block() { return Block(ID::Diamond_Block, false, true, false); }
-    inline static Block Crafting_Table() { return Block(ID::Crafting_Table, false, true, false); }
+    inline static Block Air() { return Block(ID::Air, true, false, Block::Shapes::Cube); }
+    inline static Block Stone() { return Block(ID::Stone, false, true, Block::Shapes::Cube); }
+    inline static Block Grass() { return Block(ID::Grass, false, true, Block::Shapes::Cube); }
+    inline static Block Dirt() { return Block(ID::Dirt, false, true, Block::Shapes::Cube); }
+    inline static Block Cobblestone() { return Block(ID::Cobblestone, false, true, Block::Shapes::Cube); }
+    inline static Block Oak_Planks() { return Block(ID::Oak_Planks, false, true, Block::Shapes::Cube); }
+    inline static Block Oak_Sapling() { return Block(ID::Oak_Sapling, true, false, Block::Shapes::Cube); }
+    inline static Block Bedrock() { return Block(ID::Bedrock, false, true, Block::Shapes::Cube); }
+    inline static Block Water() { return Block(ID::Water, true, false, Block::Shapes::Cube); }
+    inline static Block Water2() { return Block(ID::Water2, false, true, Block::Shapes::Cube); }
+    inline static Block Lava() { return Block(ID::Lava, false, true, Block::Shapes::Cube); }
+    inline static Block Lava2() { return Block(ID::Lava2, false, true, Block::Shapes::Cube); }
+    inline static Block Sand() { return Block(ID::Sand, false, true, Block::Shapes::Cube); }
+    inline static Block Gravel() { return Block(ID::Gravel, false, true, Block::Shapes::Cube); }
+    inline static Block Gold_Ore() { return Block(ID::Gold_Ore, false, true, Block::Shapes::Cube); }
+    inline static Block Iron_Ore() { return Block(ID::Iron_Ore, false, true, Block::Shapes::Cube); }
+    inline static Block Coal_Ore() { return Block(ID::Coal_Ore, false, true, Block::Shapes::Cube); }
+    inline static Block Oak_Log() { return Block(ID::Oak_Log, false, true, Block::Shapes::Cube); }
+    inline static Block Oak_Leaves() { return Block(ID::Oak_Leaves, true, true, Block::Shapes::Cube); }
+    inline static Block Sponge() { return Block(ID::Sponge, false, true, Block::Shapes::Cube); }
+    inline static Block Glass() { return Block(ID::Glass, true, true, Block::Shapes::Cube); }
+    inline static Block Lapis_Lazuli_Ore() { return Block(ID::Lapis_Lazuli_Ore, false, true, Block::Shapes::Cube); }
+    inline static Block Lapis_Lazuli_Block() { return Block(ID::Lapis_Lazuli_Block, false, true, Block::Shapes::Cube); }
+    inline static Block Dispenser() { return Block(ID::Dispenser, false, true, Block::Shapes::Cube); }
+    inline static Block Sandstone() { return Block(ID::Sandstone, false, true, Block::Shapes::Cube); }
+    inline static Block Noteblock() { return Block(ID::Noteblock, false, true, Block::Shapes::Cube); }
+    inline static Block _Bed() { return Block(ID::_Bed, false, true, Block::Shapes::Cube); }
+    inline static Block Powered_Rail() { return Block(ID::Powered_Rail, true, false, Block::Shapes::Cube); }
+    inline static Block Detector_Rail() { return Block(ID::Detector_Rail, true, false, Block::Shapes::Cube); }
+    inline static Block Stickey_Piston() { return Block(ID::Stickey_Piston, false, true, Block::Shapes::Cube); }
+    inline static Block Cobweb() { return Block(ID::Cobweb, true, false, Block::Shapes::Flower); }
+    inline static Block _Dead_Oak_Sapling() { return Block(ID::_Dead_Oak_Sapling, false, true, Block::Shapes::Flower); }
+    inline static Block _Dead_Sapling() { return Block(ID::_Dead_Sapling, false, true, Block::Shapes::Flower); }
+    inline static Block Piston() { return Block(ID::Piston, false, true, Block::Shapes::Cube); }
+    inline static Block _Piston_Head() { return Block(ID::_Piston_Head, false, true, Block::Shapes::Cube); }
+    inline static Block White_Wool() { return Block(ID::White_Wool, false, true, Block::Shapes::Cube); }
+    inline static Block _Grass_Top() { return Block(ID::_Grass_Top, false, true, Block::Shapes::Cube); }
+    inline static Block Yellow_Flower() { return Block(ID::Yellow_Flower, true, false, Block::Shapes::Flower); }
+    inline static Block Red_Flower() { return Block(ID::Red_Flower, true, false, Block::Shapes::Flower); }
+    inline static Block Brown_Mushroom() { return Block(ID::Brown_Mushroom, true, false, Block::Shapes::Flower); }
+    inline static Block Red_Mushroom() { return Block(ID::Red_Mushroom, true, false, Block::Shapes::Flower); }
+    inline static Block Gold_Block() { return Block(ID::Gold_Block, false, true, Block::Shapes::Cube); }
+    inline static Block Iron_Block() { return Block(ID::Iron_Block, false, true, Block::Shapes::Cube); }
+    inline static Block Smoothstone_Stacked_Slabs()
+    {
+        return Block(ID::Smoothstone_Stacked_Slabs, false, true, Block::Shapes::Cube);
+    }
+    inline static Block Smoothstone_Slab() { return Block(ID::Smoothstone_Slab, false, true, Block::Shapes::Cube); }
+    inline static Block Bricks() { return Block(ID::Bricks, false, true, Block::Shapes::Cube); }
+    inline static Block TNT() { return Block(ID::TNT, false, true, Block::Shapes::Cube); }
+    inline static Block Bookshelf() { return Block(ID::Bookshelf, false, true, Block::Shapes::Cube); }
+    inline static Block Mossy_Cobblestone() { return Block(ID::Mossy_Cobblestone, false, true, Block::Shapes::Cube); }
+    inline static Block Obsidian() { return Block(ID::Obsidian, false, true, Block::Shapes::Cube); }
+    inline static Block Torch() { return Block(ID::Torch, true, false, Block::Shapes::Torch); }
+    inline static Block Fire() { return Block(ID::Fire, true, false, Block::Shapes::Cube); }
+    inline static Block Monster_Spawner() { return Block(ID::Monster_Spawner, true, true, Block::Shapes::Cube); }
+    inline static Block Oak_Stairs() { return Block(ID::Oak_Stairs, false, true, Block::Shapes::Cube); }
+    inline static Block Chest() { return Block(ID::Chest, false, true, Block::Shapes::Cube); }
+    inline static Block _Redstone() { return Block(ID::_Redstone, false, true, Block::Shapes::Cube); }
+    inline static Block Diamond_Ore() { return Block(ID::Diamond_Ore, false, true, Block::Shapes::Cube); }
+    inline static Block Diamond_Block() { return Block(ID::Diamond_Block, false, true, Block::Shapes::Cube); }
+    inline static Block Crafting_Table() { return Block(ID::Crafting_Table, false, true, Block::Shapes::Cube); }
 
     static void Initialize()
     {
@@ -325,6 +328,7 @@ class Blocks
         case (ID::Crafting_Table):
             return Crafting_Table();
         }
+        return Air();
     }
 
     static std::array<unsigned char, 6> GetIndices(unsigned char blockID)

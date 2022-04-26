@@ -1,4 +1,5 @@
 #include "Player.h"
+
 #include "handlers/MouseHandler.h"
 
 Player::Player()
@@ -82,7 +83,7 @@ void Player::BreakBlock()
         direction += glm::normalize(direction) * step;
         if (World::GetBlock(round(position + direction)).ID != 0)
         {
-            World::SetBlock(round(position + direction), Block(0, true));
+            World::SetBlock(round(position + direction), Blocks::Air());
             return;
         }
     }

@@ -1,14 +1,11 @@
 #include "Chunk.h"
 
-#include "BlockGeometry.h"
 #include "World.h"
 
-Chunk::Chunk(glm::ivec3 id) : m_Chunk(id) { std::cout << "Chunk()\n"; }
+Chunk::Chunk(glm::ivec3 id) : m_Chunk(id) {}
 
 Chunk::~Chunk()
 {
-    std::cout << "~Chunk()\n";
-
     if (m_Modified)
     {
         std::string filename = ".\\world\\" + std::to_string(m_Chunk.x) + " " + std::to_string(m_Chunk.z) + ".bin";
@@ -23,10 +20,8 @@ void Chunk::Allocate()
     m_BlockData.fill(Blocks::Air());
     m_HeightData.fill(0);
 
-    m_SolidGeometry.Vertices.reserve(7000);
-    m_SolidGeometry.Indices.reserve(7000);
-    m_TransparentGeometry.Vertices.reserve(7000);
-    m_TransparentGeometry.Indices.reserve(7000);
+    m_Geometry.Vertices.reserve(10000);
+    m_Geometry.Indices.reserve(10000);
 }
 
 void Chunk::Generate()
@@ -319,13 +314,9 @@ void Chunk::GenerateSand()
 
 void Chunk::GenerateMesh()
 {
-    m_SolidGeometry.Vertices.clear();
-    m_SolidGeometry.Indices.clear();
-    m_SolidGeometry.Offset = 0;
-
-    m_TransparentGeometry.Vertices.clear();
-    m_TransparentGeometry.Indices.clear();
-    m_TransparentGeometry.Offset = 0;
+    m_Geometry.Vertices.clear();
+    m_Geometry.Indices.clear();
+    m_Geometry.Offset = 0;
 
     Block currentBlock;
     Block pxBlock, nxBlock, pyBlock, nyBlock, pzBlock, nzBlock;
@@ -344,8 +335,6 @@ void Chunk::GenerateMesh()
                 {
                     continue;
                 }
-
-                Geometry *geometry = currentBlock.IsTransparent ? &m_TransparentGeometry : &m_SolidGeometry;
 
                 // Getting block IDs of surrounding blocks
                 if (x == 0)
@@ -418,13 +407,12 @@ void Chunk::GenerateMesh()
                     nz = nzBlock.ID == ID::Water || !nzBlock.IsTransparent ? false : true;
                 }
 
-                if (currentBlock.IsCrossGeometry)
+                if (currentBlock.Shape == Block::Shapes::Flower)
                 {
-                    BlockGeometry::RenderCrossBlock(currentBlock, {x, y, z}, geometry);
+                    Block::RenderFlowerBlock(currentBlock, {x, y, z}, &m_Geometry);
                     continue;
                 }
-
-                BlockGeometry::RenderFullBlock(currentBlock, {x, y, z}, {px, nx, py, ny, pz, nz}, geometry);
+                Block::RenderCubeBlock(currentBlock, {x, y, z}, {px, nx, py, ny, pz, nz}, &m_Geometry);
             }
         }
     }

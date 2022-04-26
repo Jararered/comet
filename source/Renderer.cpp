@@ -45,8 +45,7 @@ void Renderer::ResetRenderer()
     SetResetting(true);
 
     // Resetting all render queues
-    Instance().m_SolidMeshMap.clear();
-    Instance().m_TransparentMeshMap.clear();
+    Instance().m_MeshMap.clear();
     Instance().m_MeshesToAdd.clear();
     Instance().m_MeshesToDelete.clear();
     Instance().m_MeshesToUpdate.clear();
@@ -68,7 +67,7 @@ void Renderer::DrawMeshQueue()
     glEnable(GL_CULL_FACE);
     glDisable(GL_BLEND);
 
-    for (auto &[index, mesh] : Instance().m_SolidMeshMap)
+    for (auto &[index, mesh] : Instance().m_MeshMap)
     {
         shaderID = mesh.Shader()->GetID();
 
@@ -80,37 +79,6 @@ void Renderer::DrawMeshQueue()
         // Uniforms
         glUniform3iv(glGetUniformLocation(shaderID, "u_Index"), 1, &index[0]);
         glUniform3fv(glGetUniformLocation(shaderID, "u_OverlayColor"), 1, &OverlayColor()[0]);
-        glUniform1f(glGetUniformLocation(shaderID, "u_Transparency"), mesh.Transparency());
-        glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_ModelMatrix"), 1, GL_FALSE, &mesh.ModelMatrix()[0][0]);
-        glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_ViewMatrix"), 1, GL_FALSE, &Camera::ViewMatrix()[0][0]);
-        glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_ProjMatrix"), 1, GL_FALSE, &Camera::ProjMatrix()[0][0]);
-        glUniform1i(glGetUniformLocation(shaderID, "u_Texture"), 0);
-
-        // Drawing mesh
-        glDrawElements(GL_TRIANGLES, mesh.Count(), GL_UNSIGNED_INT, (void *)0);
-        drawCalls++;
-    }
-
-    // Transparent Geometry Loop
-    glDisable(GL_CULL_FACE);
-    glEnable(GL_BLEND);
-
-    for (auto &[index, mesh] : Instance().m_TransparentMeshMap)
-    {
-        // To save some draw calls, if the mesh contains no transparency,
-        // the mesh is skipped in this loop
-        if (!(mesh.Count() > 0))
-            continue;
-
-        shaderID = mesh.Shader()->GetID();
-
-        mesh.Update();
-
-        // Binding the next mesh in queue
-        mesh.Bind();
-
-        // Uniforms
-        glUniform3iv(glGetUniformLocation(shaderID, "u_Index"), 1, &index[0]);
         glUniform1f(glGetUniformLocation(shaderID, "u_Transparency"), mesh.Transparency());
         glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_ModelMatrix"), 1, GL_FALSE, &mesh.ModelMatrix()[0][0]);
         glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_ViewMatrix"), 1, GL_FALSE, &Camera::ViewMatrix()[0][0]);
@@ -172,16 +140,9 @@ void Renderer::ProcessMeshQueues()
     QueueLock.AddQueue.lock();
     for (const auto &[index, mesh] : Instance().m_MeshesToAdd)
     {
-        if (index.y > 0)
-        {
-            Instance().m_TransparentMeshMap.insert_or_assign(index, mesh);
-            Instance().m_TransparentMeshMap.at(index).Initialize();
-        }
-        else
-        {
-            Instance().m_SolidMeshMap.insert_or_assign(index, mesh);
-            Instance().m_SolidMeshMap.at(index).Initialize();
-        }
+
+        Instance().m_MeshMap.insert_or_assign(index, mesh);
+        Instance().m_MeshMap.at(index).Initialize();
     }
     Instance().m_MeshesToAdd.clear();
     QueueLock.AddQueue.unlock();
@@ -190,14 +151,7 @@ void Renderer::ProcessMeshQueues()
     QueueLock.UpdateQueue.lock();
     for (const auto &index : Instance().m_MeshesToUpdate)
     {
-        if (index.y > 0)
-        {
-            Instance().m_TransparentMeshMap.at(index).UpdateGeometry();
-        }
-        else
-        {
-            Instance().m_SolidMeshMap.at(index).UpdateGeometry();
-        }
+        Instance().m_MeshMap.at(index).UpdateGeometry();
     }
     Instance().m_MeshesToUpdate.clear();
     QueueLock.UpdateQueue.unlock();
@@ -206,23 +160,12 @@ void Renderer::ProcessMeshQueues()
     QueueLock.DeleteQueue.lock();
     for (const auto &index : Instance().m_MeshesToDelete)
     {
-        if (index.y > 0)
+
+        if (auto entry = Instance().m_MeshMap.find(index); entry != Instance().m_MeshMap.end())
         {
-            if (auto entry = Instance().m_TransparentMeshMap.find(index); entry != Instance().m_TransparentMeshMap.end())
-            {
-                // Instance().m_TransparentMeshMap.at(index).Finalize();
-                entry->second.Finalize();
-                Instance().m_TransparentMeshMap.erase(index);
-            }
-        }
-        else
-        {
-            if (auto entry = Instance().m_SolidMeshMap.find(index); entry != Instance().m_SolidMeshMap.end())
-            {
-                // Instance().m_SolidMeshMap.at(index).Finalize();
-                entry->second.Finalize();
-                Instance().m_SolidMeshMap.erase(index);
-            }
+            // Instance().m_SolidMeshMap.at(index).Finalize();
+            entry->second.Finalize();
+            Instance().m_MeshMap.erase(index);
         }
     }
     Instance().m_MeshesToDelete.clear();

@@ -51,20 +51,19 @@ class Renderer
     Renderer(Renderer const &);
     void operator=(Renderer const &);
 
-    bool m_Resetting;
+    bool m_Resetting = false;
+    unsigned int m_DrawCallsPerFrame = 0;
 
-    glm::vec3 m_OverlayColor;
-    glm::vec3 m_BackgroundColor;
+    glm::vec3 m_OverlayColor = {0.0f, 0.0f, 0.0f};
+    glm::vec3 m_BackgroundColor = {0.0f, 0.0f, 0.0f};
 
-    std::unordered_map<glm::ivec3, Mesh> m_SolidMeshMap;
-    std::unordered_map<glm::ivec3, Mesh> m_TransparentMeshMap;
+    std::unordered_map<glm::ivec3, Mesh> m_MeshMap;
 
     // Queues for safe mesh management
     std::unordered_map<glm::ivec3, Mesh> m_MeshesToAdd;
     std::unordered_set<glm::ivec3> m_MeshesToUpdate;
     std::unordered_set<glm::ivec3> m_MeshesToDelete;
 
-    unsigned int m_DrawCallsPerFrame;
 
   public:
     static glm::vec3 OverlayColor() { return Instance().m_OverlayColor; }

@@ -133,7 +133,7 @@ class ChunkGenerator
     ChunkGenerator(ChunkGenerator const &);
     void operator=(ChunkGenerator const &);
 
-    int m_Seed;
+    int m_Seed = 0;
 
     FastNoiseLite m_MediumNoise;
     FastNoiseLite m_SlowNoise;

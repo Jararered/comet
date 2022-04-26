@@ -1,17 +1,8 @@
-#pragma once
-
-#include <comet.pch>
-
-#include "render/TextureMap.h"
-#include "render/Vertex.h"
-
 #include "Block.h"
-#include "Chunk.h"
 
-namespace BlockGeometry
-{
+#include "BlockLibrary.h"
 
-void RenderFullBlock(Block currentBlock, glm::ivec3 Coordinate, std::array<bool, 6> BlockFacesToRender,
+void Block::RenderCubeBlock(Block currentBlock, glm::ivec3 Coordinate, std::array<bool, 6> BlockFacesToRender,
                      Geometry *geometry)
 {
     unsigned int &offset = geometry->Offset;
@@ -117,7 +108,7 @@ void RenderFullBlock(Block currentBlock, glm::ivec3 Coordinate, std::array<bool,
     }
 }
 
-void RenderCrossBlock(Block currentBlock, glm::ivec3 Coordinate, Geometry *geometry)
+void Block::RenderFlowerBlock(Block currentBlock, glm::ivec3 Coordinate, Geometry *geometry)
 {
     unsigned int &offset = geometry->Offset;
     std::array<unsigned char, 6> blockIndices = Blocks::GetIndices(currentBlock.ID);
@@ -125,7 +116,6 @@ void RenderCrossBlock(Block currentBlock, glm::ivec3 Coordinate, Geometry *geome
     int y = Coordinate.y;
     int z = Coordinate.z;
 
-    // +X Quad
     geometry->Indices.insert(geometry->Indices.end(),
                              {0 + offset, 1 + offset, 2 + offset, 2 + offset, 3 + offset, 0 + offset, 4 + offset,
                               5 + offset, 6 + offset, 6 + offset, 7 + offset, 4 + offset});
@@ -141,6 +131,6 @@ void RenderCrossBlock(Block currentBlock, glm::ivec3 Coordinate, Geometry *geome
             Vertex({x + 0.5f, y - 0.5f, z - 0.5f}, TextureMap::BottomLeft(blockIndices[0]), {1.0f, 0.0f, 0.0f}),
             Vertex({x + 0.5f, y + 0.5f, z - 0.5f}, TextureMap::TopLeft(blockIndices[0]), {1.0f, 0.0f, 0.0f}),
         });
-}
 
-} // namespace BlockGeometry
+    offset += 8;
+}

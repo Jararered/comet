@@ -27,8 +27,7 @@ class World
     static void Finalize();
 
     static void Generate();
-    static void GenerateSolidMesh(glm::ivec3 index, Chunk *chunk);
-    static void GenerateTransparentMesh(glm::ivec3 index, Chunk *chunk);
+    static void GenerateMesh(glm::ivec3 index, Chunk *chunk);
 
     static Block GetBlock(glm::ivec3 worldPos);
     static void SetBlock(glm::ivec3 worldPos, Block block);
@@ -54,7 +53,7 @@ class World
     // This will be a temporary cache of the loaded chunks.
     // Functionallity to check for saved data on disk will eventually be
     // implemented.
-    std::unordered_map<glm::ivec3, Chunk> m_ChunkDataMap;
+    std::unordered_map<glm::ivec3, Chunk *> m_ChunkDataMap;
     std::unordered_map<glm::ivec3, Chunk *> m_ChunkRenderMap;
 
     std::unordered_set<glm::ivec3> m_ChunksToDelete;
@@ -65,8 +64,8 @@ class World
 
     ShaderProgram m_Shader;
     Texture m_Texture;
-    int m_Seed;
-    int m_RenderDistance;
+    int m_Seed = 0;
+    int m_RenderDistance = 0;
 
     std::mutex m_Lock;
 

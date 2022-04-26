@@ -34,7 +34,7 @@ class Player : public Entity
     glm::ivec3 m_ChunkIndex = {0, 1, 0};
     unsigned char m_SelectedBlock = Blocks::Red_Flower().ID;
     Block m_LastBlockInsideOf;
-    bool m_InWater;
+    bool m_InWater = false;
 
     double oldOffset = 0.0;
     double newOffset = 0.0;

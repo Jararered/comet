@@ -26,7 +26,9 @@ class Mesh
 
     unsigned int m_VAO = 0;
     unsigned int m_VBO = 0;
+    unsigned int m_VBOSize = 0;
     unsigned int m_IBO = 0;
+    unsigned int m_IBOSize = 0;
     ShaderProgram *m_Shader = nullptr;
     unsigned int m_Count = 0;
     double m_Transparency = 0.0;

@@ -40,8 +40,6 @@ void World::InitializeThread()
 
 void World::Thread()
 {
-    auto &world = Instance();
-
     while (!Engine::IsShouldClose() && !Renderer::IsResetting())
     {
         EntityHandler::Update();
@@ -60,7 +58,7 @@ void World::Finalize()
 
     for (auto &chunk : Instance().m_ChunkDataMap)
     {
-        chunk.second.~Chunk();
+        chunk.second->~Chunk();
     }
 
     Instance().m_Thread.join();
@@ -73,11 +71,11 @@ Block World::GetBlock(glm::ivec3 worldPos)
 
     if (auto entry = Instance().m_ChunkDataMap.find(index); entry != Instance().m_ChunkDataMap.end())
     {
-        return entry->second.GetBlock(chunkCoord);
+        return entry->second->GetBlock(chunkCoord);
     }
     else
     {
-        return Block();
+        return Blocks::Air();
     }
 }
 
@@ -93,12 +91,11 @@ void World::SetBlock(glm::ivec3 worldPos, Block blockToSet)
 
     if (auto entry = Instance().m_ChunkDataMap.find(index); entry != Instance().m_ChunkDataMap.end())
     {
-        entry->second.SetBlock({chunkCoord.x, chunkCoord.y, chunkCoord.z}, blockToSet);
-        entry->second.SetModified(true);
-        entry->second.GenerateMesh();
+        entry->second->SetBlock({chunkCoord.x, chunkCoord.y, chunkCoord.z}, blockToSet);
+        entry->second->SetModified(true);
+        entry->second->GenerateMesh();
 
         Renderer::UpdateMeshInQueue(index);
-        Renderer::UpdateMeshInQueue({index.x, index.y + 1, index.z});
 
         return;
     }
@@ -152,8 +149,6 @@ void World::ProcessRequestedChunks(glm::ivec3 centerChunkIndex)
     int upperx = 1 + chunksToRenderAhead + centerChunkIndex.x + Instance().m_RenderDistance;
     int upperz = 1 + chunksToRenderAhead + centerChunkIndex.z + Instance().m_RenderDistance;
 
-    const auto &world = Instance();
-
     // Add chunks to generation
     for (int x = lowerx; x < upperx; x++)
     {
@@ -203,65 +198,59 @@ void World::ProcessRequestedChunks(glm::ivec3 centerChunkIndex)
 
 void World::Generate()
 {
-    auto &world = Instance();
-
     // Generates chunks
     for (const auto &index : Instance().m_ChunksToGenerate)
     {
+        // Heap creation, started getting a stack overflow error
+        // due to the size of these bad boys
+        Chunk *chunk = new Chunk(index);
+
         // Generates chunk data
-        // TODO: chunk destructor is called here, big memory issue here
-        auto entry = world.m_ChunkDataMap.insert_or_assign(index, Chunk(index));
-        // world.m_ChunkDataMap.at(index).Allocate();
-        // world.m_ChunkDataMap.at(index).Generate();
-        entry.first->second.Allocate();
-        entry.first->second.Generate();
+        Instance().m_ChunkDataMap.insert_or_assign(index, chunk);
+        Instance().m_ChunkDataMap.at(index)->Allocate();
+        Instance().m_ChunkDataMap.at(index)->Generate();
     }
-    world.m_ChunksToGenerate.clear();
+    Instance().m_ChunksToGenerate.clear();
 
     // Renders chunk
-    for (const auto &index : world.m_ChunksToRender)
+    for (const auto &index : Instance().m_ChunksToRender)
     {
         // Generate Chunk Geometry
-        if (world.m_ChunkDataMap.find(index) == world.m_ChunkDataMap.end())
+        if (Instance().m_ChunkDataMap.find(index) == Instance().m_ChunkDataMap.end())
             return;
 
-        Chunk *chunk = &world.m_ChunkDataMap.at(index);
+        Chunk *chunk = Instance().m_ChunkDataMap.at(index);
         chunk->GenerateMesh();
-        world.m_ChunkRenderMap.insert_or_assign(index, chunk);
+        Instance().m_ChunkRenderMap.insert_or_assign(index, chunk);
 
-        GenerateSolidMesh(index, chunk);
-        GenerateTransparentMesh(index, chunk);
+        GenerateMesh(index, chunk);
     }
-    world.m_ChunksToRender.clear();
+    Instance().m_ChunksToRender.clear();
 
     // Deletes chunks
-    for (const auto &index : world.m_ChunksToDelete)
+    for (const auto &index : Instance().m_ChunksToDelete)
     {
-        // remove chunk from data
-        world.m_ChunkDataMap.erase(index);
+        // Heap delete
+        delete Instance().m_ChunkDataMap.at(index);
+
+        // Remove chunk from data
+        Instance().m_ChunkDataMap.erase(index);
     }
-    world.m_ChunksToDelete.clear();
+    Instance().m_ChunksToDelete.clear();
 
     // Unrenders chunk
-    for (const auto &index : world.m_ChunksToUnrender)
+    for (const auto &index : Instance().m_ChunksToUnrender)
     {
         // remove mesh from renderer
         Renderer::DeleteMeshFromQueue(index);
-        Renderer::DeleteMeshFromQueue({index.x, index.y + 1, index.z});
 
-        world.m_ChunkRenderMap.erase(index);
+        Instance().m_ChunkRenderMap.erase(index);
     }
-    world.m_ChunksToUnrender.clear();
+    Instance().m_ChunksToUnrender.clear();
 }
 
-void World::GenerateSolidMesh(glm::ivec3 index, Chunk *chunk)
+void World::GenerateMesh(glm::ivec3 index, Chunk *chunk)
 {
-    Mesh mesh(&chunk->SolidGeometry()->Vertices, &chunk->SolidGeometry()->Indices, &Instance().m_Shader);
+    Mesh mesh(&chunk->Geometry()->Vertices, &chunk->Geometry()->Indices, &Instance().m_Shader);
     Renderer::AddMeshToQueue(index, mesh);
-}
-
-void World::GenerateTransparentMesh(glm::ivec3 index, Chunk *chunk)
-{
-    Mesh mesh(&chunk->TransparentGeometry()->Vertices, &chunk->TransparentGeometry()->Indices, &Instance().m_Shader);
-    Renderer::AddMeshToQueue({index.x, index.y + 1, index.z}, mesh);
 }
