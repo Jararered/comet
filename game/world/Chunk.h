@@ -64,7 +64,6 @@ struct Chunk
     std::array<int, CHUNK_WIDTH * CHUNK_WIDTH> m_HeightData;
 
     Geometry m_Geometry;
-    // Geometry m_TransparentGeometry;
 
     // Flag to check if the chunk needs to be saved to disk or not
     bool m_Modified = false;
@@ -80,7 +79,6 @@ struct Chunk
     void SetGenerated(bool Generated) { m_Generated = Generated; }
 
     Geometry *Geometry() { return &m_Geometry; }
-    // Geometry *TransparentGeometry() { return &m_TransparentGeometry; }
 
     template <class Archive> void save(Archive &ar) const { ar(m_BlockData); }
     template <class Archive> void load(Archive &ar) { ar(m_BlockData); }
