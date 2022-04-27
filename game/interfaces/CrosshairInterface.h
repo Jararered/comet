@@ -21,10 +21,10 @@ class CrosshairInterface : public Interface
 
         m_Indices.insert(m_Indices.end(), {0, 1, 2, 2, 3, 0});
         m_Vertices.insert(m_Vertices.end(), {
-                                                Vertex({-0.0225f, -0.04f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}),
-                                                Vertex({0.0225f, -0.04f, 0.0f}, {1.0f, 0.0f}, {0.0f, 0.0f, 0.0f}),
-                                                Vertex({0.0225f, 0.04f, 0.0f}, {1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}),
-                                                Vertex({-0.0225f, 0.04f, 0.0f}, {0.0f, 1.0f}, {0.0f, 0.0f, 0.0f}),
+                                                Vertex{{-0.0225f, -0.04f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}},
+                                                Vertex{{0.0225f, -0.04f, 0.0f}, {1.0f, 0.0f}, {0.0f, 0.0f, 0.0f}},
+                                                Vertex{{0.0225f, 0.04f, 0.0f}, {1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}},
+                                                Vertex{{-0.0225f, 0.04f, 0.0f}, {0.0f, 1.0f}, {0.0f, 0.0f, 0.0f}},
                                             });
 
         m_Mesh = Mesh(&m_Vertices, &m_Indices, &m_ShaderProgram);
@@ -45,7 +45,7 @@ class CrosshairInterface : public Interface
     }
 
   private:
-    std::vector<Vertex> m_Vertices;
+    std::vector <Vertex> m_Vertices;
     std::vector<unsigned int> m_Indices;
     ShaderProgram m_ShaderProgram;
     Texture m_Texture;
