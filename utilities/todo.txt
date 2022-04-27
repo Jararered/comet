@@ -8,10 +8,10 @@
 
 # Engine ----------------------------------------------------------------------
 
-- sort transparent meshes before rendering
-- collision system
 
 # Complete --------------------------------------------------------------------
 
 - crosshair overlay
 - fix multithreading (wow I hope so)
+- sort transparent meshes before rendering
+- collision system
