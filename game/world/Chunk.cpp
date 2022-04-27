@@ -9,7 +9,7 @@ Chunk::~Chunk()
 {
     if (m_Modified)
     {
-        std::string filename = ".\\world\\" + std::to_string(m_Chunk.x) + " " + std::to_string(m_Chunk.z) + ".bin";
+        std::string filename = ".\\worlddata\\" + std::to_string(m_Chunk.x) + " " + std::to_string(m_Chunk.z) + ".bin";
         std::ofstream os(filename, std::ios::binary);
         cereal::BinaryOutputArchive archive(os);
         archive(m_BlockData);
@@ -27,7 +27,7 @@ void Chunk::Allocate()
 
 void Chunk::Generate()
 {
-    std::string filename = ".\\world\\" + std::to_string(m_Chunk.x) + " " + std::to_string(m_Chunk.z) + ".bin";
+    std::string filename = ".\\worlddata\\" + std::to_string(m_Chunk.x) + " " + std::to_string(m_Chunk.z) + ".bin";
     if (std::filesystem::exists(filename))
     {
         std::cout << "Chunk file found, loading chunk...\n";

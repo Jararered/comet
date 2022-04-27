@@ -8,7 +8,7 @@
 
 void World::Initialize()
 {
-    std::filesystem::create_directory("world");
+    std::filesystem::create_directory("worlddata");
 
     ChunkGenerator::Initialize();
     Blocks::Initialize();
@@ -64,10 +64,10 @@ void World::Finalize()
     Instance().m_Thread.join();
 }
 
-Block World::GetBlock(glm::ivec3 worldPos)
+Block World::GetBlock(glm::ivec3 worldCoord)
 {
-    glm::ivec3 index = GetChunkIndex(worldPos);
-    glm::ivec3 chunkCoord = GetChunkCoord(worldPos);
+    glm::ivec3 index = GetChunkIndex(worldCoord);
+    glm::ivec3 chunkCoord = GetChunkCoord(worldCoord);
 
     if (auto entry = Instance().m_ChunkDataMap.find(index); entry != Instance().m_ChunkDataMap.end())
     {
@@ -79,15 +79,15 @@ Block World::GetBlock(glm::ivec3 worldPos)
     }
 }
 
-void World::SetBlock(glm::ivec3 worldPos, Block blockToSet)
+void World::SetBlock(glm::ivec3 worldCoord, Block blockToSet)
 {
-    if (worldPos.y > CHUNK_HEIGHT)
+    if (worldCoord.y > CHUNK_HEIGHT)
     {
         return;
     }
 
-    glm::ivec3 index = GetChunkIndex(worldPos);
-    glm::ivec3 chunkCoord = GetChunkCoord(worldPos);
+    glm::ivec3 index = GetChunkIndex(worldCoord);
+    glm::ivec3 chunkCoord = GetChunkCoord(worldCoord);
 
     if (auto entry = Instance().m_ChunkDataMap.find(index); entry != Instance().m_ChunkDataMap.end())
     {
@@ -127,34 +127,34 @@ void World::SetBlock(glm::ivec3 worldPos, Block blockToSet)
     }
 }
 
-glm::ivec3 World::GetChunkCoord(glm::ivec3 worldPos)
+glm::ivec3 World::GetChunkCoord(glm::ivec3 worldCoord)
 {
-    while (worldPos.x < 0)
+    while (worldCoord.x < 0)
     {
-        worldPos.x += CHUNK_WIDTH;
+        worldCoord.x += CHUNK_WIDTH;
     }
-    while (worldPos.x > CHUNK_WIDTH - 1)
+    while (worldCoord.x > CHUNK_WIDTH - 1)
     {
-        worldPos.x -= CHUNK_WIDTH;
+        worldCoord.x -= CHUNK_WIDTH;
     }
-    while (worldPos.z < 0)
+    while (worldCoord.z < 0)
     {
-        worldPos.z += CHUNK_WIDTH;
+        worldCoord.z += CHUNK_WIDTH;
     }
-    while (worldPos.z > CHUNK_WIDTH - 1)
+    while (worldCoord.z > CHUNK_WIDTH - 1)
     {
-        worldPos.z -= CHUNK_WIDTH;
+        worldCoord.z -= CHUNK_WIDTH;
     }
 
-    return worldPos;
+    return worldCoord;
 }
 
-glm::ivec3 World::GetChunkIndex(glm::ivec3 worldPos)
+glm::ivec3 World::GetChunkIndex(glm::ivec3 worldCoord)
 {
     glm::ivec3 chunkIndex(0, 0, 0);
 
-    chunkIndex.x = std::floor(static_cast<double>(worldPos.x) / static_cast<double>(CHUNK_WIDTH));
-    chunkIndex.z = std::floor(static_cast<double>(worldPos.z) / static_cast<double>(CHUNK_WIDTH));
+    chunkIndex.x = std::floor(static_cast<double>(worldCoord.x) / static_cast<double>(CHUNK_WIDTH));
+    chunkIndex.z = std::floor(static_cast<double>(worldCoord.z) / static_cast<double>(CHUNK_WIDTH));
 
     return chunkIndex;
 }
@@ -176,6 +176,18 @@ void World::ProcessRequestedChunks(glm::ivec3 centerChunkIndex)
     {
         for (int z = lowerz; z < upperz; z++)
         {
+            if (Instance().m_RenderShape == RenderShape::Circle)
+            {
+                double distSqrd = ((x - centerChunkIndex.x) * (x - centerChunkIndex.x)) +
+                                  ((z - centerChunkIndex.z) * (z - centerChunkIndex.z));
+                double renderDistSqrd = (Instance().m_RenderDistance + 1) * (Instance().m_RenderDistance + 1);
+
+                if (distSqrd > renderDistSqrd)
+                {
+                    continue;
+                }
+            }
+
             index = {x, 0, z};
             chunksGenerated.insert(index);
             if (Instance().m_ChunkDataMap.find(index) == Instance().m_ChunkDataMap.end())
@@ -199,6 +211,21 @@ void World::ProcessRequestedChunks(glm::ivec3 centerChunkIndex)
     {
         for (int z = lowerz + 1; z < upperz - 1; z++)
         {
+
+            if (Instance().m_RenderShape == RenderShape::Circle)
+            {
+                double distSqrd = ((x - centerChunkIndex.x) * (x - centerChunkIndex.x)) +
+                                  ((z - centerChunkIndex.z) * (z - centerChunkIndex.z));
+
+                // subtracting 0.1 to smooth out the circle a little bit
+                double renderDistSqrd = Instance().m_RenderDistance * Instance().m_RenderDistance - 0.1;
+
+                if (distSqrd > renderDistSqrd)
+                {
+                    continue;
+                }
+            }
+
             index = {x, 0, z};
             chunksRendered.insert(index);
             if (Instance().m_ChunkRenderMap.find(index) == Instance().m_ChunkRenderMap.end())

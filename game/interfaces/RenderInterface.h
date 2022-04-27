@@ -17,6 +17,7 @@ class RenderInterface : public Interface
     {
         InterfaceHandler::AddInterface(this);
         m_RenderDistance = World::RenderDistance();
+        m_RenderShape = World::RenderShape();
         m_WorldSeed = ChunkGenerator::Seed();
         m_OverlayColor = Renderer::OverlayColor();
         m_BackgroundColor = Renderer::BackgroundColor();
@@ -65,6 +66,18 @@ class RenderInterface : public Interface
             World::SetRenderDistance(m_RenderDistance);
         }
 
+        ImGui::Text("Render Shape: ");
+        ImGui::SameLine();
+        if (ImGui::Button("Square"))
+        {
+            World::SetRenderShape(RenderShape::Square);
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Circle"))
+        {
+            World::SetRenderShape(RenderShape::Circle);
+        }
+
         if (ImGui::InputInt("World Seed", &m_WorldSeed))
         {
             ChunkGenerator::SetSeed(m_WorldSeed);
@@ -87,6 +100,7 @@ class RenderInterface : public Interface
 
   private:
     int m_RenderDistance;
+    int m_RenderShape;
     int m_WorldSeed;
     glm::vec3 m_OverlayColor;
     glm::vec3 m_BackgroundColor;

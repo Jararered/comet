@@ -19,10 +19,10 @@ void Block::RenderCubeBlock(Block currentBlock, glm::ivec3 Coordinate, std::arra
         geometry->Vertices.insert(
             geometry->Vertices.end(),
             {
-                Vertex({x + 0.5f, y + 0.5f, z + 0.5f}, TextureMap::TopRight(blockIndices[0]), {1.0f, 0.0f, 0.0f}),
-                Vertex({x + 0.5f, y - 0.5f, z + 0.5f}, TextureMap::BottomRight(blockIndices[0]), {1.0f, 0.0f, 0.0f}),
-                Vertex({x + 0.5f, y - 0.5f, z - 0.5f}, TextureMap::BottomLeft(blockIndices[0]), {1.0f, 0.0f, 0.0f}),
-                Vertex({x + 0.5f, y + 0.5f, z - 0.5f}, TextureMap::TopLeft(blockIndices[0]), {1.0f, 0.0f, 0.0f}),
+                Vertex{{x + 0.5f, y + 0.5f, z + 0.5f}, TextureMap::TopRight(blockIndices[0]), {1.0f, 0.0f, 0.0f}},
+                Vertex{{x + 0.5f, y - 0.5f, z + 0.5f}, TextureMap::BottomRight(blockIndices[0]), {1.0f, 0.0f, 0.0f}},
+                Vertex{{x + 0.5f, y - 0.5f, z - 0.5f}, TextureMap::BottomLeft(blockIndices[0]), {1.0f, 0.0f, 0.0f}},
+                Vertex{{x + 0.5f, y + 0.5f, z - 0.5f}, TextureMap::TopLeft(blockIndices[0]), {1.0f, 0.0f, 0.0f}},
             });
         offset += 4;
     }
@@ -35,10 +35,10 @@ void Block::RenderCubeBlock(Block currentBlock, glm::ivec3 Coordinate, std::arra
         geometry->Vertices.insert(
             geometry->Vertices.end(),
             {
-                Vertex({x - 0.5f, y + 0.5f, z + 0.5f}, TextureMap::TopRight(blockIndices[1]), {-1.0f, 0.0f, 0.0f}),
-                Vertex({x - 0.5f, y + 0.5f, z - 0.5f}, TextureMap::TopLeft(blockIndices[1]), {-1.0f, 0.0f, 0.0f}),
-                Vertex({x - 0.5f, y - 0.5f, z - 0.5f}, TextureMap::BottomLeft(blockIndices[1]), {-1.0f, 0.0f, 0.0f}),
-                Vertex({x - 0.5f, y - 0.5f, z + 0.5f}, TextureMap::BottomRight(blockIndices[1]), {-1.0f, 0.0f, 0.0f}),
+                Vertex{{x - 0.5f, y + 0.5f, z + 0.5f}, TextureMap::TopRight(blockIndices[1]), {-1.0f, 0.0f, 0.0f}},
+                Vertex{{x - 0.5f, y + 0.5f, z - 0.5f}, TextureMap::TopLeft(blockIndices[1]), {-1.0f, 0.0f, 0.0f}},
+                Vertex{{x - 0.5f, y - 0.5f, z - 0.5f}, TextureMap::BottomLeft(blockIndices[1]), {-1.0f, 0.0f, 0.0f}},
+                Vertex{{x - 0.5f, y - 0.5f, z + 0.5f}, TextureMap::BottomRight(blockIndices[1]), {-1.0f, 0.0f, 0.0f}},
             });
         offset += 4;
     }
@@ -51,10 +51,10 @@ void Block::RenderCubeBlock(Block currentBlock, glm::ivec3 Coordinate, std::arra
         geometry->Vertices.insert(
             geometry->Vertices.end(),
             {
-                Vertex({x + 0.5f, y + 0.5f, z + 0.5f}, TextureMap::TopLeft(blockIndices[2]), {0.0f, 1.0f, 0.0f}),
-                Vertex({x + 0.5f, y + 0.5f, z - 0.5f}, TextureMap::TopRight(blockIndices[2]), {0.0f, 1.0f, 0.0f}),
-                Vertex({x - 0.5f, y + 0.5f, z - 0.5f}, TextureMap::BottomRight(blockIndices[2]), {0.0f, 1.0f, 0.0f}),
-                Vertex({x - 0.5f, y + 0.5f, z + 0.5f}, TextureMap::BottomLeft(blockIndices[2]), {0.0f, 1.0f, 0.0f}),
+                Vertex{{x + 0.5f, y + 0.5f, z + 0.5f}, TextureMap::TopLeft(blockIndices[2]), {0.0f, 1.0f, 0.0f}},
+                Vertex{{x + 0.5f, y + 0.5f, z - 0.5f}, TextureMap::TopRight(blockIndices[2]), {0.0f, 1.0f, 0.0f}},
+                Vertex{{x - 0.5f, y + 0.5f, z - 0.5f}, TextureMap::BottomRight(blockIndices[2]), {0.0f, 1.0f, 0.0f}},
+                Vertex{{x - 0.5f, y + 0.5f, z + 0.5f}, TextureMap::BottomLeft(blockIndices[2]), {0.0f, 1.0f, 0.0f}},
             });
         offset += 4;
     }
@@ -67,10 +67,10 @@ void Block::RenderCubeBlock(Block currentBlock, glm::ivec3 Coordinate, std::arra
         geometry->Vertices.insert(
             geometry->Vertices.end(),
             {
-                Vertex({x + 0.5f, y - 0.5f, z + 0.5f}, TextureMap::TopRight(blockIndices[3]), {0.0f, -1.0f, 0.0f}),
-                Vertex({x - 0.5f, y - 0.5f, z + 0.5f}, TextureMap::BottomRight(blockIndices[3]), {0.0f, -1.0f, 0.0f}),
-                Vertex({x - 0.5f, y - 0.5f, z - 0.5f}, TextureMap::BottomLeft(blockIndices[3]), {0.0f, -1.0f, 0.0f}),
-                Vertex({x + 0.5f, y - 0.5f, z - 0.5f}, TextureMap::TopLeft(blockIndices[3]), {0.0f, -1.0f, 0.0f}),
+                Vertex{{x + 0.5f, y - 0.5f, z + 0.5f}, TextureMap::TopRight(blockIndices[3]), {0.0f, -1.0f, 0.0f}},
+                Vertex{{x - 0.5f, y - 0.5f, z + 0.5f}, TextureMap::BottomRight(blockIndices[3]), {0.0f, -1.0f, 0.0f}},
+                Vertex{{x - 0.5f, y - 0.5f, z - 0.5f}, TextureMap::BottomLeft(blockIndices[3]), {0.0f, -1.0f, 0.0f}},
+                Vertex{{x + 0.5f, y - 0.5f, z - 0.5f}, TextureMap::TopLeft(blockIndices[3]), {0.0f, -1.0f, 0.0f}},
             });
         offset += 4;
     }
@@ -83,10 +83,10 @@ void Block::RenderCubeBlock(Block currentBlock, glm::ivec3 Coordinate, std::arra
         geometry->Vertices.insert(
             geometry->Vertices.end(),
             {
-                Vertex({x + 0.5f, y + 0.5f, z + 0.5f}, TextureMap::TopRight(blockIndices[4]), {0.0f, 0.0f, 1.0f}),
-                Vertex({x - 0.5f, y + 0.5f, z + 0.5f}, TextureMap::TopLeft(blockIndices[4]), {0.0f, 0.0f, 1.0f}),
-                Vertex({x - 0.5f, y - 0.5f, z + 0.5f}, TextureMap::BottomLeft(blockIndices[4]), {0.0f, 0.0f, 1.0f}),
-                Vertex({x + 0.5f, y - 0.5f, z + 0.5f}, TextureMap::BottomRight(blockIndices[4]), {0.0f, 0.0f, 1.0f}),
+                Vertex{{x + 0.5f, y + 0.5f, z + 0.5f}, TextureMap::TopRight(blockIndices[4]), {0.0f, 0.0f, 1.0f}},
+                Vertex{{x - 0.5f, y + 0.5f, z + 0.5f}, TextureMap::TopLeft(blockIndices[4]), {0.0f, 0.0f, 1.0f}},
+                Vertex{{x - 0.5f, y - 0.5f, z + 0.5f}, TextureMap::BottomLeft(blockIndices[4]), {0.0f, 0.0f, 1.0f}},
+                Vertex{{x + 0.5f, y - 0.5f, z + 0.5f}, TextureMap::BottomRight(blockIndices[4]), {0.0f, 0.0f, 1.0f}},
             });
         offset += 4;
     }
@@ -99,10 +99,10 @@ void Block::RenderCubeBlock(Block currentBlock, glm::ivec3 Coordinate, std::arra
         geometry->Vertices.insert(
             geometry->Vertices.end(),
             {
-                Vertex({x + 0.5f, y + 0.5f, z - 0.5f}, TextureMap::TopRight(blockIndices[5]), {0.0f, 0.0f, -1.0f}),
-                Vertex({x + 0.5f, y - 0.5f, z - 0.5f}, TextureMap::BottomRight(blockIndices[5]), {0.0f, 0.0f, -1.0f}),
-                Vertex({x - 0.5f, y - 0.5f, z - 0.5f}, TextureMap::BottomLeft(blockIndices[5]), {0.0f, 0.0f, -1.0f}),
-                Vertex({x - 0.5f, y + 0.5f, z - 0.5f}, TextureMap::TopLeft(blockIndices[5]), {0.0f, 0.0f, -1.0f}),
+                Vertex{{x + 0.5f, y + 0.5f, z - 0.5f}, TextureMap::TopRight(blockIndices[5]), {0.0f, 0.0f, -1.0f}},
+                Vertex{{x + 0.5f, y - 0.5f, z - 0.5f}, TextureMap::BottomRight(blockIndices[5]), {0.0f, 0.0f, -1.0f}},
+                Vertex{{x - 0.5f, y - 0.5f, z - 0.5f}, TextureMap::BottomLeft(blockIndices[5]), {0.0f, 0.0f, -1.0f}},
+                Vertex{{x - 0.5f, y + 0.5f, z - 0.5f}, TextureMap::TopLeft(blockIndices[5]), {0.0f, 0.0f, -1.0f}},
             });
         offset += 4;
     }
@@ -127,22 +127,22 @@ void Block::RenderFlowerBlock(Block currentBlock, glm::ivec3 Coordinate, Geometr
     geometry->Vertices.insert(
         geometry->Vertices.end(),
         {
-            Vertex({x + 0.5f, y + 0.5f, z + 0.5f}, TextureMap::TopRight(blockIndices[0]), {1.0f, 0.0f, 0.0f}),
-            Vertex({x + 0.5f, y - 0.5f, z + 0.5f}, TextureMap::BottomRight(blockIndices[0]), {1.0f, 0.0f, 0.0f}),
-            Vertex({x - 0.5f, y - 0.5f, z - 0.5f}, TextureMap::BottomLeft(blockIndices[0]), {1.0f, 0.0f, 0.0f}),
-            Vertex({x - 0.5f, y + 0.5f, z - 0.5f}, TextureMap::TopLeft(blockIndices[0]), {1.0f, 0.0f, 0.0f}),
-            Vertex({x - 0.5f, y + 0.5f, z + 0.5f}, TextureMap::TopRight(blockIndices[0]), {1.0f, 0.0f, 0.0f}),
-            Vertex({x - 0.5f, y - 0.5f, z + 0.5f}, TextureMap::BottomRight(blockIndices[0]), {1.0f, 0.0f, 0.0f}),
-            Vertex({x + 0.5f, y - 0.5f, z - 0.5f}, TextureMap::BottomLeft(blockIndices[0]), {1.0f, 0.0f, 0.0f}),
-            Vertex({x + 0.5f, y + 0.5f, z - 0.5f}, TextureMap::TopLeft(blockIndices[0]), {1.0f, 0.0f, 0.0f}),
-            Vertex({x - 0.5f, y + 0.5f, z - 0.5f}, TextureMap::TopLeft(blockIndices[0]), {1.0f, 0.0f, 0.0f}),
-            Vertex({x - 0.5f, y - 0.5f, z - 0.5f}, TextureMap::BottomLeft(blockIndices[0]), {1.0f, 0.0f, 0.0f}),
-            Vertex({x + 0.5f, y - 0.5f, z + 0.5f}, TextureMap::BottomRight(blockIndices[0]), {1.0f, 0.0f, 0.0f}),
-            Vertex({x + 0.5f, y + 0.5f, z + 0.5f}, TextureMap::TopRight(blockIndices[0]), {1.0f, 0.0f, 0.0f}),
-            Vertex({x + 0.5f, y + 0.5f, z - 0.5f}, TextureMap::TopLeft(blockIndices[0]), {1.0f, 0.0f, 0.0f}),
-            Vertex({x + 0.5f, y - 0.5f, z - 0.5f}, TextureMap::BottomLeft(blockIndices[0]), {1.0f, 0.0f, 0.0f}),
-            Vertex({x - 0.5f, y - 0.5f, z + 0.5f}, TextureMap::BottomRight(blockIndices[0]), {1.0f, 0.0f, 0.0f}),
-            Vertex({x - 0.5f, y + 0.5f, z + 0.5f}, TextureMap::TopRight(blockIndices[0]), {1.0f, 0.0f, 0.0f}),
+            Vertex{{x + 0.5f, y + 0.5f, z + 0.5f}, TextureMap::TopRight(blockIndices[0]), {1.0f, 0.0f, 0.0f}},
+            Vertex{{x + 0.5f, y - 0.5f, z + 0.5f}, TextureMap::BottomRight(blockIndices[0]), {1.0f, 0.0f, 0.0f}},
+            Vertex{{x - 0.5f, y - 0.5f, z - 0.5f}, TextureMap::BottomLeft(blockIndices[0]), {1.0f, 0.0f, 0.0f}},
+            Vertex{{x - 0.5f, y + 0.5f, z - 0.5f}, TextureMap::TopLeft(blockIndices[0]), {1.0f, 0.0f, 0.0f}},
+            Vertex{{x - 0.5f, y + 0.5f, z + 0.5f}, TextureMap::TopRight(blockIndices[0]), {1.0f, 0.0f, 0.0f}},
+            Vertex{{x - 0.5f, y - 0.5f, z + 0.5f}, TextureMap::BottomRight(blockIndices[0]), {1.0f, 0.0f, 0.0f}},
+            Vertex{{x + 0.5f, y - 0.5f, z - 0.5f}, TextureMap::BottomLeft(blockIndices[0]), {1.0f, 0.0f, 0.0f}},
+            Vertex{{x + 0.5f, y + 0.5f, z - 0.5f}, TextureMap::TopLeft(blockIndices[0]), {1.0f, 0.0f, 0.0f}},
+            Vertex{{x - 0.5f, y + 0.5f, z - 0.5f}, TextureMap::TopLeft(blockIndices[0]), {1.0f, 0.0f, 0.0f}},
+            Vertex{{x - 0.5f, y - 0.5f, z - 0.5f}, TextureMap::BottomLeft(blockIndices[0]), {1.0f, 0.0f, 0.0f}},
+            Vertex{{x + 0.5f, y - 0.5f, z + 0.5f}, TextureMap::BottomRight(blockIndices[0]), {1.0f, 0.0f, 0.0f}},
+            Vertex{{x + 0.5f, y + 0.5f, z + 0.5f}, TextureMap::TopRight(blockIndices[0]), {1.0f, 0.0f, 0.0f}},
+            Vertex{{x + 0.5f, y + 0.5f, z - 0.5f}, TextureMap::TopLeft(blockIndices[0]), {1.0f, 0.0f, 0.0f}},
+            Vertex{{x + 0.5f, y - 0.5f, z - 0.5f}, TextureMap::BottomLeft(blockIndices[0]), {1.0f, 0.0f, 0.0f}},
+            Vertex{{x - 0.5f, y - 0.5f, z + 0.5f}, TextureMap::BottomRight(blockIndices[0]), {1.0f, 0.0f, 0.0f}},
+            Vertex{{x - 0.5f, y + 0.5f, z + 0.5f}, TextureMap::TopRight(blockIndices[0]), {1.0f, 0.0f, 0.0f}},
         });
 
     offset += 16;
@@ -167,30 +167,30 @@ void Block::RenderTorchBlock(Block currentBlock, glm::ivec3 Coordinate, Geometry
     geometry->Vertices.insert(
         geometry->Vertices.end(),
         {
-            Vertex({x + 0.0625f, y + 0.5f, z + 0.5f}, TextureMap::TopRight(blockIndices[0]), {1.0f, 0.0f, 0.0f}),
-            Vertex({x + 0.0625f, y - 0.5f, z + 0.5f}, TextureMap::BottomRight(blockIndices[0]), {1.0f, 0.0f, 0.0f}),
-            Vertex({x + 0.0625f, y - 0.5f, z - 0.5f}, TextureMap::BottomLeft(blockIndices[0]), {1.0f, 0.0f, 0.0f}),
-            Vertex({x + 0.0625f, y + 0.5f, z - 0.5f}, TextureMap::TopLeft(blockIndices[0]), {1.0f, 0.0f, 0.0f}),
-            Vertex({x - 0.0625f, y + 0.5f, z + 0.5f}, TextureMap::TopRight(blockIndices[1]), {-1.0f, 0.0f, 0.0f}),
-            Vertex({x - 0.0625f, y + 0.5f, z - 0.5f}, TextureMap::TopLeft(blockIndices[1]), {-1.0f, 0.0f, 0.0f}),
-            Vertex({x - 0.0625f, y - 0.5f, z - 0.5f}, TextureMap::BottomLeft(blockIndices[1]), {-1.0f, 0.0f, 0.0f}),
-            Vertex({x - 0.0625f, y - 0.5f, z + 0.5f}, TextureMap::BottomRight(blockIndices[1]), {-1.0f, 0.0f, 0.0f}),
-            Vertex({x + 0.5f, y + 0.125f, z + 0.5f}, TextureMap::TopLeft(blockIndices[2]), {0.0f, 1.0f, 0.0f}),
-            Vertex({x + 0.5f, y + 0.125f, z - 0.5f}, TextureMap::TopRight(blockIndices[2]), {0.0f, 1.0f, 0.0f}),
-            Vertex({x - 0.5f, y + 0.125f, z - 0.5f}, TextureMap::BottomRight(blockIndices[2]), {0.0f, 1.0f, 0.0f}),
-            Vertex({x - 0.5f, y + 0.125f, z + 0.5f}, TextureMap::BottomLeft(blockIndices[2]), {0.0f, 1.0f, 0.0f}),
-            Vertex({x + 0.5f, y - 0.5f, z + 0.5f}, TextureMap::TopRight(blockIndices[3]), {0.0f, -1.0f, 0.0f}),
-            Vertex({x - 0.5f, y - 0.5f, z + 0.5f}, TextureMap::BottomRight(blockIndices[3]), {0.0f, -1.0f, 0.0f}),
-            Vertex({x - 0.5f, y - 0.5f, z - 0.5f}, TextureMap::BottomLeft(blockIndices[3]), {0.0f, -1.0f, 0.0f}),
-            Vertex({x + 0.5f, y - 0.5f, z - 0.5f}, TextureMap::TopLeft(blockIndices[3]), {0.0f, -1.0f, 0.0f}),
-            Vertex({x + 0.5f, y + 0.5f, z + 0.0625f}, TextureMap::TopRight(blockIndices[4]), {0.0f, 0.0f, 1.0f}),
-            Vertex({x - 0.5f, y + 0.5f, z + 0.0625f}, TextureMap::TopLeft(blockIndices[4]), {0.0f, 0.0f, 1.0f}),
-            Vertex({x - 0.5f, y - 0.5f, z + 0.0625f}, TextureMap::BottomLeft(blockIndices[4]), {0.0f, 0.0f, 1.0f}),
-            Vertex({x + 0.5f, y - 0.5f, z + 0.0625f}, TextureMap::BottomRight(blockIndices[4]), {0.0f, 0.0f, 1.0f}),
-            Vertex({x + 0.5f, y + 0.5f, z - 0.0625f}, TextureMap::TopRight(blockIndices[5]), {0.0f, 0.0f, -1.0f}),
-            Vertex({x + 0.5f, y - 0.5f, z - 0.0625f}, TextureMap::BottomRight(blockIndices[5]), {0.0f, 0.0f, -1.0f}),
-            Vertex({x - 0.5f, y - 0.5f, z - 0.0625f}, TextureMap::BottomLeft(blockIndices[5]), {0.0f, 0.0f, -1.0f}),
-            Vertex({x - 0.5f, y + 0.5f, z - 0.0625f}, TextureMap::TopLeft(blockIndices[5]), {0.0f, 0.0f, -1.0f}),
+            Vertex{{x + 0.0625f, y + 0.5f, z + 0.5f}, TextureMap::TopRight(blockIndices[0]), {1.0f, 0.0f, 0.0f}},
+            Vertex{{x + 0.0625f, y - 0.5f, z + 0.5f}, TextureMap::BottomRight(blockIndices[0]), {1.0f, 0.0f, 0.0f}},
+            Vertex{{x + 0.0625f, y - 0.5f, z - 0.5f}, TextureMap::BottomLeft(blockIndices[0]), {1.0f, 0.0f, 0.0f}},
+            Vertex{{x + 0.0625f, y + 0.5f, z - 0.5f}, TextureMap::TopLeft(blockIndices[0]), {1.0f, 0.0f, 0.0f}},
+            Vertex{{x - 0.0625f, y + 0.5f, z + 0.5f}, TextureMap::TopRight(blockIndices[1]), {-1.0f, 0.0f, 0.0f}},
+            Vertex{{x - 0.0625f, y + 0.5f, z - 0.5f}, TextureMap::TopLeft(blockIndices[1]), {-1.0f, 0.0f, 0.0f}},
+            Vertex{{x - 0.0625f, y - 0.5f, z - 0.5f}, TextureMap::BottomLeft(blockIndices[1]), {-1.0f, 0.0f, 0.0f}},
+            Vertex{{x - 0.0625f, y - 0.5f, z + 0.5f}, TextureMap::BottomRight(blockIndices[1]), {-1.0f, 0.0f, 0.0f}},
+            Vertex{{x + 0.5f, y + 0.125f, z + 0.5f}, TextureMap::TopLeft(blockIndices[2]), {0.0f, 1.0f, 0.0f}},
+            Vertex{{x + 0.5f, y + 0.125f, z - 0.5f}, TextureMap::TopRight(blockIndices[2]), {0.0f, 1.0f, 0.0f}},
+            Vertex{{x - 0.5f, y + 0.125f, z - 0.5f}, TextureMap::BottomRight(blockIndices[2]), {0.0f, 1.0f, 0.0f}},
+            Vertex{{x - 0.5f, y + 0.125f, z + 0.5f}, TextureMap::BottomLeft(blockIndices[2]), {0.0f, 1.0f, 0.0f}},
+            Vertex{{x + 0.5f, y - 0.5f, z + 0.5f}, TextureMap::TopRight(blockIndices[3]), {0.0f, -1.0f, 0.0f}},
+            Vertex{{x - 0.5f, y - 0.5f, z + 0.5f}, TextureMap::BottomRight(blockIndices[3]), {0.0f, -1.0f, 0.0f}},
+            Vertex{{x - 0.5f, y - 0.5f, z - 0.5f}, TextureMap::BottomLeft(blockIndices[3]), {0.0f, -1.0f, 0.0f}},
+            Vertex{{x + 0.5f, y - 0.5f, z - 0.5f}, TextureMap::TopLeft(blockIndices[3]), {0.0f, -1.0f, 0.0f}},
+            Vertex{{x + 0.5f, y + 0.5f, z + 0.0625f}, TextureMap::TopRight(blockIndices[4]), {0.0f, 0.0f, 1.0f}},
+            Vertex{{x - 0.5f, y + 0.5f, z + 0.0625f}, TextureMap::TopLeft(blockIndices[4]), {0.0f, 0.0f, 1.0f}},
+            Vertex{{x - 0.5f, y - 0.5f, z + 0.0625f}, TextureMap::BottomLeft(blockIndices[4]), {0.0f, 0.0f, 1.0f}},
+            Vertex{{x + 0.5f, y - 0.5f, z + 0.0625f}, TextureMap::BottomRight(blockIndices[4]), {0.0f, 0.0f, 1.0f}},
+            Vertex{{x + 0.5f, y + 0.5f, z - 0.0625f}, TextureMap::TopRight(blockIndices[5]), {0.0f, 0.0f, -1.0f}},
+            Vertex{{x + 0.5f, y - 0.5f, z - 0.0625f}, TextureMap::BottomRight(blockIndices[5]), {0.0f, 0.0f, -1.0f}},
+            Vertex{{x - 0.5f, y - 0.5f, z - 0.0625f}, TextureMap::BottomLeft(blockIndices[5]), {0.0f, 0.0f, -1.0f}},
+            Vertex{{x - 0.5f, y + 0.5f, z - 0.0625f}, TextureMap::TopLeft(blockIndices[5]), {0.0f, 0.0f, -1.0f}},
         });
     offset += 24;
 }

@@ -12,6 +12,11 @@
 #include "WorldConfig.h"
 #include "render/Texture.h"
 
+enum RenderShape
+{
+    Square,
+    Circle
+};
 class World
 {
   public:
@@ -45,6 +50,9 @@ class World
     static int RenderDistance() { return Instance().m_RenderDistance; }
     static void SetRenderDistance(int RenderDistance) { Instance().m_RenderDistance = RenderDistance; }
 
+    static int RenderShape() { return Instance().m_RenderShape; }
+    static void SetRenderShape(int RenderShape) { Instance().m_RenderShape = RenderShape; }
+
   private:
     World() {}
     World(World const &);
@@ -66,6 +74,7 @@ class World
     Texture m_Texture;
     int m_Seed = 0;
     int m_RenderDistance = 0;
+    int m_RenderShape = RenderShape::Square;
 
     std::mutex m_Lock;
 
