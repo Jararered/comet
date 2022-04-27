@@ -6,7 +6,7 @@
 #include "handlers/Entity.h"
 #include "handlers/EntityHandler.h"
 #include "handlers/MouseHandler.h"
-#include "physics/CollisionDetection.h"
+#include "physics/Collision.h"
 
 #include "world/Chunk.h"
 #include "world/World.h"
@@ -52,10 +52,10 @@ class Player : public Entity
 
     // Collision parameters
     Collision m_Collision;
-    float m_Height = 0.75f;
+    float m_Height = 1.5f;
     float m_Width = 0.75f;
 
-    float m_MovementSpeed = 2.0f;
+    float m_MovementSpeed = 3.0f;
     float m_RotationSpeed = 1.5f;
     glm::vec3 m_ForwardVector = {0.0f, 0.0f, -1.0f};
     glm::vec3 m_Direction = {0.0f, 0.0f, 0.0f};

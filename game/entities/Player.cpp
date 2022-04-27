@@ -235,16 +235,15 @@ void Player::ProcessCollision()
 
 void Player::UpdateCollision()
 {
-    m_Collision = {m_Position.x + (0.5f * m_Width), m_Position.x - (0.5f * m_Width), m_Position.y + (0.5f * m_Width),
-                   m_Position.y - (0.5f * m_Width) - m_Height, m_Position.z + (0.5f * m_Width), m_Position.z - (0.5f * m_Width)};
+    m_Collision = {m_Position.x + (0.5f * m_Width), m_Position.x - (0.5f * m_Width), m_Position.y + 0.25f,
+                   m_Position.y - m_Height,         m_Position.z + (0.5f * m_Width), m_Position.z - (0.5f * m_Width)};
 }
 
 void Player::CheckXCollision()
 {
     // Process movement in each direction
-    glm::vec3 position = m_Position;
-    glm::ivec3 lower = glm::ivec3(floor(position));
-    glm::ivec3 upper = glm::ivec3(ceil(position));
+    glm::ivec3 lower = glm::ivec3(floor(m_Position));
+    glm::ivec3 upper = glm::ivec3(ceil(m_Position));
 
     std::vector<glm::ivec3> positions;
     std::vector<bool> tests;
@@ -252,20 +251,16 @@ void Player::CheckXCollision()
 
     if (m_Position.x > m_LastPosition.x)
     {
-        positions = {{upper.x, upper.y, upper.z},
-                     {upper.x, upper.y, lower.z},
-                     {upper.x, lower.y, lower.z},
-                     {upper.x, lower.y, upper.z}};
+        positions = {{upper.x, upper.y, upper.z}, {upper.x, upper.y, lower.z},     {upper.x, lower.y, lower.z},
+                     {upper.x, lower.y, upper.z}, {upper.x, lower.y - 1, lower.z}, {upper.x, lower.y - 1, upper.z}};
     }
     else
     {
-        positions = {{lower.x, upper.y, upper.z},
-                     {lower.x, upper.y, lower.z},
-                     {lower.x, lower.y, lower.z},
-                     {lower.x, lower.y, upper.z}};
+        positions = {{lower.x, upper.y, upper.z}, {lower.x, upper.y, lower.z},     {lower.x, lower.y, lower.z},
+                     {lower.x, lower.y, upper.z}, {lower.x, lower.y - 1, lower.z}, {lower.x, lower.y - 1, upper.z}};
     }
-    tests = {false, false, false, false};
-    for (int i = 0; i < 4; i++)
+    tests = {false, false, false, false, false, false};
+    for (int i = 0; i < 6; i++)
     {
         if (World::GetBlock(positions[i]).IsSolid)
         {
@@ -273,7 +268,7 @@ void Player::CheckXCollision()
             tests[i] = Collision::Intersect(m_Collision, collision);
         }
     }
-    if (tests[0] || tests[1] || tests[2] || tests[3])
+    if (tests[0] || tests[1] || tests[2] || tests[3] || tests[4] || tests[5])
     {
         m_Position.x = m_LastPosition.x;
         UpdateCollision();
@@ -283,9 +278,8 @@ void Player::CheckXCollision()
 void Player::CheckYCollision()
 {
     // Process movement in each direction
-    glm::vec3 position = m_Position;
-    glm::ivec3 lower = glm::ivec3(floor(position - glm::vec3(0.0f, m_Height, 0.0f)));
-    glm::ivec3 upper = glm::ivec3(ceil(position));
+    glm::ivec3 lower = glm::ivec3(floor(m_Position - glm::vec3(0.0f, m_Height, 0.0f)));
+    glm::ivec3 upper = glm::ivec3(ceil(m_Position));
 
     std::vector<glm::ivec3> positions;
     std::vector<bool> tests;
@@ -325,9 +319,8 @@ void Player::CheckYCollision()
 void Player::CheckZCollision()
 {
     // Process movement in each direction
-    glm::vec3 position = m_Position;
-    glm::ivec3 lower = glm::ivec3(floor(position));
-    glm::ivec3 upper = glm::ivec3(ceil(position));
+    glm::ivec3 lower = glm::ivec3(floor(m_Position));
+    glm::ivec3 upper = glm::ivec3(ceil(m_Position));
 
     std::vector<glm::ivec3> positions;
     std::vector<bool> tests;
@@ -336,20 +329,16 @@ void Player::CheckZCollision()
     // Z Processing
     if (m_Position.z > m_LastPosition.z)
     {
-        positions = {{upper.x, upper.y, upper.z},
-                     {upper.x, lower.y, upper.z},
-                     {lower.x, lower.y, upper.z},
-                     {lower.x, upper.y, upper.z}};
+        positions = {{upper.x, upper.y, upper.z}, {lower.x, upper.y, upper.z},     {lower.x, lower.y, upper.z},
+                     {upper.x, lower.y, upper.z}, {lower.x, lower.y - 1, upper.z}, {upper.x, lower.y - 1, upper.z}};
     }
     else
     {
-        positions = {{upper.x, upper.y, lower.z},
-                     {upper.x, lower.y, lower.z},
-                     {lower.x, lower.y, lower.z},
-                     {lower.x, upper.y, lower.z}};
+        positions = {{upper.x, upper.y, lower.z}, {lower.x, upper.y, lower.z},     {lower.x, lower.y, lower.z},
+                     {upper.x, lower.y, lower.z}, {lower.x, lower.y - 1, lower.z}, {upper.x, lower.y - 1, lower.z}};
     }
-    tests = {false, false, false, false};
-    for (int i = 0; i < 4; i++)
+    tests = {false, false, false, false, false, false};
+    for (int i = 0; i < 6; i++)
     {
         if (World::GetBlock(positions[i]).IsSolid)
         {
@@ -357,7 +346,7 @@ void Player::CheckZCollision()
             tests[i] = Collision::Intersect(m_Collision, collision);
         }
     }
-    if (tests[0] || tests[1] || tests[2] || tests[3])
+    if (tests[0] || tests[1] || tests[2] || tests[3] || tests[4] || tests[5])
     {
         m_Position.z = m_LastPosition.z;
         UpdateCollision();
