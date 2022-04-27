@@ -33,14 +33,12 @@ void Engine::Thread()
         // Update all handlers
         MouseHandler::UpdateStates();
 
+        EntityHandler::FrameUpdate();
+
         // Update camera views for inputs
         Camera::Update();
         // Reset accumulated movement
         MouseHandler::ResetMovement();
-
-
-        EntityHandler::FrameUpdate();
-
 
         // Drawing the mesh render queue
         Renderer::DrawMeshQueue();

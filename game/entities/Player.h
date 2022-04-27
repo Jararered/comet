@@ -6,6 +6,7 @@
 #include "handlers/Entity.h"
 #include "handlers/EntityHandler.h"
 #include "handlers/MouseHandler.h"
+#include "physics/CollisionDetection.h"
 
 #include "world/Chunk.h"
 #include "world/World.h"
@@ -22,9 +23,13 @@ class Player : public Entity
 
     void PlaceBlock();
     void BreakBlock();
+
     void ProcessClicks();
-    void ProcessKeys();
     void ProcessScrolls();
+
+    void ProcessMovement();
+    void ProcessRotation();
+    void UpdateCamera();
 
     void GetRequestedChunks();
 
@@ -38,6 +43,19 @@ class Player : public Entity
 
     double oldOffset = 0.0;
     double newOffset = 0.0;
+
+    // Collision parameters
+    Collision m_Collision;
+    float m_Height = 0.75f;
+    float m_Width = 0.75f;
+
+    float m_MovementSpeed = 10.0f;
+    float m_RotationSpeed = 1.5f;
+    glm::vec3 m_ForwardVector = {0.0f, 0.0f, -1.0f};
+    glm::vec3 m_Direction = {0.0f, 0.0f, 0.0f};
+    glm::vec3 m_RightVector = {1.0f, 0.0f, 0.0f};
+    float m_Yaw = glm::radians(0.0f);
+    float m_Pitch = glm::radians(0.0f);
 
   public:
     glm::ivec3 ChunkIndex() const { return m_ChunkIndex; }
