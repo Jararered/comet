@@ -28,7 +28,9 @@ class Player : public Entity
     void ProcessScrolls();
 
     void ProcessMovement();
+    void UpdateCollision();
     void ProcessRotation();
+    void ProcessCollision();
     void UpdateCamera();
 
     void GetRequestedChunks();
@@ -49,7 +51,7 @@ class Player : public Entity
     float m_Height = 0.75f;
     float m_Width = 0.75f;
 
-    float m_MovementSpeed = 10.0f;
+    float m_MovementSpeed = 2.0f;
     float m_RotationSpeed = 1.5f;
     glm::vec3 m_ForwardVector = {0.0f, 0.0f, -1.0f};
     glm::vec3 m_Direction = {0.0f, 0.0f, 0.0f};

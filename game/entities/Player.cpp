@@ -1,6 +1,7 @@
 #include "Player.h"
 
 #include "handlers/MouseHandler.h"
+#include <cmath>
 
 Player::Player()
 {
@@ -18,15 +19,13 @@ void Player::FrameUpdate()
     ProcessClicks();
 
     ProcessMovement();
+    UpdateCollision();
+    ProcessCollision();
+
     ProcessRotation();
     UpdateCamera();
 
     ProcessScrolls();
-
-    // m_Position = Camera::Position();
-
-    m_Collision = {m_Position.x - 0.5f * m_Width, m_Position.x + 0.5f * m_Width, m_Position.y - m_Height,
-                   m_Position.y + 0.05f,          m_Position.z - 0.5f * m_Width, m_Position.z + 0.5f * m_Width};
 
     Block blockInsideOf = World::GetBlock(round(m_Position));
     if (blockInsideOf.ID == ID::Water && blockInsideOf.ID != m_LastBlockInsideOf.ID)
@@ -111,6 +110,8 @@ void Player::ProcessClicks()
 
 void Player::ProcessMovement()
 {
+    m_LastPosition = m_Position;
+
     float magnitude = m_MovementSpeed * Engine::TimeDelta();
     glm::vec3 movementDirection = {0.0f, 0.0f, 0.0f};
 
@@ -196,7 +197,7 @@ void Player::ProcessRotation()
     m_Direction.z = glm::sin(m_Yaw) * glm::cos(m_Pitch);
 
     m_ForwardVector = glm::normalize(m_Direction);
-    m_RightVector = glm::cross(m_ForwardVector, Camera::Camera::POSITIVE_Y);
+    m_RightVector = glm::cross(m_ForwardVector, Camera::POSITIVE_Y);
 }
 
 void Player::ProcessScrolls()
@@ -222,4 +223,255 @@ void Player::UpdateCamera()
 {
     Camera::SetPosition(m_Position);
     Camera::SetForwardVector(m_ForwardVector);
+}
+
+void Player::ProcessCollision()
+{
+    // Process movement in each direction
+    glm::vec3 position = m_Position;
+    glm::ivec3 lower = glm::ivec3(floor(position));
+    glm::ivec3 upper = glm::ivec3(ceil(position));
+
+    if (m_Position.x > m_LastPosition.x)
+    {
+        glm::ivec3 pos1 = {upper.x, upper.y, upper.z};
+        glm::ivec3 pos2 = {upper.x, upper.y, lower.z};
+        glm::ivec3 pos3 = {upper.x, lower.y, lower.z};
+        glm::ivec3 pos4 = {upper.x, lower.y, upper.z};
+
+        bool test1 = false;
+        bool test2 = false;
+        bool test3 = false;
+        bool test4 = false;
+
+        if (World::GetBlock(pos1).IsSolid)
+        {
+            Collision collision = Collision::CollisionCenteredXYZ(pos1, 1.0f, 1.0f, 1.0f);
+            test1 = Collision::Intersect(m_Collision, collision);
+        }
+        if (World::GetBlock(pos2).IsSolid)
+        {
+            Collision collision = Collision::CollisionCenteredXYZ(pos2, 1.0f, 1.0f, 1.0f);
+            test2 = Collision::Intersect(m_Collision, collision);
+        }
+        if (World::GetBlock(pos3).IsSolid)
+        {
+            Collision collision = Collision::CollisionCenteredXYZ(pos3, 1.0f, 1.0f, 1.0f);
+            test3 = Collision::Intersect(m_Collision, collision);
+        }
+        if (World::GetBlock(pos4).IsSolid)
+        {
+            Collision collision = Collision::CollisionCenteredXYZ(pos4, 1.0f, 1.0f, 1.0f);
+            test4 = Collision::Intersect(m_Collision, collision);
+        }
+
+        if (test1 || test2 || test3 || test4)
+        {
+            m_Position.x = m_LastPosition.x;
+            UpdateCollision();
+        }
+    }
+    else
+    {
+        glm::ivec3 pos1 = {lower.x, upper.y, upper.z};
+        glm::ivec3 pos2 = {lower.x, upper.y, lower.z};
+        glm::ivec3 pos3 = {lower.x, lower.y, lower.z};
+        glm::ivec3 pos4 = {lower.x, lower.y, upper.z};
+
+        bool test1 = false;
+        bool test2 = false;
+        bool test3 = false;
+        bool test4 = false;
+
+        if (World::GetBlock(pos1).IsSolid)
+        {
+            Collision collision = Collision::CollisionCenteredXYZ(pos1, 1.0f, 1.0f, 1.0f);
+            test1 = Collision::Intersect(m_Collision, collision);
+        }
+        if (World::GetBlock(pos2).IsSolid)
+        {
+            Collision collision = Collision::CollisionCenteredXYZ(pos2, 1.0f, 1.0f, 1.0f);
+            test2 = Collision::Intersect(m_Collision, collision);
+        }
+        if (World::GetBlock(pos3).IsSolid)
+        {
+            Collision collision = Collision::CollisionCenteredXYZ(pos3, 1.0f, 1.0f, 1.0f);
+            test3 = Collision::Intersect(m_Collision, collision);
+        }
+        if (World::GetBlock(pos4).IsSolid)
+        {
+            Collision collision = Collision::CollisionCenteredXYZ(pos4, 1.0f, 1.0f, 1.0f);
+            test4 = Collision::Intersect(m_Collision, collision);
+        }
+
+        if (test1 || test2 || test3 || test4)
+        {
+            m_Position.x = m_LastPosition.x;
+            UpdateCollision();
+        }
+    }
+
+    if (m_Position.y > m_LastPosition.y)
+    {
+        glm::ivec3 pos1 = {upper.x, upper.y, upper.z};
+        glm::ivec3 pos2 = {upper.x, upper.y, lower.z};
+        glm::ivec3 pos3 = {lower.x, upper.y, lower.z};
+        glm::ivec3 pos4 = {lower.x, upper.y, upper.z};
+
+        bool test1 = false;
+        bool test2 = false;
+        bool test3 = false;
+        bool test4 = false;
+
+        if (World::GetBlock(pos1).IsSolid)
+        {
+            Collision collision = Collision::CollisionCenteredXYZ(pos1, 1.0f, 1.0f, 1.0f);
+            test1 = Collision::Intersect(m_Collision, collision);
+        }
+        if (World::GetBlock(pos2).IsSolid)
+        {
+            Collision collision = Collision::CollisionCenteredXYZ(pos2, 1.0f, 1.0f, 1.0f);
+            test2 = Collision::Intersect(m_Collision, collision);
+        }
+        if (World::GetBlock(pos3).IsSolid)
+        {
+            Collision collision = Collision::CollisionCenteredXYZ(pos3, 1.0f, 1.0f, 1.0f);
+            test3 = Collision::Intersect(m_Collision, collision);
+        }
+        if (World::GetBlock(pos4).IsSolid)
+        {
+            Collision collision = Collision::CollisionCenteredXYZ(pos4, 1.0f, 1.0f, 1.0f);
+            test4 = Collision::Intersect(m_Collision, collision);
+        }
+
+        if (test1 || test2 || test3 || test4)
+        {
+            m_Position.y = m_LastPosition.y;
+            UpdateCollision();
+        }
+    }
+    else
+    {
+        glm::ivec3 pos1 = {upper.x, lower.y, upper.z};
+        glm::ivec3 pos2 = {upper.x, lower.y, lower.z};
+        glm::ivec3 pos3 = {lower.x, lower.y, lower.z};
+        glm::ivec3 pos4 = {lower.x, lower.y, upper.z};
+
+        bool test1 = false;
+        bool test2 = false;
+        bool test3 = false;
+        bool test4 = false;
+
+        if (World::GetBlock(pos1).IsSolid)
+        {
+            Collision collision = Collision::CollisionCenteredXYZ(pos1, 1.0f, 1.0f, 1.0f);
+            test1 = Collision::Intersect(m_Collision, collision);
+        }
+        if (World::GetBlock(pos2).IsSolid)
+        {
+            Collision collision = Collision::CollisionCenteredXYZ(pos2, 1.0f, 1.0f, 1.0f);
+            test2 = Collision::Intersect(m_Collision, collision);
+        }
+        if (World::GetBlock(pos3).IsSolid)
+        {
+            Collision collision = Collision::CollisionCenteredXYZ(pos3, 1.0f, 1.0f, 1.0f);
+            test3 = Collision::Intersect(m_Collision, collision);
+        }
+        if (World::GetBlock(pos4).IsSolid)
+        {
+            Collision collision = Collision::CollisionCenteredXYZ(pos4, 1.0f, 1.0f, 1.0f);
+            test4 = Collision::Intersect(m_Collision, collision);
+        }
+
+        if (test1 || test2 || test3 || test4)
+        {
+            m_Position.y = m_LastPosition.y;
+            UpdateCollision();
+        }
+    }
+
+    if (m_Position.z > m_LastPosition.z)
+    {
+        glm::ivec3 pos1 = {upper.x, upper.y, upper.z};
+        glm::ivec3 pos2 = {upper.x, lower.y, upper.z};
+        glm::ivec3 pos3 = {lower.x, lower.y, upper.z};
+        glm::ivec3 pos4 = {lower.x, upper.y, upper.z};
+
+        bool test1 = false;
+        bool test2 = false;
+        bool test3 = false;
+        bool test4 = false;
+
+        if (World::GetBlock(pos1).IsSolid)
+        {
+            Collision collision = Collision::CollisionCenteredXYZ(pos1, 1.0f, 1.0f, 1.0f);
+            test1 = Collision::Intersect(m_Collision, collision);
+        }
+        if (World::GetBlock(pos2).IsSolid)
+        {
+            Collision collision = Collision::CollisionCenteredXYZ(pos2, 1.0f, 1.0f, 1.0f);
+            test2 = Collision::Intersect(m_Collision, collision);
+        }
+        if (World::GetBlock(pos3).IsSolid)
+        {
+            Collision collision = Collision::CollisionCenteredXYZ(pos3, 1.0f, 1.0f, 1.0f);
+            test3 = Collision::Intersect(m_Collision, collision);
+        }
+        if (World::GetBlock(pos4).IsSolid)
+        {
+            Collision collision = Collision::CollisionCenteredXYZ(pos4, 1.0f, 1.0f, 1.0f);
+            test4 = Collision::Intersect(m_Collision, collision);
+        }
+
+        if (test1 || test2 || test3 || test4)
+        {
+            m_Position.z = m_LastPosition.z;
+            UpdateCollision();
+        }
+    }
+    else
+    {
+        glm::ivec3 pos1 = {upper.x, upper.y, lower.z};
+        glm::ivec3 pos2 = {upper.x, lower.y, lower.z};
+        glm::ivec3 pos3 = {lower.x, lower.y, lower.z};
+        glm::ivec3 pos4 = {lower.x, upper.y, lower.z};
+
+        bool test1 = false;
+        bool test2 = false;
+        bool test3 = false;
+        bool test4 = false;
+
+        if (World::GetBlock(pos1).IsSolid)
+        {
+            Collision collision = Collision::CollisionCenteredXYZ(pos1, 1.0f, 1.0f, 1.0f);
+            test1 = Collision::Intersect(m_Collision, collision);
+        }
+        if (World::GetBlock(pos2).IsSolid)
+        {
+            Collision collision = Collision::CollisionCenteredXYZ(pos2, 1.0f, 1.0f, 1.0f);
+            test2 = Collision::Intersect(m_Collision, collision);
+        }
+        if (World::GetBlock(pos3).IsSolid)
+        {
+            Collision collision = Collision::CollisionCenteredXYZ(pos3, 1.0f, 1.0f, 1.0f);
+            test3 = Collision::Intersect(m_Collision, collision);
+        }
+        if (World::GetBlock(pos4).IsSolid)
+        {
+            Collision collision = Collision::CollisionCenteredXYZ(pos4, 1.0f, 1.0f, 1.0f);
+            test4 = Collision::Intersect(m_Collision, collision);
+        }
+
+        if (test1 || test2 || test3 || test4)
+        {
+            m_Position.z = m_LastPosition.z;
+            UpdateCollision();
+        }
+    }
+}
+
+void Player::UpdateCollision()
+{
+    m_Collision = {m_Position.x + (0.5f * m_Width), m_Position.x - (0.5f * m_Width), m_Position.y + (0.5f * m_Width),
+                   m_Position.y - (0.5f * m_Width), m_Position.z + (0.5f * m_Width), m_Position.z - (0.5f * m_Width)};
 }
