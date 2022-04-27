@@ -228,250 +228,138 @@ void Player::UpdateCamera()
 void Player::ProcessCollision()
 {
     // Process movement in each direction
-    glm::vec3 position = m_Position;
-    glm::ivec3 lower = glm::ivec3(floor(position));
-    glm::ivec3 upper = glm::ivec3(ceil(position));
-
-    if (m_Position.x > m_LastPosition.x)
-    {
-        glm::ivec3 pos1 = {upper.x, upper.y, upper.z};
-        glm::ivec3 pos2 = {upper.x, upper.y, lower.z};
-        glm::ivec3 pos3 = {upper.x, lower.y, lower.z};
-        glm::ivec3 pos4 = {upper.x, lower.y, upper.z};
-
-        bool test1 = false;
-        bool test2 = false;
-        bool test3 = false;
-        bool test4 = false;
-
-        if (World::GetBlock(pos1).IsSolid)
-        {
-            Collision collision = Collision::CollisionCenteredXYZ(pos1, 1.0f, 1.0f, 1.0f);
-            test1 = Collision::Intersect(m_Collision, collision);
-        }
-        if (World::GetBlock(pos2).IsSolid)
-        {
-            Collision collision = Collision::CollisionCenteredXYZ(pos2, 1.0f, 1.0f, 1.0f);
-            test2 = Collision::Intersect(m_Collision, collision);
-        }
-        if (World::GetBlock(pos3).IsSolid)
-        {
-            Collision collision = Collision::CollisionCenteredXYZ(pos3, 1.0f, 1.0f, 1.0f);
-            test3 = Collision::Intersect(m_Collision, collision);
-        }
-        if (World::GetBlock(pos4).IsSolid)
-        {
-            Collision collision = Collision::CollisionCenteredXYZ(pos4, 1.0f, 1.0f, 1.0f);
-            test4 = Collision::Intersect(m_Collision, collision);
-        }
-
-        if (test1 || test2 || test3 || test4)
-        {
-            m_Position.x = m_LastPosition.x;
-            UpdateCollision();
-        }
-    }
-    else
-    {
-        glm::ivec3 pos1 = {lower.x, upper.y, upper.z};
-        glm::ivec3 pos2 = {lower.x, upper.y, lower.z};
-        glm::ivec3 pos3 = {lower.x, lower.y, lower.z};
-        glm::ivec3 pos4 = {lower.x, lower.y, upper.z};
-
-        bool test1 = false;
-        bool test2 = false;
-        bool test3 = false;
-        bool test4 = false;
-
-        if (World::GetBlock(pos1).IsSolid)
-        {
-            Collision collision = Collision::CollisionCenteredXYZ(pos1, 1.0f, 1.0f, 1.0f);
-            test1 = Collision::Intersect(m_Collision, collision);
-        }
-        if (World::GetBlock(pos2).IsSolid)
-        {
-            Collision collision = Collision::CollisionCenteredXYZ(pos2, 1.0f, 1.0f, 1.0f);
-            test2 = Collision::Intersect(m_Collision, collision);
-        }
-        if (World::GetBlock(pos3).IsSolid)
-        {
-            Collision collision = Collision::CollisionCenteredXYZ(pos3, 1.0f, 1.0f, 1.0f);
-            test3 = Collision::Intersect(m_Collision, collision);
-        }
-        if (World::GetBlock(pos4).IsSolid)
-        {
-            Collision collision = Collision::CollisionCenteredXYZ(pos4, 1.0f, 1.0f, 1.0f);
-            test4 = Collision::Intersect(m_Collision, collision);
-        }
-
-        if (test1 || test2 || test3 || test4)
-        {
-            m_Position.x = m_LastPosition.x;
-            UpdateCollision();
-        }
-    }
-
-    if (m_Position.y > m_LastPosition.y)
-    {
-        glm::ivec3 pos1 = {upper.x, upper.y, upper.z};
-        glm::ivec3 pos2 = {upper.x, upper.y, lower.z};
-        glm::ivec3 pos3 = {lower.x, upper.y, lower.z};
-        glm::ivec3 pos4 = {lower.x, upper.y, upper.z};
-
-        bool test1 = false;
-        bool test2 = false;
-        bool test3 = false;
-        bool test4 = false;
-
-        if (World::GetBlock(pos1).IsSolid)
-        {
-            Collision collision = Collision::CollisionCenteredXYZ(pos1, 1.0f, 1.0f, 1.0f);
-            test1 = Collision::Intersect(m_Collision, collision);
-        }
-        if (World::GetBlock(pos2).IsSolid)
-        {
-            Collision collision = Collision::CollisionCenteredXYZ(pos2, 1.0f, 1.0f, 1.0f);
-            test2 = Collision::Intersect(m_Collision, collision);
-        }
-        if (World::GetBlock(pos3).IsSolid)
-        {
-            Collision collision = Collision::CollisionCenteredXYZ(pos3, 1.0f, 1.0f, 1.0f);
-            test3 = Collision::Intersect(m_Collision, collision);
-        }
-        if (World::GetBlock(pos4).IsSolid)
-        {
-            Collision collision = Collision::CollisionCenteredXYZ(pos4, 1.0f, 1.0f, 1.0f);
-            test4 = Collision::Intersect(m_Collision, collision);
-        }
-
-        if (test1 || test2 || test3 || test4)
-        {
-            m_Position.y = m_LastPosition.y;
-            UpdateCollision();
-        }
-    }
-    else
-    {
-        glm::ivec3 pos1 = {upper.x, lower.y, upper.z};
-        glm::ivec3 pos2 = {upper.x, lower.y, lower.z};
-        glm::ivec3 pos3 = {lower.x, lower.y, lower.z};
-        glm::ivec3 pos4 = {lower.x, lower.y, upper.z};
-
-        bool test1 = false;
-        bool test2 = false;
-        bool test3 = false;
-        bool test4 = false;
-
-        if (World::GetBlock(pos1).IsSolid)
-        {
-            Collision collision = Collision::CollisionCenteredXYZ(pos1, 1.0f, 1.0f, 1.0f);
-            test1 = Collision::Intersect(m_Collision, collision);
-        }
-        if (World::GetBlock(pos2).IsSolid)
-        {
-            Collision collision = Collision::CollisionCenteredXYZ(pos2, 1.0f, 1.0f, 1.0f);
-            test2 = Collision::Intersect(m_Collision, collision);
-        }
-        if (World::GetBlock(pos3).IsSolid)
-        {
-            Collision collision = Collision::CollisionCenteredXYZ(pos3, 1.0f, 1.0f, 1.0f);
-            test3 = Collision::Intersect(m_Collision, collision);
-        }
-        if (World::GetBlock(pos4).IsSolid)
-        {
-            Collision collision = Collision::CollisionCenteredXYZ(pos4, 1.0f, 1.0f, 1.0f);
-            test4 = Collision::Intersect(m_Collision, collision);
-        }
-
-        if (test1 || test2 || test3 || test4)
-        {
-            m_Position.y = m_LastPosition.y;
-            UpdateCollision();
-        }
-    }
-
-    if (m_Position.z > m_LastPosition.z)
-    {
-        glm::ivec3 pos1 = {upper.x, upper.y, upper.z};
-        glm::ivec3 pos2 = {upper.x, lower.y, upper.z};
-        glm::ivec3 pos3 = {lower.x, lower.y, upper.z};
-        glm::ivec3 pos4 = {lower.x, upper.y, upper.z};
-
-        bool test1 = false;
-        bool test2 = false;
-        bool test3 = false;
-        bool test4 = false;
-
-        if (World::GetBlock(pos1).IsSolid)
-        {
-            Collision collision = Collision::CollisionCenteredXYZ(pos1, 1.0f, 1.0f, 1.0f);
-            test1 = Collision::Intersect(m_Collision, collision);
-        }
-        if (World::GetBlock(pos2).IsSolid)
-        {
-            Collision collision = Collision::CollisionCenteredXYZ(pos2, 1.0f, 1.0f, 1.0f);
-            test2 = Collision::Intersect(m_Collision, collision);
-        }
-        if (World::GetBlock(pos3).IsSolid)
-        {
-            Collision collision = Collision::CollisionCenteredXYZ(pos3, 1.0f, 1.0f, 1.0f);
-            test3 = Collision::Intersect(m_Collision, collision);
-        }
-        if (World::GetBlock(pos4).IsSolid)
-        {
-            Collision collision = Collision::CollisionCenteredXYZ(pos4, 1.0f, 1.0f, 1.0f);
-            test4 = Collision::Intersect(m_Collision, collision);
-        }
-
-        if (test1 || test2 || test3 || test4)
-        {
-            m_Position.z = m_LastPosition.z;
-            UpdateCollision();
-        }
-    }
-    else
-    {
-        glm::ivec3 pos1 = {upper.x, upper.y, lower.z};
-        glm::ivec3 pos2 = {upper.x, lower.y, lower.z};
-        glm::ivec3 pos3 = {lower.x, lower.y, lower.z};
-        glm::ivec3 pos4 = {lower.x, upper.y, lower.z};
-
-        bool test1 = false;
-        bool test2 = false;
-        bool test3 = false;
-        bool test4 = false;
-
-        if (World::GetBlock(pos1).IsSolid)
-        {
-            Collision collision = Collision::CollisionCenteredXYZ(pos1, 1.0f, 1.0f, 1.0f);
-            test1 = Collision::Intersect(m_Collision, collision);
-        }
-        if (World::GetBlock(pos2).IsSolid)
-        {
-            Collision collision = Collision::CollisionCenteredXYZ(pos2, 1.0f, 1.0f, 1.0f);
-            test2 = Collision::Intersect(m_Collision, collision);
-        }
-        if (World::GetBlock(pos3).IsSolid)
-        {
-            Collision collision = Collision::CollisionCenteredXYZ(pos3, 1.0f, 1.0f, 1.0f);
-            test3 = Collision::Intersect(m_Collision, collision);
-        }
-        if (World::GetBlock(pos4).IsSolid)
-        {
-            Collision collision = Collision::CollisionCenteredXYZ(pos4, 1.0f, 1.0f, 1.0f);
-            test4 = Collision::Intersect(m_Collision, collision);
-        }
-
-        if (test1 || test2 || test3 || test4)
-        {
-            m_Position.z = m_LastPosition.z;
-            UpdateCollision();
-        }
-    }
+    CheckYCollision();
+    CheckXCollision();
+    CheckZCollision();
 }
 
 void Player::UpdateCollision()
 {
     m_Collision = {m_Position.x + (0.5f * m_Width), m_Position.x - (0.5f * m_Width), m_Position.y + (0.5f * m_Width),
-                   m_Position.y - (0.5f * m_Width), m_Position.z + (0.5f * m_Width), m_Position.z - (0.5f * m_Width)};
+                   m_Position.y - (0.5f * m_Width) - m_Height, m_Position.z + (0.5f * m_Width), m_Position.z - (0.5f * m_Width)};
+}
+
+void Player::CheckXCollision()
+{
+    // Process movement in each direction
+    glm::vec3 position = m_Position;
+    glm::ivec3 lower = glm::ivec3(floor(position));
+    glm::ivec3 upper = glm::ivec3(ceil(position));
+
+    std::vector<glm::ivec3> positions;
+    std::vector<bool> tests;
+    Collision collision;
+
+    if (m_Position.x > m_LastPosition.x)
+    {
+        positions = {{upper.x, upper.y, upper.z},
+                     {upper.x, upper.y, lower.z},
+                     {upper.x, lower.y, lower.z},
+                     {upper.x, lower.y, upper.z}};
+    }
+    else
+    {
+        positions = {{lower.x, upper.y, upper.z},
+                     {lower.x, upper.y, lower.z},
+                     {lower.x, lower.y, lower.z},
+                     {lower.x, lower.y, upper.z}};
+    }
+    tests = {false, false, false, false};
+    for (int i = 0; i < 4; i++)
+    {
+        if (World::GetBlock(positions[i]).IsSolid)
+        {
+            collision = Collision::CollisionCenteredXYZ(positions[i], 1.0f, 1.0f, 1.0f);
+            tests[i] = Collision::Intersect(m_Collision, collision);
+        }
+    }
+    if (tests[0] || tests[1] || tests[2] || tests[3])
+    {
+        m_Position.x = m_LastPosition.x;
+        UpdateCollision();
+    }
+}
+
+void Player::CheckYCollision()
+{
+    // Process movement in each direction
+    glm::vec3 position = m_Position;
+    glm::ivec3 lower = glm::ivec3(floor(position - glm::vec3(0.0f, m_Height, 0.0f)));
+    glm::ivec3 upper = glm::ivec3(ceil(position));
+
+    std::vector<glm::ivec3> positions;
+    std::vector<bool> tests;
+    Collision collision;
+
+    // Y Processing
+    if (m_Position.y > m_LastPosition.y)
+    {
+        positions = {{upper.x, upper.y, upper.z},
+                     {upper.x, upper.y, lower.z},
+                     {lower.x, upper.y, lower.z},
+                     {lower.x, upper.y, upper.z}};
+    }
+    else
+    {
+        positions = {{upper.x, lower.y, upper.z},
+                     {upper.x, lower.y, lower.z},
+                     {lower.x, lower.y, lower.z},
+                     {lower.x, lower.y, upper.z}};
+    }
+    tests = {false, false, false, false};
+    for (int i = 0; i < 4; i++)
+    {
+        if (World::GetBlock(positions[i]).IsSolid)
+        {
+            collision = Collision::CollisionCenteredXYZ(positions[i], 1.0f, 1.0f, 1.0f);
+            tests[i] = Collision::Intersect(m_Collision, collision);
+        }
+    }
+    if (tests[0] || tests[1] || tests[2] || tests[3])
+    {
+        m_Position.y = m_LastPosition.y;
+        UpdateCollision();
+    }
+}
+
+void Player::CheckZCollision()
+{
+    // Process movement in each direction
+    glm::vec3 position = m_Position;
+    glm::ivec3 lower = glm::ivec3(floor(position));
+    glm::ivec3 upper = glm::ivec3(ceil(position));
+
+    std::vector<glm::ivec3> positions;
+    std::vector<bool> tests;
+    Collision collision;
+
+    // Z Processing
+    if (m_Position.z > m_LastPosition.z)
+    {
+        positions = {{upper.x, upper.y, upper.z},
+                     {upper.x, lower.y, upper.z},
+                     {lower.x, lower.y, upper.z},
+                     {lower.x, upper.y, upper.z}};
+    }
+    else
+    {
+        positions = {{upper.x, upper.y, lower.z},
+                     {upper.x, lower.y, lower.z},
+                     {lower.x, lower.y, lower.z},
+                     {lower.x, upper.y, lower.z}};
+    }
+    tests = {false, false, false, false};
+    for (int i = 0; i < 4; i++)
+    {
+        if (World::GetBlock(positions[i]).IsSolid)
+        {
+            collision = Collision::CollisionCenteredXYZ(positions[i], 1.0f, 1.0f, 1.0f);
+            tests[i] = Collision::Intersect(m_Collision, collision);
+        }
+    }
+    if (tests[0] || tests[1] || tests[2] || tests[3])
+    {
+        m_Position.z = m_LastPosition.z;
+        UpdateCollision();
+    }
 }

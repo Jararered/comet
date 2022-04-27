@@ -28,10 +28,14 @@ class Player : public Entity
     void ProcessScrolls();
 
     void ProcessMovement();
-    void UpdateCollision();
     void ProcessRotation();
-    void ProcessCollision();
     void UpdateCamera();
+
+    void ProcessCollision();
+    void UpdateCollision();
+    void CheckXCollision();
+    void CheckYCollision();
+    void CheckZCollision();
 
     void GetRequestedChunks();
 
