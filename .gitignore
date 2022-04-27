@@ -1,3 +1,5 @@
 /.vscode
 /build
 /.cache
+/game/worlddata
+/game/imgui.ini
