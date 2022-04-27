@@ -6,6 +6,12 @@ void TextureMap::Configure(int width, int height, int resolution)
 {
     TextureMap &map = Instance();
 
+    if (!(width > 0) || !(width < 10000) || !(height > 0) || !(height < 10000))
+    {
+        std::cout << "TextureMap::Configure(): Unexpected image parameters.\n";
+        return;
+    }
+
     map.m_Width = width;
     map.m_Height = height;
     map.m_Resolution = resolution;
