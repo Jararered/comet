@@ -19,7 +19,7 @@ void Player::FrameUpdate()
     ProcessClicks();
 
     ProcessMovement();
-    UpdateCollision();
+    UpdateBoundingBox();
     ProcessCollision();
 
     ProcessRotation();
@@ -121,7 +121,7 @@ void Player::ProcessMovement()
     // Sprinting
     if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
     {
-        magnitude *= 10;
+        magnitude *= 3;
     }
 
     // Basic movement processing
@@ -233,10 +233,10 @@ void Player::ProcessCollision()
     CheckZCollision();
 }
 
-void Player::UpdateCollision()
+void Player::UpdateBoundingBox()
 {
-    m_Collision = {m_Position.x + (0.5f * m_Width), m_Position.x - (0.5f * m_Width), m_Position.y + 0.25f,
-                   m_Position.y - m_Height,         m_Position.z + (0.5f * m_Width), m_Position.z - (0.5f * m_Width)};
+    m_BoundingBox = {m_Position.x + (0.5f * m_Width), m_Position.x - (0.5f * m_Width), m_Position.y + 0.25f,
+                     m_Position.y - m_Height,         m_Position.z + (0.5f * m_Width), m_Position.z - (0.5f * m_Width)};
 }
 
 void Player::CheckXCollision()
@@ -265,13 +265,13 @@ void Player::CheckXCollision()
         if (World::GetBlock(positions[i]).IsSolid)
         {
             collision = Collision::CollisionCenteredXYZ(positions[i], 1.0f, 1.0f, 1.0f);
-            tests[i] = Collision::Intersect(m_Collision, collision);
+            tests[i] = Collision::Intersect(m_BoundingBox, collision);
         }
     }
     if (tests[0] || tests[1] || tests[2] || tests[3] || tests[4] || tests[5])
     {
         m_Position.x = m_LastPosition.x;
-        UpdateCollision();
+        UpdateBoundingBox();
     }
 }
 
@@ -306,13 +306,13 @@ void Player::CheckYCollision()
         if (World::GetBlock(positions[i]).IsSolid)
         {
             collision = Collision::CollisionCenteredXYZ(positions[i], 1.0f, 1.0f, 1.0f);
-            tests[i] = Collision::Intersect(m_Collision, collision);
+            tests[i] = Collision::Intersect(m_BoundingBox, collision);
         }
     }
     if (tests[0] || tests[1] || tests[2] || tests[3])
     {
         m_Position.y = m_LastPosition.y;
-        UpdateCollision();
+        UpdateBoundingBox();
     }
 }
 
@@ -343,12 +343,12 @@ void Player::CheckZCollision()
         if (World::GetBlock(positions[i]).IsSolid)
         {
             collision = Collision::CollisionCenteredXYZ(positions[i], 1.0f, 1.0f, 1.0f);
-            tests[i] = Collision::Intersect(m_Collision, collision);
+            tests[i] = Collision::Intersect(m_BoundingBox, collision);
         }
     }
     if (tests[0] || tests[1] || tests[2] || tests[3] || tests[4] || tests[5])
     {
         m_Position.z = m_LastPosition.z;
-        UpdateCollision();
+        UpdateBoundingBox();
     }
 }

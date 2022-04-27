@@ -32,7 +32,7 @@ class Player : public Entity
     void UpdateCamera();
 
     void ProcessCollision();
-    void UpdateCollision();
+    void UpdateBoundingBox();
     void CheckXCollision();
     void CheckYCollision();
     void CheckZCollision();
@@ -51,11 +51,11 @@ class Player : public Entity
     double newOffset = 0.0;
 
     // Collision parameters
-    Collision m_Collision;
+    Collision m_BoundingBox;
     float m_Height = 1.5f;
     float m_Width = 0.75f;
 
-    float m_MovementSpeed = 3.0f;
+    float m_MovementSpeed = 4.0f;
     float m_RotationSpeed = 1.5f;
     glm::vec3 m_ForwardVector = {0.0f, 0.0f, -1.0f};
     glm::vec3 m_Direction = {0.0f, 0.0f, 0.0f};
