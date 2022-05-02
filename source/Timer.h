@@ -5,16 +5,16 @@
 
 class Timer
 {
-  public:
+public:
     Timer();
     Timer(const std::string &scope);
     ~Timer();
 
-  private:
+private:
     double m_StartTime;
     std::string m_ScopeName;
 
-  public:
+public:
     double StartTime() const { return m_StartTime; }
     void SetStartTime(double StartTime) { m_StartTime = StartTime; }
 

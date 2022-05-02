@@ -3,3 +3,4 @@ BasedOnStyle: Microsoft
 ColumnLimit: 120
 IndentWidth: 4
 AllowShortFunctionsOnASingleLine: All
+AccessModifierOffset: -4

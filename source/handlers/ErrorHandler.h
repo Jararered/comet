@@ -2,7 +2,7 @@
 
 class ErrorHandler
 {
-  public:
+public:
     inline static auto &Instance()
     {
         static ErrorHandler instance;
@@ -12,7 +12,7 @@ class ErrorHandler
     static void Initialize();
     static void SetupCallbacks();
 
-  private:
+private:
     ErrorHandler() {}
     ErrorHandler(ErrorHandler const &);
     void operator=(ErrorHandler const &);

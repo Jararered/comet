@@ -4,7 +4,7 @@
 
 class EventHandler
 {
-  public:
+public:
     inline static auto &Instance()
     {
         static EventHandler instance;
@@ -14,7 +14,7 @@ class EventHandler
     static void Initialize();
     static void PollEvents();
 
-  private:
+private:
     EventHandler() {}
     EventHandler(EventHandler const &);
     void operator=(EventHandler const &);

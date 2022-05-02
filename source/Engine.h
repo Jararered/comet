@@ -18,7 +18,7 @@
 
 class Engine
 {
-  public:
+public:
     inline static auto &Instance()
     {
         static Engine instance;
@@ -30,7 +30,7 @@ class Engine
 
     static void Thread();
 
-  private:
+private:
     Engine() {}
     Engine(Engine const &);
     void operator=(Engine const &);
@@ -39,7 +39,7 @@ class Engine
     double m_TimeDelta = 0.0; // ms
     double m_TimeLast = 0.0;  // ms
 
-  public:
+public:
     static bool IsShouldClose() { return Instance().m_ShouldClose; }
     static void SetShouldClose(bool ShouldClose) { Instance().m_ShouldClose = ShouldClose; }
 

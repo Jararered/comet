@@ -19,7 +19,7 @@ struct Lock
 
 class Renderer
 {
-  public:
+public:
     inline static auto &Instance()
     {
         static Renderer instance;
@@ -46,7 +46,7 @@ class Renderer
     static void DeleteMeshFromQueue(glm::ivec3 index);
     static void ProcessMeshQueues();
 
-  private:
+private:
     Renderer() {}
     Renderer(Renderer const &);
     void operator=(Renderer const &);
@@ -64,8 +64,7 @@ class Renderer
     std::unordered_set<glm::ivec3> m_MeshesToUpdate;
     std::unordered_set<glm::ivec3> m_MeshesToDelete;
 
-
-  public:
+public:
     static glm::vec3 OverlayColor() { return Instance().m_OverlayColor; }
     static void SetOverlayColor(const glm::vec3 &OverlayColor) { Instance().m_OverlayColor = OverlayColor; }
 
@@ -76,5 +75,8 @@ class Renderer
     static void SetResetting(bool Resetting) { Instance().m_Resetting = Resetting; }
 
     static unsigned int DrawCallsPerFrame() { return Instance().m_DrawCallsPerFrame; }
-    static void SetDrawCallsPerFrame(unsigned int DrawCallsPerFrame) { Instance().m_DrawCallsPerFrame = DrawCallsPerFrame; }
+    static void SetDrawCallsPerFrame(unsigned int DrawCallsPerFrame)
+    {
+        Instance().m_DrawCallsPerFrame = DrawCallsPerFrame;
+    }
 };

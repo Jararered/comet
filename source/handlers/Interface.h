@@ -4,8 +4,8 @@
 
 class Interface
 {
-  public:
+public:
     virtual void Draw() {}
 
-  protected:
+protected:
 };

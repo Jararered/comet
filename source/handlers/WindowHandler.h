@@ -7,7 +7,7 @@
 
 class WindowHandler
 {
-  public:
+public:
     inline static auto &Instance()
     {
         static WindowHandler instance;
@@ -22,7 +22,7 @@ class WindowHandler
 
     int CreateWindow();
 
-  private:
+private:
     WindowHandler() {}
     WindowHandler(WindowHandler const &);
     void operator=(WindowHandler const &) {}
@@ -35,7 +35,7 @@ class WindowHandler
     int m_WindowHeight = 0;
     int m_WindowWidth = 0;
 
-  public:
+public:
     static GLFWwindow *Window() { return Instance().m_Window; }
 
     static int WindowHeight() { return Instance().m_WindowHeight; }

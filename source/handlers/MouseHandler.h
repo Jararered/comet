@@ -7,7 +7,7 @@
 
 class MouseHandler
 {
-  public:
+public:
     inline static auto &Instance()
     {
         static MouseHandler instance;
@@ -25,7 +25,7 @@ class MouseHandler
     static void CaptureCursor();
     static void ReleaseCursor();
 
-  private:
+private:
     MouseHandler() {}
     MouseHandler(MouseHandler const &);
     void operator=(MouseHandler const &) {}
@@ -45,7 +45,7 @@ class MouseHandler
 
     double m_ScrollOffset = 0.0;
 
-  public:
+public:
     static double ScrollOffset() { return Instance().m_ScrollOffset; }
     static double DeltaX() { return Instance().m_MovementSinceLastFrame[0]; }
     static double DeltaY() { return Instance().m_MovementSinceLastFrame[1]; }

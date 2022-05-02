@@ -6,7 +6,7 @@
 
 class EntityHandler
 {
-  public:
+public:
     inline static auto &Instance()
     {
         static EntityHandler instance;
@@ -26,7 +26,7 @@ class EntityHandler
     // Should be called from the engine loop, not the game loop
     static void FrameUpdate();
 
-  private:
+private:
     EntityHandler() {}
     EntityHandler(EntityHandler const &);
     void operator=(EntityHandler const &);

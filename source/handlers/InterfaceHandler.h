@@ -6,7 +6,7 @@
 
 class InterfaceHandler
 {
-  public:
+public:
     inline static auto &Instance()
     {
         static InterfaceHandler instance;
@@ -18,13 +18,13 @@ class InterfaceHandler
     static void RemoveInterface(Interface *interface) { Instance().m_Interfaces.erase(interface); }
     static void DrawInterfaces()
     {
-        for (const auto& interface : Instance().m_Interfaces)
+        for (const auto &interface : Instance().m_Interfaces)
         {
             interface->Draw();
         }
     }
 
-  private:
+private:
     InterfaceHandler() {}
     InterfaceHandler(InterfaceHandler const &);
     void operator=(InterfaceHandler const &);

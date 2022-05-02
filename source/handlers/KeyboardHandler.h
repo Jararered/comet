@@ -5,7 +5,7 @@
 
 class KeyboardHandler
 {
-  public:
+public:
     inline static auto &Instance()
     {
         static KeyboardHandler instance;
@@ -15,7 +15,7 @@ class KeyboardHandler
     static void Initialize();
     static void SetupCallbacks();
 
-  private:
+private:
     KeyboardHandler() {}
     KeyboardHandler(KeyboardHandler const &);
     void operator=(KeyboardHandler const &);

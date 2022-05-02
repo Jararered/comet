@@ -8,7 +8,7 @@
 
 class Camera
 {
-  public:
+public:
     inline static auto &Instance()
     {
         static Camera instance;
@@ -29,7 +29,7 @@ class Camera
     constexpr static glm::vec3 POSITIVE_Z = {0.0f, 0.0f, 1.0f};
     constexpr static glm::vec3 WORLD_ORIGIN = {0.0f, 0.0f, 0.0f};
 
-  private:
+private:
     Camera() {}
     Camera(Camera const &);
     void operator=(Camera const &) {}
@@ -48,7 +48,7 @@ class Camera
     glm::mat4 m_ProjMatrix = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
                               0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
 
-  public:
+public:
     static float FOV() { return Instance().m_FOV; }
     static void SetFOV(float FOV) { Instance().m_FOV = FOV; }
 
