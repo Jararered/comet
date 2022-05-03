@@ -14,7 +14,7 @@ int main(void)
     // Initializing engine components.
     // This is needed to initialize keyboard/mouse controls,
     // as well as the core OpenGL context.
-    Engine::Initialize();
+    Engine engine = Engine();
 
     // Starting world thread and configuring
     World::Initialize();
@@ -23,19 +23,18 @@ int main(void)
     // Create player entity and add it to the entity handler
     // Entity handler is now on the world thread
     Player player;
+    player.AttachCamera(engine.GetCamera());
     player.SetPosition({0.0f, 60.0f, 0.0f});
-    Camera::SetPosition({0.0f, 60.0f, 0.0f});
 
     // Create the debugging menu
     RenderInterface renderInterface;
     CrosshairInterface crosshairInterface;
 
     // Starting main engine thread
-    Engine::Thread();
+    engine.Thread();
 
     // Ending threads
     World::Finalize();
-    Engine::Finalize();
 
     return 0;
 }

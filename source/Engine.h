@@ -2,12 +2,6 @@
 
 #include <comet.pch>
 
-#include "handlers/EntityHandler.h"
-#include "handlers/ErrorHandler.h"
-#include "handlers/EventHandler.h"
-#include "handlers/KeyboardHandler.h"
-#include "handlers/MouseHandler.h"
-
 #include "Camera.h"
 #include "Renderer.h"
 #include "render/ShaderProgram.h"
@@ -16,36 +10,56 @@
 
 #include "Timer.h"
 
+class EntityHandler;
+class ErrorHandler;
+class EventHandler;
+class KeyboardHandler;
+class MouseHandler;
+class InterfaceHandler;
+
 class Engine
 {
 public:
-    inline static auto &Instance()
-    {
-        static Engine instance;
-        return instance;
-    }
+    Engine();
+    ~Engine();
 
-    static void Initialize();
-    static void Finalize();
-
-    static void Thread();
+    void Thread();
 
 private:
-    Engine() {}
-    Engine(Engine const &);
-    void operator=(Engine const &);
-
     bool m_ShouldClose = false;
     double m_TimeDelta = 0.0; // ms
     double m_TimeLast = 0.0;  // ms
 
+    WindowHandler *m_WindowHandler;
+    EventHandler *m_EventHandler;
+    KeyboardHandler *m_KeyboardHandler;
+    MouseHandler *m_MouseHandler;
+    ErrorHandler *m_ErrorHandler;
+    EntityHandler *m_EntityHandler;
+    InterfaceHandler *m_InterfaceHandler;
+
+    TextureMap *m_TextureMap;
+    Renderer *m_Renderer;
+    Camera *m_Camera;
+
 public:
-    static bool IsShouldClose() { return Instance().m_ShouldClose; }
-    static void SetShouldClose(bool ShouldClose) { Instance().m_ShouldClose = ShouldClose; }
+    bool IsShouldClose() { return m_ShouldClose; }
+    void SetShouldClose(bool ShouldClose) { m_ShouldClose = ShouldClose; }
 
-    static double TimeDelta() { return Instance().m_TimeDelta; }
-    static void SetTimeDelta(double TimeDelta) { Instance().m_TimeDelta = TimeDelta; }
+    double TimeDelta() { return m_TimeDelta; }
+    void SetTimeDelta(double TimeDelta) { m_TimeDelta = TimeDelta; }
 
-    static double TimeLast() { return Instance().m_TimeLast; }
-    static void SetTimeLast(double TimeLast) { Instance().m_TimeLast = TimeLast; }
+    double TimeLast() { return m_TimeLast; }
+    void SetTimeLast(double TimeLast) { m_TimeLast = TimeLast; }
+
+    WindowHandler *GetWindowHandler() const { return m_WindowHandler; }
+    EventHandler *GetEventHandler() const { return m_EventHandler; }
+    KeyboardHandler *GetKeyboardHandler() const { return m_KeyboardHandler; }
+    MouseHandler *GetMouseHandler() const { return m_MouseHandler; }
+    ErrorHandler *GetErrorHandler() const { return m_ErrorHandler; }
+    EntityHandler *GetEntityHandler() const { return m_EntityHandler; }
+    InterfaceHandler *GetInterfaceHandler() const { return m_InterfaceHandler; }
+    TextureMap *GetTextureMap() const { return m_TextureMap; }
+    Renderer *GetRenderer() const { return m_Renderer; }
+    Camera *GetCamera() const { return m_Camera; }
 };

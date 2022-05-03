@@ -5,9 +5,9 @@
 
 Player::Player()
 {
-    Camera::SetPosition(m_Position);
-    EntityHandler::AddToUpdater(this);
-    EntityHandler::AddToFrameUpdater(this);
+    m_Camera->SetPosition(m_Position);
+    m_EntityHandler->AddToUpdater(this);
+    m_EntityHandler->AddToFrameUpdater(this);
 }
 
 Player::~Player() {}
@@ -31,13 +31,13 @@ void Player::FrameUpdate()
     if (blockInsideOf.ID == ID::Water && blockInsideOf.ID != m_LastBlockInsideOf.ID)
     {
         SetInWater(true);
-        Renderer::SetOverlayColor({-0.1f, -0.1f, 0.3f});
+        m_Renderer->SetOverlayColor({-0.1f, -0.1f, 0.3f});
     }
 
     if (blockInsideOf.ID != ID::Water && m_LastBlockInsideOf.ID == ID::Water)
     {
         SetInWater(false);
-        Renderer::SetOverlayColor({0.0f, 0.0f, 0.0f});
+        m_Renderer->SetOverlayColor({0.0f, 0.0f, 0.0f});
     }
 
     m_LastBlockInsideOf = blockInsideOf;
@@ -98,11 +98,11 @@ void Player::BreakBlock()
 
 void Player::ProcessClicks()
 {
-    if (MouseHandler::LeftClick())
+    if (m_MouseHandler->LeftClick())
     {
         Player::BreakBlock();
     }
-    else if (MouseHandler::RightClick())
+    else if (m_MouseHandler->RightClick())
     {
         Player::PlaceBlock();
     }
@@ -112,7 +112,7 @@ void Player::ProcessMovement()
 {
     m_LastPosition = m_Position;
 
-    float magnitude = m_MovementSpeed * Engine::TimeDelta();
+    float magnitude = m_MovementSpeed * m_Engine->TimeDelta();
     glm::vec3 movementDirection = {0.0f, 0.0f, 0.0f};
 
     // Used so when walking forward vertical movement doesn't occur.
@@ -153,11 +153,11 @@ void Player::ProcessMovement()
     // Don't care about limiting speed along verticals.
     if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_SPACE) == GLFW_PRESS)
     {
-        movementDirection += Camera::POSITIVE_Y;
+        movementDirection += m_Camera->POSITIVE_Y;
     }
     if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
     {
-        movementDirection -= Camera::POSITIVE_Y;
+        movementDirection -= m_Camera->POSITIVE_Y;
     }
 
     m_Position += movementDirection * magnitude;
@@ -169,8 +169,8 @@ void Player::ProcessRotation()
     // The delta x and delta y variables from the mouse handler are an
     // accumulation of movement over each frame, and this function is
     // run each frame as well, so no need to rely on a dt.
-    m_Yaw += (MouseHandler::DeltaX() * m_RotationSpeed) / 300.0;
-    m_Pitch += (MouseHandler::DeltaY() * m_RotationSpeed) / 300.0;
+    m_Yaw += (m_MouseHandler->DeltaX() * m_RotationSpeed) / 300.0;
+    m_Pitch += (m_MouseHandler->DeltaY() * m_RotationSpeed) / 300.0;
 
     // Keep yaw angle from getting to imprecise
     if (m_Yaw > glm::radians(360.0f))
@@ -197,12 +197,12 @@ void Player::ProcessRotation()
     m_Direction.z = glm::sin(m_Yaw) * glm::cos(m_Pitch);
 
     m_ForwardVector = glm::normalize(m_Direction);
-    m_RightVector = glm::cross(m_ForwardVector, Camera::POSITIVE_Y);
+    m_RightVector = glm::cross(m_ForwardVector, m_Camera->POSITIVE_Y);
 }
 
 void Player::ProcessScrolls()
 {
-    newOffset = MouseHandler::ScrollOffset();
+    newOffset = m_MouseHandler->ScrollOffset();
 
     if (newOffset > oldOffset)
     {
@@ -216,13 +216,13 @@ void Player::ProcessScrolls()
         std::cout << static_cast<int>(m_SelectedBlock) << std::endl;
     }
 
-    oldOffset = MouseHandler::ScrollOffset();
+    oldOffset = m_MouseHandler->ScrollOffset();
 }
 
 void Player::UpdateCamera()
 {
-    Camera::SetPosition(m_Position);
-    Camera::SetForwardVector(m_ForwardVector);
+    m_Camera->SetPosition(m_Position);
+    m_Camera->SetForwardVector(m_ForwardVector);
 }
 
 void Player::ProcessCollision()

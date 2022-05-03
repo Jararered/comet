@@ -1,11 +1,11 @@
 #include "Renderer.h"
 
-Lock Renderer::QueueLock;
+#include "Camera.h"
+#include "handlers/WindowHandler.h"
+#include "handlers/InterfaceHandler.h"
 
-void Renderer::Initialize()
+Renderer::Renderer()
 {
-    Instance();
-
     // Enables z buffer depth testing, prevents incorrect depth rendering
     glEnable(GL_DEPTH_TEST);
 
@@ -23,11 +23,13 @@ void Renderer::Initialize()
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
-    ImGui_ImplGlfw_InitForOpenGL(WindowHandler::Window(), true);
+    ImGui_ImplGlfw_InitForOpenGL(m_WindowHandler->Window(), true);
     ImGui_ImplOpenGL3_Init("#version 330");
 
-    Instance().m_BackgroundColor = glm::vec3(135.0f / 255.0f, 206.0f / 255.0f, 250.0f / 255.0f);
+    m_BackgroundColor = glm::vec3(135.0f / 255.0f, 206.0f / 255.0f, 250.0f / 255.0f);
 }
+
+Renderer::~Renderer() {}
 
 void Renderer::NewFrame()
 {
@@ -35,7 +37,7 @@ void Renderer::NewFrame()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Background color
-    glClearColor(Instance().m_BackgroundColor.x, Instance().m_BackgroundColor.y, Instance().m_BackgroundColor.z, 0.0f);
+    glClearColor(m_BackgroundColor.x, m_BackgroundColor.y, m_BackgroundColor.z, 0.0f);
 }
 
 void Renderer::SwapBuffers() { glfwSwapBuffers(glfwGetCurrentContext()); }
@@ -45,10 +47,10 @@ void Renderer::ResetRenderer()
     SetResetting(true);
 
     // Resetting all render queues
-    Instance().m_MeshMap.clear();
-    Instance().m_MeshesToAdd.clear();
-    Instance().m_MeshesToDelete.clear();
-    Instance().m_MeshesToUpdate.clear();
+    m_MeshMap.clear();
+    m_MeshesToAdd.clear();
+    m_MeshesToDelete.clear();
+    m_MeshesToUpdate.clear();
 }
 
 void Renderer::DrawMeshQueue()
@@ -56,7 +58,6 @@ void Renderer::DrawMeshQueue()
     unsigned int drawCalls = 0;
 
     unsigned int shaderID;
-    auto &renderer = Instance();
 
     ProcessMeshQueues();
 
@@ -67,7 +68,7 @@ void Renderer::DrawMeshQueue()
     glEnable(GL_CULL_FACE);
     glDisable(GL_BLEND);
 
-    for (auto &[index, mesh] : Instance().m_MeshMap)
+    for (auto &[index, mesh] : m_MeshMap)
     {
         shaderID = mesh.Shader()->GetID();
 
@@ -81,8 +82,8 @@ void Renderer::DrawMeshQueue()
         glUniform3fv(glGetUniformLocation(shaderID, "u_OverlayColor"), 1, &OverlayColor()[0]);
         glUniform1f(glGetUniformLocation(shaderID, "u_Transparency"), mesh.Transparency());
         glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_ModelMatrix"), 1, GL_FALSE, &mesh.ModelMatrix()[0][0]);
-        glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_ViewMatrix"), 1, GL_FALSE, &Camera::ViewMatrix()[0][0]);
-        glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_ProjMatrix"), 1, GL_FALSE, &Camera::ProjMatrix()[0][0]);
+        glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_ViewMatrix"), 1, GL_FALSE, &m_Camera->ViewMatrix()[0][0]);
+        glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_ProjMatrix"), 1, GL_FALSE, &m_Camera->ProjMatrix()[0][0]);
         glUniform1i(glGetUniformLocation(shaderID, "u_Texture"), 0);
 
         // Drawing mesh
@@ -99,7 +100,7 @@ void Renderer::DrawInterfaceQueue()
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    InterfaceHandler::DrawInterfaces();
+    m_InterfaceHandler->DrawInterfaces();
 
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -116,21 +117,21 @@ void Renderer::DrawInterfaceQueue()
 void Renderer::AddMeshToQueue(glm::ivec3 index, const Mesh &mesh)
 {
     QueueLock.AddQueue.lock();
-    Instance().m_MeshesToAdd.insert_or_assign(index, mesh);
+    m_MeshesToAdd.insert_or_assign(index, mesh);
     QueueLock.AddQueue.unlock();
 }
 
 void Renderer::UpdateMeshInQueue(glm::ivec3 index)
 {
     QueueLock.UpdateQueue.lock();
-    Instance().m_MeshesToUpdate.insert(index);
+    m_MeshesToUpdate.insert(index);
     QueueLock.UpdateQueue.unlock();
 }
 
 void Renderer::DeleteMeshFromQueue(glm::ivec3 index)
 {
     QueueLock.DeleteQueue.lock();
-    Instance().m_MeshesToDelete.insert(index);
+    m_MeshesToDelete.insert(index);
     QueueLock.DeleteQueue.unlock();
 }
 
@@ -138,36 +139,36 @@ void Renderer::ProcessMeshQueues()
 {
     // Adding meshes to the queue
     QueueLock.AddQueue.lock();
-    for (const auto &[index, mesh] : Instance().m_MeshesToAdd)
+    for (const auto &[index, mesh] : m_MeshesToAdd)
     {
 
-        Instance().m_MeshMap.insert_or_assign(index, mesh);
-        Instance().m_MeshMap.at(index).Initialize();
+        m_MeshMap.insert_or_assign(index, mesh);
+        m_MeshMap.at(index).Initialize();
     }
-    Instance().m_MeshesToAdd.clear();
+    m_MeshesToAdd.clear();
     QueueLock.AddQueue.unlock();
 
     // Updating meshes in the queue
     QueueLock.UpdateQueue.lock();
-    for (const auto &index : Instance().m_MeshesToUpdate)
+    for (const auto &index : m_MeshesToUpdate)
     {
-        Instance().m_MeshMap.at(index).UpdateGeometry();
+        m_MeshMap.at(index).UpdateGeometry();
     }
-    Instance().m_MeshesToUpdate.clear();
+    m_MeshesToUpdate.clear();
     QueueLock.UpdateQueue.unlock();
 
     // Deleting meshes in the queue
     QueueLock.DeleteQueue.lock();
-    for (const auto &index : Instance().m_MeshesToDelete)
+    for (const auto &index : m_MeshesToDelete)
     {
 
-        if (auto entry = Instance().m_MeshMap.find(index); entry != Instance().m_MeshMap.end())
+        if (auto entry = m_MeshMap.find(index); entry != m_MeshMap.end())
         {
-            // Instance().m_SolidMeshMap.at(index).Finalize();
+            // m_SolidMeshMap.at(index).Finalize();
             entry->second.Finalize();
-            Instance().m_MeshMap.erase(index);
+            m_MeshMap.erase(index);
         }
     }
-    Instance().m_MeshesToDelete.clear();
+    m_MeshesToDelete.clear();
     QueueLock.DeleteQueue.unlock();
 }

@@ -2,13 +2,12 @@
 
 #include <comet.pch>
 
-#include "handlers/InterfaceHandler.h"
-#include "handlers/WindowHandler.h"
-
 #include "render/Mesh.h"
 #include "render/ShaderProgram.h"
 
-#include "Camera.h"
+class WindowHandler;
+class InterfaceHandler;
+class Camera;
 
 struct Lock
 {
@@ -20,36 +19,32 @@ struct Lock
 class Renderer
 {
 public:
-    inline static auto &Instance()
-    {
-        static Renderer instance;
-        return instance;
-    }
+    Lock QueueLock;
 
-    static Lock QueueLock;
+    Renderer();
+    ~Renderer();
 
-    static void Initialize();
-    static void NewFrame();
-    static void SwapBuffers();
-    static void ResetRenderer();
+    void NewFrame();
+    void SwapBuffers();
+    void ResetRenderer();
 
-    static void DrawMeshQueue();
-    static void DrawInterfaceQueue();
+    void DrawMeshQueue();
+    void DrawInterfaceQueue();
 
     // These functions can be called from other threads when adding to the
     // rendering queue that runs on the main thread. For this reason,
     // Each of these functions locks and unlocks their respective map/set
     // before modifying them at all. ProcessMeshQueues() reads from these
     // map/set queues and then clears them, requiring a plain mutex for R/W.
-    static void AddMeshToQueue(glm::ivec3 index, const Mesh &mesh);
-    static void UpdateMeshInQueue(glm::ivec3 index);
-    static void DeleteMeshFromQueue(glm::ivec3 index);
-    static void ProcessMeshQueues();
+    void AddMeshToQueue(glm::ivec3 index, const Mesh &mesh);
+    void UpdateMeshInQueue(glm::ivec3 index);
+    void DeleteMeshFromQueue(glm::ivec3 index);
+    void ProcessMeshQueues();
 
 private:
-    Renderer() {}
-    Renderer(Renderer const &);
-    void operator=(Renderer const &);
+    WindowHandler *m_WindowHandler;
+    InterfaceHandler *m_InterfaceHandler;
+    Camera *m_Camera;
 
     bool m_Resetting = false;
     unsigned int m_DrawCallsPerFrame = 0;
@@ -65,18 +60,19 @@ private:
     std::unordered_set<glm::ivec3> m_MeshesToDelete;
 
 public:
-    static glm::vec3 OverlayColor() { return Instance().m_OverlayColor; }
-    static void SetOverlayColor(const glm::vec3 &OverlayColor) { Instance().m_OverlayColor = OverlayColor; }
+    glm::vec3 OverlayColor() { return m_OverlayColor; }
+    void SetOverlayColor(const glm::vec3 &OverlayColor) { m_OverlayColor = OverlayColor; }
 
-    static glm::vec3 BackgroundColor() { return Instance().m_BackgroundColor; }
-    static void SetBackgroundColor(const glm::vec3 &BackgroundColor) { Instance().m_BackgroundColor = BackgroundColor; }
+    glm::vec3 BackgroundColor() { return m_BackgroundColor; }
+    void SetBackgroundColor(const glm::vec3 &BackgroundColor) { m_BackgroundColor = BackgroundColor; }
 
-    static bool IsResetting() { return Instance().m_Resetting; }
-    static void SetResetting(bool Resetting) { Instance().m_Resetting = Resetting; }
+    bool IsResetting() { return m_Resetting; }
+    void SetResetting(bool Resetting) { m_Resetting = Resetting; }
 
-    static unsigned int DrawCallsPerFrame() { return Instance().m_DrawCallsPerFrame; }
-    static void SetDrawCallsPerFrame(unsigned int DrawCallsPerFrame)
-    {
-        Instance().m_DrawCallsPerFrame = DrawCallsPerFrame;
-    }
+    unsigned int DrawCallsPerFrame() { return m_DrawCallsPerFrame; }
+    void SetDrawCallsPerFrame(unsigned int DrawCallsPerFrame) { m_DrawCallsPerFrame = DrawCallsPerFrame; }
+
+    void SetWindowHandler(WindowHandler *WindowHandler) { m_WindowHandler = WindowHandler; }
+    void SetInterfaceHandler(InterfaceHandler *InterfaceHandler) { m_InterfaceHandler = InterfaceHandler; }
+    void SetCamera(Camera *Camera) { m_Camera = Camera; }
 };

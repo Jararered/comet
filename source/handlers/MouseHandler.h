@@ -8,28 +8,22 @@
 class MouseHandler
 {
 public:
-    inline static auto &Instance()
-    {
-        static MouseHandler instance;
-        return instance;
-    }
+    MouseHandler();
+    ~MouseHandler();
 
-    static void Initialize();
-    static void UpdateStates();
-    static void ResetStates();
-    static void SetupCallbacks();
-    static void ResetMovement();
+    void AttachWindowhandler(WindowHandler *windowHandler) { m_WindowHandler = windowHandler; }
+
+    void UpdateStates();
+    void ResetStates();
+    void SetupCallbacks();
+    void ResetMovement();
 
     // +x is moving the mouse right
     // +y is moving the mouse forward
-    static void CaptureCursor();
-    static void ReleaseCursor();
+    void CaptureCursor();
+    void ReleaseCursor();
 
 private:
-    MouseHandler() {}
-    MouseHandler(MouseHandler const &);
-    void operator=(MouseHandler const &) {}
-
     GLFWwindow *p_GLFWwindow = nullptr;
 
     void ScrollCallback(double xoffset, double yoffset);
@@ -45,12 +39,14 @@ private:
 
     double m_ScrollOffset = 0.0;
 
+    WindowHandler *m_WindowHandler;
+
 public:
-    static double ScrollOffset() { return Instance().m_ScrollOffset; }
-    static double DeltaX() { return Instance().m_MovementSinceLastFrame[0]; }
-    static double DeltaY() { return Instance().m_MovementSinceLastFrame[1]; }
-    static bool LeftClick() { return Instance().m_LeftClick; }
-    static bool LeftHold() { return Instance().m_LeftHold; }
-    static bool RightClick() { return Instance().m_RightClick; }
-    static bool RightHold() { return Instance().m_RightHold; }
+    double ScrollOffset() { return m_ScrollOffset; }
+    double DeltaX() { return m_MovementSinceLastFrame[0]; }
+    double DeltaY() { return m_MovementSinceLastFrame[1]; }
+    bool LeftClick() { return m_LeftClick; }
+    bool LeftHold() { return m_LeftHold; }
+    bool RightClick() { return m_RightClick; }
+    bool RightHold() { return m_RightHold; }
 };
