@@ -2,10 +2,6 @@
 
 #include <comet.pch>
 
-#include "Engine.h"
-#include "handlers/MouseHandler.h"
-#include "handlers/WindowHandler.h"
-
 class Camera
 {
 public:
