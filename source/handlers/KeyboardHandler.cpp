@@ -1,15 +1,10 @@
 #include "KeyboardHandler.h"
 
-#include "MouseHandler.h"
-#include "WindowHandler.h"
-
-KeyboardHandler::KeyboardHandler() { SetupCallbacks(); }
-
-KeyboardHandler::~KeyboardHandler() {}
+void KeyboardHandler::Initialize() { Instance().SetupCallbacks(); }
 
 void KeyboardHandler::SetupCallbacks()
 {
-    glfwSetWindowUserPointer(glfwGetCurrentContext(), this);
+    glfwSetWindowUserPointer(glfwGetCurrentContext(), &KeyboardHandler::Instance());
 
     auto KeyCallbackWrapper = [](GLFWwindow *window, int key, int scancode, int action, int mods) {
         static_cast<KeyboardHandler *>(glfwGetWindowUserPointer(window))->KeyCallback(key, scancode, action, mods);
@@ -22,6 +17,11 @@ void KeyboardHandler::KeyCallback(int key, int scancode, int action, int mods)
 {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
     {
-        m_MouseHandler->ReleaseCursor();
+        // glfwSetWindowShouldClose(glfwGetCurrentContext(), 1);
+        MouseHandler::ReleaseCursor();
     }
+    // if (key == GLFW_KEY_HOME && action == GLFW_PRESS)
+    // {
+    //     WindowHandler::CenterWindow();
+    // }
 }

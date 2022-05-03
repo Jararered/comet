@@ -3,11 +3,19 @@
 class ErrorHandler
 {
 public:
-    ErrorHandler();
-    ~ErrorHandler();
+    inline static auto &Instance()
+    {
+        static ErrorHandler instance;
+        return instance;
+    }
 
-    void SetupCallbacks();
+    static void Initialize();
+    static void SetupCallbacks();
 
 private:
+    ErrorHandler() {}
+    ErrorHandler(ErrorHandler const &);
+    void operator=(ErrorHandler const &);
+
     void ErrorCallback(int error_code, const char *description);
 };

@@ -7,19 +7,27 @@
 class InterfaceHandler
 {
 public:
-    InterfaceHandler() {}
-    ~InterfaceHandler() {}
-
-    void AddInterface(Interface *interface) { m_Interfaces.insert(interface); }
-    void RemoveInterface(Interface *interface) { m_Interfaces.erase(interface); }
-    void DrawInterfaces()
+    inline static auto &Instance()
     {
-        for (const auto &interface : m_Interfaces)
+        static InterfaceHandler instance;
+        return instance;
+    }
+
+    static void Initialize();
+    static void AddInterface(Interface *interface) { Instance().m_Interfaces.insert(interface); }
+    static void RemoveInterface(Interface *interface) { Instance().m_Interfaces.erase(interface); }
+    static void DrawInterfaces()
+    {
+        for (const auto &interface : Instance().m_Interfaces)
         {
             interface->Draw();
         }
     }
 
 private:
+    InterfaceHandler() {}
+    InterfaceHandler(InterfaceHandler const &);
+    void operator=(InterfaceHandler const &);
+
     std::unordered_set<Interface *> m_Interfaces;
 };

@@ -7,21 +7,30 @@
 class EntityHandler
 {
 public:
-    EntityHandler();
-    ~EntityHandler();
+    inline static auto &Instance()
+    {
+        static EntityHandler instance;
+        return instance;
+    }
 
-    void AddToUpdater(Entity *entity);
-    void RemoveFromUpdater(Entity *entity);
+    static void Initialize();
 
-    void AddToFrameUpdater(Entity *entity);
-    void RemoveFromFrameUpdater(Entity *entity);
+    static void AddToUpdater(Entity *entity);
+    static void RemoveFromUpdater(Entity *entity);
+
+    static void AddToFrameUpdater(Entity *entity);
+    static void RemoveFromFrameUpdater(Entity *entity);
 
     // Should be called from the game loop, not the engine loop
-    void Update();
+    static void Update();
     // Should be called from the engine loop, not the game loop
-    void FrameUpdate();
+    static void FrameUpdate();
 
 private:
+    EntityHandler() {}
+    EntityHandler(EntityHandler const &);
+    void operator=(EntityHandler const &);
+
     std::unordered_set<Entity *> m_Updates;
     std::unordered_set<Entity *> m_FrameUpdates;
 };

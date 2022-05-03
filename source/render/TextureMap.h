@@ -4,18 +4,29 @@
 
 class TextureMap
 {
-public:
-    TextureMap();
-    ~TextureMap();
+  public:
+    static TextureMap &Instance()
+    {
+        static TextureMap s_Instance;
+        return s_Instance;
+    }
 
-    void Configure(int width, int height, int resolution);
-    std::vector<std::vector<float>> TextureCoordinates();
-    glm::vec2 TopLeft(int index);
-    glm::vec2 TopRight(int index);
-    glm::vec2 BottomLeft(int index);
-    glm::vec2 BottomRight(int index);
+    // Singleton approach, assuming that if game is using a texture map
+    // then game is probably only going to be loading in a single texture.
 
-private:
+    static void Initialize();
+    static void Configure(int width, int height, int resolution);
+    static std::vector<std::vector<float>> TextureCoordinates();
+    static glm::vec2 TopLeft(int index);
+    static glm::vec2 TopRight(int index);
+    static glm::vec2 BottomLeft(int index);
+    static glm::vec2 BottomRight(int index);
+
+  private:
+    TextureMap() {}
+    TextureMap(TextureMap const &);
+    void operator=(TextureMap const &) {}
+
     unsigned int m_Width = 0;      // horizontal pixel count
     unsigned int m_Height = 0;     // vertical pixel count
     unsigned int m_Resolution = 0; // resolution of each texture

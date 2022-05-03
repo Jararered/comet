@@ -3,22 +3,29 @@
 #include <comet.pch>
 #include <glad/gl.h>
 
-class Engine;
+#include "Engine.h"
+
 class WindowHandler
 {
 public:
-    WindowHandler();
-    ~WindowHandler();
+    inline static auto &Instance()
+    {
+        static WindowHandler instance;
+        return instance;
+    }
 
-    void AttachEngine(Engine *engine) { m_Engine = engine; }
+    static void Initialize();
+    static void CenterWindow();
+    static void SetupCallbacks();
 
-    void CenterWindow();
-    void SetupCallbacks();
-    bool ShouldWindowClose();
+    static bool ShouldWindowClose();
+
     int CreateWindow();
 
 private:
-    Engine *m_Engine;
+    WindowHandler() {}
+    WindowHandler(WindowHandler const &);
+    void operator=(WindowHandler const &) {}
 
     void WindowSizeCallback(int width, int height);
     void FramebufferSizeCallback(int width, int height);
@@ -29,10 +36,10 @@ private:
     int m_WindowWidth = 0;
 
 public:
-    GLFWwindow *Window() { return m_Window; }
+    static GLFWwindow *Window() { return Instance().m_Window; }
 
-    int WindowHeight() { return m_WindowHeight; }
-    void SetWindowHeight(int WindowHeight) { m_WindowHeight = WindowHeight; }
-    int WindowWidth() { return m_WindowWidth; }
-    void SetWindowWidth(int WindowWidth) { m_WindowWidth = WindowWidth; }
+    static int WindowHeight() { return Instance().m_WindowHeight; }
+    static void SetWindowHeight(int WindowHeight) { Instance().m_WindowHeight = WindowHeight; }
+    static int WindowWidth() { return Instance().m_WindowWidth; }
+    static void SetWindowWidth(int WindowWidth) { Instance().m_WindowWidth = WindowWidth; }
 };

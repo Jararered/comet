@@ -1,20 +1,24 @@
 #pragma once
 
-class MouseHandler;
-class WindowHandler;
+#include "MouseHandler.h"
+#include "WindowHandler.h"
 
 class KeyboardHandler
 {
 public:
-    KeyboardHandler();
-    ~KeyboardHandler();
+    inline static auto &Instance()
+    {
+        static KeyboardHandler instance;
+        return instance;
+    }
 
-    void SetupCallbacks();
-
-    void AttachMouseHandler(MouseHandler *mouseHandler) { m_MouseHandler = mouseHandler; }
+    static void Initialize();
+    static void SetupCallbacks();
 
 private:
-    MouseHandler *m_MouseHandler;
+    KeyboardHandler() {}
+    KeyboardHandler(KeyboardHandler const &);
+    void operator=(KeyboardHandler const &);
 
     void KeyCallback(int key, int scancode, int action, int mods);
 };

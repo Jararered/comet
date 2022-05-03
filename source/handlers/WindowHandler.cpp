@@ -1,14 +1,10 @@
 #include "WindowHandler.h"
 
-#include "Engine.h"
-
-WindowHandler::WindowHandler()
+void WindowHandler::Initialize()
 {
-    CreateWindow();
-    SetupCallbacks();
+    Instance().CreateWindow();
+    Instance().SetupCallbacks();
 }
-
-WindowHandler::~WindowHandler() {}
 
 int WindowHandler::CreateWindow()
 {
@@ -77,7 +73,7 @@ void WindowHandler::CenterWindow()
 
 void WindowHandler::SetupCallbacks()
 {
-    glfwSetWindowUserPointer(glfwGetCurrentContext(), this);
+    glfwSetWindowUserPointer(glfwGetCurrentContext(), &WindowHandler::Instance());
 
     auto WindowSizeCallbackWrapper = [](GLFWwindow *window, int width, int height) {
         static_cast<WindowHandler *>(glfwGetWindowUserPointer(window))->WindowSizeCallback(width, height);
@@ -98,6 +94,9 @@ void WindowHandler::WindowSizeCallback(int width, int height) {}
 
 void WindowHandler::FramebufferSizeCallback(int width, int height) { glViewport(0, 0, width, height); }
 
-void WindowHandler::WindowCloseCallback() { m_Engine->SetShouldClose(true); }
+void WindowHandler::WindowCloseCallback()
+{
+    Engine::SetShouldClose(true);
+}
 
-bool WindowHandler::ShouldWindowClose() { return glfwWindowShouldClose(m_Window); }
+bool WindowHandler::ShouldWindowClose() { return glfwWindowShouldClose(Instance().m_Window); }

@@ -5,10 +5,17 @@
 class EventHandler
 {
 public:
-    EventHandler();
-    ~EventHandler();
+    inline static auto &Instance()
+    {
+        static EventHandler instance;
+        return instance;
+    }
 
-    void PollEvents();
+    static void Initialize();
+    static void PollEvents();
 
 private:
+    EventHandler() {}
+    EventHandler(EventHandler const &);
+    void operator=(EventHandler const &);
 };
