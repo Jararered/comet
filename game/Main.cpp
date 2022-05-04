@@ -23,8 +23,6 @@ int main(void)
     // Create player entity and add it to the entity handler
     // Entity handler is now on the world thread
     Player player;
-    player.SetPosition({0.0f, 60.0f, 0.0f});
-    Camera::SetPosition({0.0f, 60.0f, 0.0f});
 
     // Create the debugging menu
     RenderInterface renderInterface;

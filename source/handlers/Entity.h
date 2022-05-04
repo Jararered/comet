@@ -13,8 +13,10 @@ public:
     virtual void FrameUpdate() {}
 
 protected:
-    glm::vec3 m_Position = {0.0f, 0.0f, 0.0f};
-    glm::vec3 m_LastPosition = {0.0f, 0.0f, 0.0f};
+    glm::vec3 m_Position;
+    glm::vec3 m_LastPosition;
+    glm::vec3 m_Velocity;
+    glm::vec3 m_LastVelocity;
 
 public:
     glm::vec3 Position() const { return m_Position; }

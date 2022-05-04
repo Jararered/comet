@@ -1,10 +1,17 @@
 #include "Player.h"
 
 #include "handlers/MouseHandler.h"
+#include "physics/Gravity.h"
 #include <cmath>
 
 Player::Player()
 {
+    m_Position = {0.0f, 50.0f, 0.0f};
+    m_LastPosition = {0.0f, 50.0f, 0.0f};
+
+    m_Velocity = {0.0f, 0.0f, 0.0f};
+    m_LastVelocity = {0.0f, 0.0f, 0.0f};
+
     Camera::SetPosition(m_Position);
     EntityHandler::AddToUpdater(this);
     EntityHandler::AddToFrameUpdater(this);
@@ -110,10 +117,12 @@ void Player::ProcessClicks()
 
 void Player::ProcessMovement()
 {
+    // Setting last values
     m_LastPosition = m_Position;
+    m_LastVelocity = m_Velocity;
 
-    float magnitude = m_MovementSpeed * Engine::TimeDelta();
-    glm::vec3 movementDirection = {0.0f, 0.0f, 0.0f};
+    float controlVelocity = m_MovementSpeed;
+    glm::vec3 direction = {0.0f, 0.0f, 0.0f};
 
     // Used so when walking forward vertical movement doesn't occur.
     glm::vec3 cameraFowardXZ = {m_ForwardVector.x, 0.0f, m_ForwardVector.z};
@@ -121,46 +130,54 @@ void Player::ProcessMovement()
     // Sprinting
     if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
     {
-        magnitude *= 3;
+        controlVelocity *= 3;
     }
 
     // Basic movement processing
     if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_W) == GLFW_PRESS)
     {
-        movementDirection += cameraFowardXZ;
+        direction = cameraFowardXZ;
     }
     if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_S) == GLFW_PRESS)
     {
-        movementDirection -= cameraFowardXZ;
+        direction = -cameraFowardXZ;
     }
     if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_A) == GLFW_PRESS)
     {
-        movementDirection -= m_RightVector;
+        direction = -m_RightVector;
     }
     if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_D) == GLFW_PRESS)
     {
-        movementDirection += m_RightVector;
+        direction = m_RightVector;
     }
 
     // Fixes diagonal directed movement to not be faster than along an axis.
     // Only happens when holding two buttons that are off axis from each other.
-    if (movementDirection.x != 0.0f || movementDirection.y != 0.0f)
+    if (direction.x != 0.0f || direction.y != 0.0f)
     {
-        movementDirection = glm::normalize(movementDirection);
+        direction = glm::normalize(direction);
     }
 
     // Still perform up/down movements after normalization.
     // Don't care about limiting speed along verticals.
     if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_SPACE) == GLFW_PRESS)
     {
-        movementDirection += Camera::POSITIVE_Y;
+        direction += Camera::POSITIVE_Y;
     }
     if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
     {
-        movementDirection -= Camera::POSITIVE_Y;
+        direction -= Camera::POSITIVE_Y;
     }
 
-    m_Position += movementDirection * magnitude;
+    float dt = static_cast<float>(Engine::TimeDelta());
+
+    // Update velocity
+    glm::vec3 gravityVel = dt * Gravity;
+    glm::vec3 controlVel = controlVelocity * direction;
+    m_Velocity = gravityVel + controlVel + m_LastVelocity;
+
+    // Integrate for position
+    m_Position = dt * m_Velocity + m_LastPosition;
 }
 
 void Player::ProcessRotation()
@@ -227,10 +244,26 @@ void Player::UpdateCamera()
 
 void Player::ProcessCollision()
 {
-    // Process movement in each direction
-    CheckYCollision();
-    CheckXCollision();
-    CheckZCollision();
+    glm::vec3 attemptedPosition = m_Position;
+
+    if (m_LastPosition != m_Position)
+    {
+        // Process movement in each direction
+        CheckYCollision();
+        CheckXCollision();
+        CheckZCollision();
+
+        if (m_LastPosition == m_Position)
+        {
+            m_Position = attemptedPosition;
+            UpdateBoundingBox();
+
+            // Process movement in each direction
+            CheckYCollision();
+            CheckZCollision();
+            CheckXCollision();
+        }
+    }
 }
 
 void Player::UpdateBoundingBox()
@@ -271,6 +304,7 @@ void Player::CheckXCollision()
     if (tests[0] || tests[1] || tests[2] || tests[3] || tests[4] || tests[5])
     {
         m_Position.x = m_LastPosition.x;
+        m_Velocity.x = 0.0f;
         UpdateBoundingBox();
     }
 }
@@ -312,6 +346,7 @@ void Player::CheckYCollision()
     if (tests[0] || tests[1] || tests[2] || tests[3])
     {
         m_Position.y = m_LastPosition.y;
+        m_Velocity.y = 0.0f;
         UpdateBoundingBox();
     }
 }
@@ -349,6 +384,7 @@ void Player::CheckZCollision()
     if (tests[0] || tests[1] || tests[2] || tests[3] || tests[4] || tests[5])
     {
         m_Position.z = m_LastPosition.z;
+        m_Velocity.z = 0.0f;
         UpdateBoundingBox();
     }
 }
