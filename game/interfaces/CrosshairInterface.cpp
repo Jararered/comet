@@ -3,7 +3,7 @@
 CrosshairInterface::CrosshairInterface()
 {
     InterfaceHandler::AddInterface(this);
-    m_ShaderProgram.Create("..\\game\\shaders\\crosshair.vert", "..\\game\\shaders\\crosshair.frag");
+    m_ShaderProgram.Create("..\\game\\shaders\\PositionTexture.vert", "..\\game\\shaders\\PositionTexture.frag");
     m_Texture.Create("..\\game\\textures\\crosshair.png");
 
     m_Indices.insert(m_Indices.end(), {0, 1, 2, 2, 3, 0});
