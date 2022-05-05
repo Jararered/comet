@@ -18,28 +18,21 @@ namespace Comet
             return instance;
         }
 
-        static bool IsKeyPressed(int keycode)
+        inline static bool IsKeyPressed(int keycode) { return glfwGetKey(glfwGetCurrentContext(), keycode) == GLFW_PRESS; }
+
+        inline static bool IsMouseButtonPressed(int mouseButtonCode)
         {
-            int state = glfwGetKey(glfwGetCurrentContext(), keycode);
-            return state == GLFW_PRESS;
+            return glfwGetMouseButton(glfwGetCurrentContext(), mouseButtonCode) == GLFW_PRESS;
         }
 
-        static bool IsMouseButtonPressed(int mouseButtonCode)
+        inline static bool IsLeftClick()
         {
-            int state = glfwGetMouseButton(glfwGetCurrentContext(), mouseButtonCode);
-            return state = GLFW_PRESS;
+            return glfwGetMouseButton(glfwGetCurrentContext(), CT_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
         }
 
-        static bool IsLeftClick()
+        inline static bool IsRightClick()
         {
-            int state = glfwGetMouseButton(glfwGetCurrentContext(), CT_MOUSE_BUTTON_LEFT);
-            return state == GLFW_PRESS;
-        }
-
-        static bool IsRightClick()
-        {
-            int state = glfwGetMouseButton(glfwGetCurrentContext(), CT_MOUSE_BUTTON_RIGHT);
-            return state == GLFW_PRESS;
+            return glfwGetMouseButton(glfwGetCurrentContext(), CT_MOUSE_BUTTON_RIGHT) == GLFW_PRESS;
         }
 
         static glm::vec2 GetMousePosition()
