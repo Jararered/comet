@@ -6,8 +6,6 @@ void MouseHandler::Initialize() { Get().SetupCallbacks(); }
 
 void MouseHandler::SetupCallbacks()
 {
-    glfwSetWindowUserPointer(glfwGetCurrentContext(), &MouseHandler::Get());
-
     glfwSetScrollCallback(glfwGetCurrentContext(),
         [](GLFWwindow *window, double xoffset, double yoffset) { Get().m_ScrollOffset += yoffset; });
 

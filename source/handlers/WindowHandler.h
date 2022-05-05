@@ -27,10 +27,6 @@ private:
     WindowHandler(WindowHandler const &);
     void operator=(WindowHandler const &) {}
 
-    void WindowSizeCallback(int width, int height);
-    void FramebufferSizeCallback(int width, int height);
-    void WindowCloseCallback();
-
     GLFWwindow *m_GLFWwindow = nullptr;
     int m_WindowHeight = 0;
     int m_WindowWidth = 0;

@@ -75,8 +75,5 @@ public:
     static void SetResetting(bool Resetting) { Get().m_Resetting = Resetting; }
 
     static unsigned int DrawCallsPerFrame() { return Get().m_DrawCallsPerFrame; }
-    static void SetDrawCallsPerFrame(unsigned int DrawCallsPerFrame)
-    {
-        Get().m_DrawCallsPerFrame = DrawCallsPerFrame;
-    }
+    static void SetDrawCallsPerFrame(unsigned int DrawCallsPerFrame) { Get().m_DrawCallsPerFrame = DrawCallsPerFrame; }
 };

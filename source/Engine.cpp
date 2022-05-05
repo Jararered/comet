@@ -41,15 +41,11 @@ void Engine::Thread()
         // Draw UI after everything else
         Renderer::DrawInterfaceQueue();
 
-
-
         // Swaps buffers to display new drawn frame
         Renderer::SwapBuffers();
 
         // Poll events for next frame
         EventHandler::PollEvents();
-
-
 
         Get().m_TimeDelta = glfwGetTime() - Get().m_TimeLast;
         Get().m_TimeLast = glfwGetTime();

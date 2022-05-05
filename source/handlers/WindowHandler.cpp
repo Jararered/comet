@@ -73,8 +73,6 @@ void WindowHandler::CenterWindow()
 
 void WindowHandler::SetupCallbacks()
 {
-    glfwSetWindowUserPointer(glfwGetCurrentContext(), &WindowHandler::Get());
-
     glfwSetWindowSizeCallback(glfwGetCurrentContext(), [](GLFWwindow *window, int width, int height) {});
     glfwSetFramebufferSizeCallback(
         glfwGetCurrentContext(), [](GLFWwindow *window, int width, int height) { glViewport(0, 0, width, height); });

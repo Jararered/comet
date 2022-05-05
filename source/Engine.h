@@ -43,8 +43,5 @@ public:
     static void SetShouldClose(bool ShouldClose) { Get().m_ShouldClose = ShouldClose; }
 
     static double TimeDelta() { return Get().m_TimeDelta; }
-    static void SetTimeDelta(double TimeDelta) { Get().m_TimeDelta = TimeDelta; }
-
     static double TimeLast() { return Get().m_TimeLast; }
-    static void SetTimeLast(double TimeLast) { Get().m_TimeLast = TimeLast; }
 };
