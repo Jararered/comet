@@ -45,6 +45,8 @@ private:
     bool m_InWater = false;
     bool m_Flying;
     bool m_Standing;
+    bool m_BreakingBlock = false;
+    bool m_PlacingBlock = false;
 
     glm::vec3 m_GravityVel;
 

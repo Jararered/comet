@@ -1,4 +1,6 @@
 #include "RenderInterface.h"
+#include "imgui.h"
+#include "imgui_internal.h"
 
 RenderInterface::RenderInterface()
 {
@@ -15,6 +17,11 @@ RenderInterface::~RenderInterface() {}
 void RenderInterface::Draw()
 {
     ImGui::Begin("Render Menu");
+
+    if (ImGui::IsItemHovered())
+    {
+        std::cout << "using gui" << std::endl;;
+    }
 
     if (ImGui::Button("Play"))
     {

@@ -3,7 +3,6 @@
 #include <comet.pch>
 
 #include "handlers/EntityHandler.h"
-#include "handlers/ErrorHandler.h"
 #include "handlers/EventHandler.h"
 #include "handlers/KeyboardHandler.h"
 #include "handlers/MouseHandler.h"

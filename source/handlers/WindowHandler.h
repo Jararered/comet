@@ -18,7 +18,7 @@ public:
     static void CenterWindow();
     static void SetupCallbacks();
 
-    static bool ShouldWindowClose();
+    static bool CloseWindow();
 
     int CreateWindow();
 
@@ -31,12 +31,12 @@ private:
     void FramebufferSizeCallback(int width, int height);
     void WindowCloseCallback();
 
-    GLFWwindow *m_Window = nullptr;
+    GLFWwindow *m_GLFWwindow = nullptr;
     int m_WindowHeight = 0;
     int m_WindowWidth = 0;
 
 public:
-    static GLFWwindow *Window() { return Instance().m_Window; }
+    static GLFWwindow *Window() { return Instance().m_GLFWwindow; }
 
     static int WindowHeight() { return Instance().m_WindowHeight; }
     static void SetWindowHeight(int WindowHeight) { Instance().m_WindowHeight = WindowHeight; }

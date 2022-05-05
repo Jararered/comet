@@ -9,7 +9,6 @@ void Engine::Initialize()
     EventHandler::Initialize();
     KeyboardHandler::Initialize();
     MouseHandler::Initialize();
-    ErrorHandler::Initialize();
 
     // Rendering Components
     TextureMap::Initialize();
@@ -30,9 +29,6 @@ void Engine::Thread()
         // Clears color and depth buffers
         Renderer::NewFrame();
 
-        // Update all handlers
-        MouseHandler::UpdateStates();
-
         EntityHandler::FrameUpdate();
 
         // Update camera views for inputs
@@ -49,6 +45,7 @@ void Engine::Thread()
 
         // Swaps buffers to display new drawn frame
         Renderer::SwapBuffers();
+
         // Poll events for next frame
         EventHandler::PollEvents();
 

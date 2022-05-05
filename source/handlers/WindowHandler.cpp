@@ -21,8 +21,8 @@ int WindowHandler::CreateWindow()
     glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 
     // Create a windowed mode window and its OpenGL context
-    m_Window = glfwCreateWindow(1, 1, "Comet (OpenGL 4.6)", NULL, NULL);
-    if (!m_Window)
+    m_GLFWwindow = glfwCreateWindow(1, 1, "Comet (OpenGL 4.6)", NULL, NULL);
+    if (!m_GLFWwindow)
     {
         std::cout << "[Error] Failed to create OpenGL window.\n";
         glfwTerminate();
@@ -30,7 +30,7 @@ int WindowHandler::CreateWindow()
     }
 
     // Make the window's context current
-    glfwMakeContextCurrent(m_Window);
+    glfwMakeContextCurrent(m_GLFWwindow);
 
     int version = gladLoadGL(glfwGetProcAddress);
     if (version == 0)
@@ -39,12 +39,12 @@ int WindowHandler::CreateWindow()
         return -1;
     }
 
-    glfwSetWindowUserPointer(m_Window, this);
+    glfwSetWindowUserPointer(m_GLFWwindow, this);
     glfwSwapInterval(1);
 
     CenterWindow();
 
-    glfwShowWindow(m_Window);
+    glfwShowWindow(m_GLFWwindow);
 
     return 0;
 }
@@ -66,7 +66,7 @@ void WindowHandler::CenterWindow()
     glfwGetMonitorPos(monitors[0], &monitorX, &monitorY);
 
     glfwSetWindowPos(glfwGetCurrentContext(), monitorX + (videoMode->width - newWindowWidth) / 2,
-                     monitorY + (videoMode->height - newWindowHeight) / 2);
+        monitorY + (videoMode->height - newWindowHeight) / 2);
     glfwSetWindowSize(glfwGetCurrentContext(), newWindowWidth, newWindowHeight);
     glViewport(0, 0, newWindowWidth, newWindowHeight);
 }
@@ -75,28 +75,10 @@ void WindowHandler::SetupCallbacks()
 {
     glfwSetWindowUserPointer(glfwGetCurrentContext(), &WindowHandler::Instance());
 
-    auto WindowSizeCallbackWrapper = [](GLFWwindow *window, int width, int height) {
-        static_cast<WindowHandler *>(glfwGetWindowUserPointer(window))->WindowSizeCallback(width, height);
-    };
-    auto FrameBufferCallbackWrapper = [](GLFWwindow *window, int width, int height) {
-        static_cast<WindowHandler *>(glfwGetWindowUserPointer(window))->FramebufferSizeCallback(width, height);
-    };
-    auto WindowCloseCallbackWrapper = [](GLFWwindow *window) {
-        static_cast<WindowHandler *>(glfwGetWindowUserPointer(window))->WindowCloseCallback();
-    };
-
-    glfwSetWindowSizeCallback(glfwGetCurrentContext(), WindowSizeCallbackWrapper);
-    glfwSetFramebufferSizeCallback(glfwGetCurrentContext(), FrameBufferCallbackWrapper);
-    glfwSetWindowCloseCallback(glfwGetCurrentContext(), WindowCloseCallbackWrapper);
+    glfwSetWindowSizeCallback(glfwGetCurrentContext(), [](GLFWwindow *window, int width, int height) {});
+    glfwSetFramebufferSizeCallback(
+        glfwGetCurrentContext(), [](GLFWwindow *window, int width, int height) { glViewport(0, 0, width, height); });
+    glfwSetWindowCloseCallback(glfwGetCurrentContext(), [](GLFWwindow *window) { Engine::SetShouldClose(true); });
 }
 
-void WindowHandler::WindowSizeCallback(int width, int height) {}
-
-void WindowHandler::FramebufferSizeCallback(int width, int height) { glViewport(0, 0, width, height); }
-
-void WindowHandler::WindowCloseCallback()
-{
-    Engine::SetShouldClose(true);
-}
-
-bool WindowHandler::ShouldWindowClose() { return glfwWindowShouldClose(Instance().m_Window); }
+bool WindowHandler::CloseWindow() { return glfwWindowShouldClose(Instance().m_GLFWwindow); }

@@ -1,6 +1,8 @@
 #include "Player.h"
 
+#include "handlers/Input.h"
 #include "handlers/KeyboardHandler.h"
+#include "handlers/KeyboardKeyCodes.h"
 #include "handlers/MouseHandler.h"
 #include "physics/Gravity.h"
 #include <cmath>
@@ -31,27 +33,49 @@ void Player::Update() { GetRequestedChunks(); }
 
 void Player::FrameUpdate()
 {
-    ProcessClicks();
+    if (MouseHandler::LeftClick() && !m_BreakingBlock)
+    {
+        m_BreakingBlock = true;
+        Player::BreakBlock();
+    }
+    if (!MouseHandler::LeftClick())
+    {
+        m_BreakingBlock = false;
+    }
 
+    if (MouseHandler::RightClick() && !m_PlacingBlock)
+    {
+        m_PlacingBlock = true;
+        Player::PlaceBlock();
+    }
+    if (!MouseHandler::RightClick())
+    {
+        m_PlacingBlock = false;
+    }
+
+    // Update movement and collision
     ProcessMovement();
     UpdateBoundingBox();
     ProcessCollision();
 
+    // Update camera movement
     ProcessRotation();
     UpdateCamera();
 
+    // Update user input/selection
     ProcessScrolls();
 
+    // Update overlays if inside of a block
     Block blockInsideOf = World::GetBlock(round(m_Position));
     if (blockInsideOf.ID == ID::Water && blockInsideOf.ID != m_LastBlockInsideOf.ID)
     {
-        SetInWater(true);
+        m_InWater = true;
         Renderer::SetOverlayColor({-0.1f, -0.1f, 0.3f});
     }
 
     if (blockInsideOf.ID != ID::Water && m_LastBlockInsideOf.ID == ID::Water)
     {
-        SetInWater(false);
+        m_InWater = false;
         Renderer::SetOverlayColor({0.0f, 0.0f, 0.0f});
     }
 
@@ -111,23 +135,14 @@ void Player::BreakBlock()
     }
 }
 
-void Player::ProcessClicks()
-{
-    if (MouseHandler::LeftClick())
-    {
-        Player::BreakBlock();
-    }
-    else if (MouseHandler::RightClick())
-    {
-        Player::PlaceBlock();
-    }
-}
+void Player::ProcessClicks() {}
 
 void Player::ProcessMovement()
 {
     float dt = static_cast<float>(Engine::TimeDelta());
 
-    if (dt < 0.0001f)
+    // Checks for first frame and if a lag spike occurs
+    if (dt < 0.0001f || dt > 0.25f)
         return;
 
     // Setting last values
@@ -271,7 +286,7 @@ void Player::ProcessCollision()
 void Player::UpdateBoundingBox()
 {
     m_BoundingBox = {m_Position.x + (0.5f * m_Width), m_Position.x - (0.5f * m_Width), m_Position.y + 0.25f,
-                     m_Position.y - m_Height,         m_Position.z + (0.5f * m_Width), m_Position.z - (0.5f * m_Width)};
+        m_Position.y - m_Height, m_Position.z + (0.5f * m_Width), m_Position.z - (0.5f * m_Width)};
 }
 
 void Player::CheckXCollision()
@@ -286,13 +301,13 @@ void Player::CheckXCollision()
 
     if (m_Position.x > m_LastPosition.x)
     {
-        positions = {{upper.x, upper.y, upper.z}, {upper.x, upper.y, lower.z},     {upper.x, lower.y, lower.z},
-                     {upper.x, lower.y, upper.z}, {upper.x, lower.y - 1, lower.z}, {upper.x, lower.y - 1, upper.z}};
+        positions = {{upper.x, upper.y, upper.z}, {upper.x, upper.y, lower.z}, {upper.x, lower.y, lower.z},
+            {upper.x, lower.y, upper.z}, {upper.x, lower.y - 1, lower.z}, {upper.x, lower.y - 1, upper.z}};
     }
     else
     {
-        positions = {{lower.x, upper.y, upper.z}, {lower.x, upper.y, lower.z},     {lower.x, lower.y, lower.z},
-                     {lower.x, lower.y, upper.z}, {lower.x, lower.y - 1, lower.z}, {lower.x, lower.y - 1, upper.z}};
+        positions = {{lower.x, upper.y, upper.z}, {lower.x, upper.y, lower.z}, {lower.x, lower.y, lower.z},
+            {lower.x, lower.y, upper.z}, {lower.x, lower.y - 1, lower.z}, {lower.x, lower.y - 1, upper.z}};
     }
     tests = {false, false, false, false, false, false};
     for (int i = 0; i < 6; i++)
@@ -327,18 +342,14 @@ void Player::CheckYCollision()
     {
         bottomCollision = false;
         m_Standing = false;
-        positions = {{upper.x, upper.y, upper.z},
-                     {upper.x, upper.y, lower.z},
-                     {lower.x, upper.y, lower.z},
-                     {lower.x, upper.y, upper.z}};
+        positions = {{upper.x, upper.y, upper.z}, {upper.x, upper.y, lower.z}, {lower.x, upper.y, lower.z},
+            {lower.x, upper.y, upper.z}};
     }
     else
     {
         bottomCollision = true;
-        positions = {{upper.x, lower.y, upper.z},
-                     {upper.x, lower.y, lower.z},
-                     {lower.x, lower.y, lower.z},
-                     {lower.x, lower.y, upper.z}};
+        positions = {{upper.x, lower.y, upper.z}, {upper.x, lower.y, lower.z}, {lower.x, lower.y, lower.z},
+            {lower.x, lower.y, upper.z}};
     }
     tests = {false, false, false, false};
     for (int i = 0; i < 4; i++)
@@ -384,13 +395,13 @@ void Player::CheckZCollision()
     // Z Processing
     if (m_Position.z > m_LastPosition.z)
     {
-        positions = {{upper.x, upper.y, upper.z}, {lower.x, upper.y, upper.z},     {lower.x, lower.y, upper.z},
-                     {upper.x, lower.y, upper.z}, {lower.x, lower.y - 1, upper.z}, {upper.x, lower.y - 1, upper.z}};
+        positions = {{upper.x, upper.y, upper.z}, {lower.x, upper.y, upper.z}, {lower.x, lower.y, upper.z},
+            {upper.x, lower.y, upper.z}, {lower.x, lower.y - 1, upper.z}, {upper.x, lower.y - 1, upper.z}};
     }
     else
     {
-        positions = {{upper.x, upper.y, lower.z}, {lower.x, upper.y, lower.z},     {lower.x, lower.y, lower.z},
-                     {upper.x, lower.y, lower.z}, {lower.x, lower.y - 1, lower.z}, {upper.x, lower.y - 1, lower.z}};
+        positions = {{upper.x, upper.y, lower.z}, {lower.x, upper.y, lower.z}, {lower.x, lower.y, lower.z},
+            {upper.x, lower.y, lower.z}, {lower.x, lower.y - 1, lower.z}, {upper.x, lower.y - 1, lower.z}};
     }
     tests = {false, false, false, false, false, false};
     for (int i = 0; i < 6; i++)
