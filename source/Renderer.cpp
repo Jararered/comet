@@ -4,7 +4,7 @@ Lock Renderer::QueueLock;
 
 void Renderer::Initialize()
 {
-    Instance();
+    Get();
 
     // Enables z buffer depth testing, prevents incorrect depth rendering
     glEnable(GL_DEPTH_TEST);
@@ -26,7 +26,7 @@ void Renderer::Initialize()
     ImGui_ImplGlfw_InitForOpenGL(WindowHandler::Window(), true);
     ImGui_ImplOpenGL3_Init("#version 330");
 
-    Instance().m_BackgroundColor = glm::vec3(135.0f / 255.0f, 206.0f / 255.0f, 250.0f / 255.0f);
+    Get().m_BackgroundColor = glm::vec3(135.0f / 255.0f, 206.0f / 255.0f, 250.0f / 255.0f);
 }
 
 void Renderer::NewFrame()
@@ -35,7 +35,7 @@ void Renderer::NewFrame()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Background color
-    glClearColor(Instance().m_BackgroundColor.x, Instance().m_BackgroundColor.y, Instance().m_BackgroundColor.z, 0.0f);
+    glClearColor(Get().m_BackgroundColor.x, Get().m_BackgroundColor.y, Get().m_BackgroundColor.z, 0.0f);
 }
 
 void Renderer::SwapBuffers() { glfwSwapBuffers(glfwGetCurrentContext()); }
@@ -45,10 +45,10 @@ void Renderer::ResetRenderer()
     SetResetting(true);
 
     // Resetting all render queues
-    Instance().m_MeshMap.clear();
-    Instance().m_MeshesToAdd.clear();
-    Instance().m_MeshesToDelete.clear();
-    Instance().m_MeshesToUpdate.clear();
+    Get().m_MeshMap.clear();
+    Get().m_MeshesToAdd.clear();
+    Get().m_MeshesToDelete.clear();
+    Get().m_MeshesToUpdate.clear();
 }
 
 void Renderer::DrawMeshQueue()
@@ -56,7 +56,7 @@ void Renderer::DrawMeshQueue()
     unsigned int drawCalls = 0;
 
     unsigned int shaderID;
-    auto &renderer = Instance();
+    auto &renderer = Get();
 
     ProcessMeshQueues();
 
@@ -67,7 +67,7 @@ void Renderer::DrawMeshQueue()
     glEnable(GL_CULL_FACE);
     glDisable(GL_BLEND);
 
-    for (auto &[index, mesh] : Instance().m_MeshMap)
+    for (auto &[index, mesh] : Get().m_MeshMap)
     {
         shaderID = mesh.Shader()->GetID();
 
@@ -116,21 +116,21 @@ void Renderer::DrawInterfaceQueue()
 void Renderer::AddMeshToQueue(glm::ivec3 index, const Mesh &mesh)
 {
     QueueLock.AddQueue.lock();
-    Instance().m_MeshesToAdd.insert_or_assign(index, mesh);
+    Get().m_MeshesToAdd.insert_or_assign(index, mesh);
     QueueLock.AddQueue.unlock();
 }
 
 void Renderer::UpdateMeshInQueue(glm::ivec3 index)
 {
     QueueLock.UpdateQueue.lock();
-    Instance().m_MeshesToUpdate.insert(index);
+    Get().m_MeshesToUpdate.insert(index);
     QueueLock.UpdateQueue.unlock();
 }
 
 void Renderer::DeleteMeshFromQueue(glm::ivec3 index)
 {
     QueueLock.DeleteQueue.lock();
-    Instance().m_MeshesToDelete.insert(index);
+    Get().m_MeshesToDelete.insert(index);
     QueueLock.DeleteQueue.unlock();
 }
 
@@ -138,36 +138,36 @@ void Renderer::ProcessMeshQueues()
 {
     // Adding meshes to the queue
     QueueLock.AddQueue.lock();
-    for (const auto &[index, mesh] : Instance().m_MeshesToAdd)
+    for (const auto &[index, mesh] : Get().m_MeshesToAdd)
     {
 
-        Instance().m_MeshMap.insert_or_assign(index, mesh);
-        Instance().m_MeshMap.at(index).Initialize();
+        Get().m_MeshMap.insert_or_assign(index, mesh);
+        Get().m_MeshMap.at(index).Initialize();
     }
-    Instance().m_MeshesToAdd.clear();
+    Get().m_MeshesToAdd.clear();
     QueueLock.AddQueue.unlock();
 
     // Updating meshes in the queue
     QueueLock.UpdateQueue.lock();
-    for (const auto &index : Instance().m_MeshesToUpdate)
+    for (const auto &index : Get().m_MeshesToUpdate)
     {
-        Instance().m_MeshMap.at(index).UpdateGeometry();
+        Get().m_MeshMap.at(index).UpdateGeometry();
     }
-    Instance().m_MeshesToUpdate.clear();
+    Get().m_MeshesToUpdate.clear();
     QueueLock.UpdateQueue.unlock();
 
     // Deleting meshes in the queue
     QueueLock.DeleteQueue.lock();
-    for (const auto &index : Instance().m_MeshesToDelete)
+    for (const auto &index : Get().m_MeshesToDelete)
     {
 
-        if (auto entry = Instance().m_MeshMap.find(index); entry != Instance().m_MeshMap.end())
+        if (auto entry = Get().m_MeshMap.find(index); entry != Get().m_MeshMap.end())
         {
-            // Instance().m_SolidMeshMap.at(index).Finalize();
+            // Get().m_SolidMeshMap.at(index).Finalize();
             entry->second.Finalize();
-            Instance().m_MeshMap.erase(index);
+            Get().m_MeshMap.erase(index);
         }
     }
-    Instance().m_MeshesToDelete.clear();
+    Get().m_MeshesToDelete.clear();
     QueueLock.DeleteQueue.unlock();
 }

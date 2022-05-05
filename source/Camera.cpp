@@ -2,25 +2,20 @@
 
 void Camera::Initialize()
 {
-    Camera &camera = Instance();
+    Get();
 
     CalcViewMatrix();
     CalcProjMatrix();
 }
 
+void Camera::Update() { CalcViewMatrix(); }
+
 void Camera::CalcViewMatrix()
 {
-    Camera &camera = Instance();
-    camera.m_ViewMatrix = glm::lookAt(camera.m_Position, camera.m_Position + camera.m_ForwardVector, camera.POSITIVE_Y);
+    Get().m_ViewMatrix = glm::lookAt(Get().m_Position, Get().m_Position + Get().m_ForwardVector, Get().POSITIVE_Y);
 }
 
 void Camera::CalcProjMatrix()
 {
-    Camera &camera = Instance();
-    camera.m_ProjMatrix = glm::perspective(camera.m_FOV, camera.m_Aspect, camera.m_Near, camera.m_Far);
-}
-
-void Camera::Update()
-{
-    CalcViewMatrix();
+    Get().m_ProjMatrix = glm::perspective(Get().m_FOV, Get().m_Aspect, Get().m_Near, Get().m_Far);
 }

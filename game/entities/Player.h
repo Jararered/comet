@@ -25,7 +25,6 @@ public:
     void PlaceBlock();
     void BreakBlock();
 
-    void ProcessClicks();
     void ProcessScrolls();
 
     void ProcessMovement();

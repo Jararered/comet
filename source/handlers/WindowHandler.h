@@ -8,7 +8,7 @@
 class WindowHandler
 {
 public:
-    inline static auto &Instance()
+    inline static auto &Get()
     {
         static WindowHandler instance;
         return instance;
@@ -36,10 +36,10 @@ private:
     int m_WindowWidth = 0;
 
 public:
-    static GLFWwindow *Window() { return Instance().m_GLFWwindow; }
+    static GLFWwindow *Window() { return Get().m_GLFWwindow; }
 
-    static int WindowHeight() { return Instance().m_WindowHeight; }
-    static void SetWindowHeight(int WindowHeight) { Instance().m_WindowHeight = WindowHeight; }
-    static int WindowWidth() { return Instance().m_WindowWidth; }
-    static void SetWindowWidth(int WindowWidth) { Instance().m_WindowWidth = WindowWidth; }
+    static int WindowHeight() { return Get().m_WindowHeight; }
+    static void SetWindowHeight(int WindowHeight) { Get().m_WindowHeight = WindowHeight; }
+    static int WindowWidth() { return Get().m_WindowWidth; }
+    static void SetWindowWidth(int WindowWidth) { Get().m_WindowWidth = WindowWidth; }
 };

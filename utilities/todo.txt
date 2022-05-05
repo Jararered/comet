@@ -15,3 +15,4 @@
 - fix multithreading (wow I hope so)
 - sort transparent meshes before rendering
 - collision system
+- gravity

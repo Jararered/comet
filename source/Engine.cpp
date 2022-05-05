@@ -2,7 +2,7 @@
 
 void Engine::Initialize()
 {
-    Instance().m_TimeDelta = 0.0;
+    Get().m_TimeDelta = 0.0;
 
     // Engine Components
     WindowHandler::Initialize();
@@ -51,7 +51,7 @@ void Engine::Thread()
 
 
 
-        Instance().m_TimeDelta = glfwGetTime() - Instance().m_TimeLast;
-        Instance().m_TimeLast = glfwGetTime();
+        Get().m_TimeDelta = glfwGetTime() - Get().m_TimeLast;
+        Get().m_TimeLast = glfwGetTime();
     }
 }

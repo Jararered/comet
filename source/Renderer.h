@@ -20,7 +20,7 @@ struct Lock
 class Renderer
 {
 public:
-    inline static auto &Instance()
+    inline static auto &Get()
     {
         static Renderer instance;
         return instance;
@@ -65,18 +65,18 @@ private:
     std::unordered_set<glm::ivec3> m_MeshesToDelete;
 
 public:
-    static glm::vec3 OverlayColor() { return Instance().m_OverlayColor; }
-    static void SetOverlayColor(const glm::vec3 &OverlayColor) { Instance().m_OverlayColor = OverlayColor; }
+    static glm::vec3 OverlayColor() { return Get().m_OverlayColor; }
+    static void SetOverlayColor(const glm::vec3 &OverlayColor) { Get().m_OverlayColor = OverlayColor; }
 
-    static glm::vec3 BackgroundColor() { return Instance().m_BackgroundColor; }
-    static void SetBackgroundColor(const glm::vec3 &BackgroundColor) { Instance().m_BackgroundColor = BackgroundColor; }
+    static glm::vec3 BackgroundColor() { return Get().m_BackgroundColor; }
+    static void SetBackgroundColor(const glm::vec3 &BackgroundColor) { Get().m_BackgroundColor = BackgroundColor; }
 
-    static bool IsResetting() { return Instance().m_Resetting; }
-    static void SetResetting(bool Resetting) { Instance().m_Resetting = Resetting; }
+    static bool IsResetting() { return Get().m_Resetting; }
+    static void SetResetting(bool Resetting) { Get().m_Resetting = Resetting; }
 
-    static unsigned int DrawCallsPerFrame() { return Instance().m_DrawCallsPerFrame; }
+    static unsigned int DrawCallsPerFrame() { return Get().m_DrawCallsPerFrame; }
     static void SetDrawCallsPerFrame(unsigned int DrawCallsPerFrame)
     {
-        Instance().m_DrawCallsPerFrame = DrawCallsPerFrame;
+        Get().m_DrawCallsPerFrame = DrawCallsPerFrame;
     }
 };

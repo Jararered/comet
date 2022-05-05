@@ -8,7 +8,7 @@
 class MouseHandler
 {
 public:
-    inline static auto &Instance()
+    inline static auto &Get()
     {
         static MouseHandler instance;
         return instance;
@@ -37,9 +37,9 @@ private:
     double m_ScrollOffset = 0.0;
 
 public:
-    static double ScrollOffset() { return Instance().m_ScrollOffset; }
-    static double DeltaX() { return Instance().m_MovementSinceLastFrame[0]; }
-    static double DeltaY() { return Instance().m_MovementSinceLastFrame[1]; }
-    static bool LeftClick() { return Instance().m_LeftClick; }
-    static bool RightClick() { return Instance().m_RightClick; }
+    static double ScrollOffset() { return Get().m_ScrollOffset; }
+    static double DeltaX() { return Get().m_MovementSinceLastFrame[0]; }
+    static double DeltaY() { return Get().m_MovementSinceLastFrame[1]; }
+    static bool LeftClick() { return Get().m_LeftClick; }
+    static bool RightClick() { return Get().m_RightClick; }
 };

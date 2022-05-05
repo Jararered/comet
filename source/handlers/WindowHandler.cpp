@@ -2,8 +2,8 @@
 
 void WindowHandler::Initialize()
 {
-    Instance().CreateWindow();
-    Instance().SetupCallbacks();
+    Get().CreateWindow();
+    Get().SetupCallbacks();
 }
 
 int WindowHandler::CreateWindow()
@@ -73,7 +73,7 @@ void WindowHandler::CenterWindow()
 
 void WindowHandler::SetupCallbacks()
 {
-    glfwSetWindowUserPointer(glfwGetCurrentContext(), &WindowHandler::Instance());
+    glfwSetWindowUserPointer(glfwGetCurrentContext(), &WindowHandler::Get());
 
     glfwSetWindowSizeCallback(glfwGetCurrentContext(), [](GLFWwindow *window, int width, int height) {});
     glfwSetFramebufferSizeCallback(
@@ -81,4 +81,4 @@ void WindowHandler::SetupCallbacks()
     glfwSetWindowCloseCallback(glfwGetCurrentContext(), [](GLFWwindow *window) { Engine::SetShouldClose(true); });
 }
 
-bool WindowHandler::CloseWindow() { return glfwWindowShouldClose(Instance().m_GLFWwindow); }
+bool WindowHandler::CloseWindow() { return glfwWindowShouldClose(Get().m_GLFWwindow); }

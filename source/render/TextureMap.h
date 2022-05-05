@@ -5,7 +5,7 @@
 class TextureMap
 {
   public:
-    static TextureMap &Instance()
+    static TextureMap &Get()
     {
         static TextureMap s_Instance;
         return s_Instance;

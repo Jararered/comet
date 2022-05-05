@@ -2,10 +2,10 @@
 
 #include <comet.pch>
 
-#include "WindowHandler.h"
-
 #include "KeyboardKeyCodes.h"
 #include "MouseButtonCodes.h"
+
+#include "glfw/glfw3.h"
 
 namespace Comet
 {
@@ -20,14 +20,33 @@ namespace Comet
 
         static bool IsKeyPressed(int keycode)
         {
-            auto state = glfwGetKey(WindowHandler::Window(), keycode);
+            int state = glfwGetKey(glfwGetCurrentContext(), keycode);
             return state == GLFW_PRESS;
         }
+
+        static bool IsMouseButtonPressed(int mouseButtonCode)
+        {
+            int state = glfwGetMouseButton(glfwGetCurrentContext(), mouseButtonCode);
+            return state = GLFW_PRESS;
+        }
+
+        static bool IsLeftClick()
+        {
+            int state = glfwGetMouseButton(glfwGetCurrentContext(), CT_MOUSE_BUTTON_LEFT);
+            return state == GLFW_PRESS;
+        }
+
+        static bool IsRightClick()
+        {
+            int state = glfwGetMouseButton(glfwGetCurrentContext(), CT_MOUSE_BUTTON_RIGHT);
+            return state == GLFW_PRESS;
+        }
+
         static glm::vec2 GetMousePosition()
         {
             double xpos, ypos;
-            glfwGetCursorPos(WindowHandler::Window(), &xpos, &ypos);
-            return {(float)xpos, (float)ypos};
+            glfwGetCursorPos(glfwGetCurrentContext(), &xpos, &ypos);
+            return {static_cast<float>(xpos), static_cast<float>(ypos)};
         }
 
     private:

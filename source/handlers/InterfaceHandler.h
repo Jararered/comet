@@ -7,18 +7,18 @@
 class InterfaceHandler
 {
 public:
-    inline static auto &Instance()
+    inline static auto &Get()
     {
         static InterfaceHandler instance;
         return instance;
     }
 
     static void Initialize();
-    static void AddInterface(Interface *interface) { Instance().m_Interfaces.insert(interface); }
-    static void RemoveInterface(Interface *interface) { Instance().m_Interfaces.erase(interface); }
+    static void AddInterface(Interface *interface) { Get().m_Interfaces.insert(interface); }
+    static void RemoveInterface(Interface *interface) { Get().m_Interfaces.erase(interface); }
     static void DrawInterfaces()
     {
-        for (const auto &interface : Instance().m_Interfaces)
+        for (const auto &interface : Get().m_Interfaces)
         {
             interface->Draw();
         }

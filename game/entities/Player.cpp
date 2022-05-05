@@ -3,9 +3,12 @@
 #include "handlers/Input.h"
 #include "handlers/KeyboardHandler.h"
 #include "handlers/KeyboardKeyCodes.h"
+#include "handlers/MouseButtonCodes.h"
 #include "handlers/MouseHandler.h"
 #include "physics/Gravity.h"
 #include <cmath>
+
+using namespace Comet;
 
 Player::Player()
 {
@@ -33,22 +36,22 @@ void Player::Update() { GetRequestedChunks(); }
 
 void Player::FrameUpdate()
 {
-    if (MouseHandler::LeftClick() && !m_BreakingBlock)
+    if (Input::IsLeftClick() && !m_BreakingBlock)
     {
         m_BreakingBlock = true;
         Player::BreakBlock();
     }
-    if (!MouseHandler::LeftClick())
+    if (!Input::IsLeftClick())
     {
         m_BreakingBlock = false;
     }
 
-    if (MouseHandler::RightClick() && !m_PlacingBlock)
+    if (Input::IsRightClick() && !m_PlacingBlock)
     {
         m_PlacingBlock = true;
         Player::PlaceBlock();
     }
-    if (!MouseHandler::RightClick())
+    if (!Input::IsRightClick())
     {
         m_PlacingBlock = false;
     }
@@ -134,8 +137,6 @@ void Player::BreakBlock()
         }
     }
 }
-
-void Player::ProcessClicks() {}
 
 void Player::ProcessMovement()
 {

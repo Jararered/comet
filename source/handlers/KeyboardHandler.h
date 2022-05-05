@@ -7,7 +7,7 @@
 class KeyboardHandler
 {
 public:
-    inline static auto &Instance()
+    inline static auto &Get()
     {
         static KeyboardHandler instance;
         return instance;
@@ -15,7 +15,7 @@ public:
 
     static void Initialize()
     {
-        glfwSetWindowUserPointer(glfwGetCurrentContext(), &KeyboardHandler::Instance());
+        glfwSetWindowUserPointer(glfwGetCurrentContext(), &KeyboardHandler::Get());
 
         glfwSetKeyCallback(
             glfwGetCurrentContext(), [](GLFWwindow *window, int key, int scancode, int action, int mods) {
@@ -27,11 +27,11 @@ public:
 
                 if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
                 {
-                    Instance().m_PressedSpace = true;
+                    Get().m_PressedSpace = true;
                 }
                 if (key == GLFW_KEY_SPACE && action == GLFW_RELEASE)
                 {
-                    Instance().m_PressedSpace = false;
+                    Get().m_PressedSpace = false;
                 }
             });
     }
@@ -42,8 +42,8 @@ private:
     void operator=(KeyboardHandler const &);
 
 public:
-    static bool PressedSpace() { return Instance().m_PressedSpace; }
-    static bool HoldingSpace() { return Instance().m_HoldingSpace; }
+    static bool PressedSpace() { return Get().m_PressedSpace; }
+    static bool HoldingSpace() { return Get().m_HoldingSpace; }
 
 private:
     bool m_PressedSpace;

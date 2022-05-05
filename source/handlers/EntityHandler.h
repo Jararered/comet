@@ -7,7 +7,7 @@
 class EntityHandler
 {
 public:
-    inline static auto &Instance()
+    inline static auto &Get()
     {
         static EntityHandler instance;
         return instance;

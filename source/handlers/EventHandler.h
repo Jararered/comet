@@ -5,7 +5,7 @@
 class EventHandler
 {
 public:
-    inline static auto &Instance()
+    inline static auto &Get()
     {
         static EventHandler instance;
         return instance;
