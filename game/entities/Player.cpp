@@ -12,6 +12,11 @@ Player::Player()
     m_Velocity = {0.0f, 0.0f, 0.0f};
     m_LastVelocity = {0.0f, 0.0f, 0.0f};
 
+    m_Acceleration = {0.0f, 0.0f, 0.0f};
+    m_LastAcceleration = {0.0f, 0.0f, 0.0f};
+
+    m_Flying = true;
+
     Camera::SetPosition(m_Position);
     EntityHandler::AddToUpdater(this);
     EntityHandler::AddToFrameUpdater(this);
@@ -117,67 +122,54 @@ void Player::ProcessClicks()
 
 void Player::ProcessMovement()
 {
+    float dt = static_cast<float>(Engine::TimeDelta());
+
+    if (dt < 0.0001f)
+        return;
+
     // Setting last values
+    m_LastAcceleration = 1 / dt * (m_LastVelocity - m_Velocity);
+    m_LastVelocity = 1 / dt * (m_Position - m_LastPosition);
     m_LastPosition = m_Position;
-    m_LastVelocity = m_Velocity;
-
-    float controlVelocity = m_MovementSpeed;
-    glm::vec3 direction = {0.0f, 0.0f, 0.0f};
-
-    // Used so when walking forward vertical movement doesn't occur.
-    glm::vec3 cameraFowardXZ = {m_ForwardVector.x, 0.0f, m_ForwardVector.z};
-
-    // Sprinting
-    if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
-    {
-        controlVelocity *= 3;
-    }
 
     // Basic movement processing
+    // Used so when walking forward vertical movement doesn't occur.
+    float movementSpeed = m_MovementSpeed;
+    glm::vec3 direction = {0.0f, 0.0f, 0.0f};
+    glm::vec3 cameraFowardXZ = {m_ForwardVector.x, 0.0f, m_ForwardVector.z};
+    if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+        movementSpeed *= 3;
     if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_W) == GLFW_PRESS)
-    {
-        direction = cameraFowardXZ;
-    }
+        direction += cameraFowardXZ;
     if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_S) == GLFW_PRESS)
-    {
-        direction = -cameraFowardXZ;
-    }
+        direction -= cameraFowardXZ;
     if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_A) == GLFW_PRESS)
-    {
-        direction = -m_RightVector;
-    }
+        direction -= m_RightVector;
     if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_D) == GLFW_PRESS)
-    {
-        direction = m_RightVector;
-    }
-
+        direction += m_RightVector;
     // Fixes diagonal directed movement to not be faster than along an axis.
     // Only happens when holding two buttons that are off axis from each other.
     if (direction.x != 0.0f || direction.y != 0.0f)
-    {
         direction = glm::normalize(direction);
-    }
-
     // Still perform up/down movements after normalization.
     // Don't care about limiting speed along verticals.
     if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_SPACE) == GLFW_PRESS)
-    {
         direction += Camera::POSITIVE_Y;
-    }
     if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-    {
         direction -= Camera::POSITIVE_Y;
+
+    if (m_Flying)
+    {
+        m_Acceleration = {0.0f, 0.0f, 0.0f};
+        m_Velocity = dt * (0.5f * m_LastAcceleration + m_Acceleration) + movementSpeed * direction;
+        m_Position = dt * (0.5f * m_LastVelocity + m_Velocity) + m_LastPosition;
     }
-
-    float dt = static_cast<float>(Engine::TimeDelta());
-
-    // Update velocity
-    glm::vec3 gravityVel = dt * Gravity;
-    glm::vec3 controlVel = controlVelocity * direction;
-    m_Velocity = gravityVel + controlVel + m_LastVelocity;
-
-    // Integrate for position
-    m_Position = dt * m_Velocity + m_LastPosition;
+    else
+    {
+        m_Acceleration = Gravity;
+        m_Velocity = dt * m_Acceleration + movementSpeed * direction;
+        m_Position = dt * m_Velocity + m_LastPosition;
+    }
 }
 
 void Player::ProcessRotation()

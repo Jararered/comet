@@ -15,8 +15,12 @@ public:
 protected:
     glm::vec3 m_Position;
     glm::vec3 m_LastPosition;
+
     glm::vec3 m_Velocity;
     glm::vec3 m_LastVelocity;
+
+    glm::vec3 m_Acceleration;
+    glm::vec3 m_LastAcceleration;
 
 public:
     glm::vec3 Position() const { return m_Position; }

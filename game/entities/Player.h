@@ -46,6 +46,7 @@ class Player : public Entity
     unsigned char m_SelectedBlock = Blocks::Torch().ID;
     Block m_LastBlockInsideOf;
     bool m_InWater = false;
+    bool m_Flying;
 
     double oldOffset = 0.0;
     double newOffset = 0.0;
