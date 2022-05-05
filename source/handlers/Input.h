@@ -18,7 +18,10 @@ namespace Comet
             return instance;
         }
 
-        inline static bool IsKeyPressed(int keycode) { return glfwGetKey(glfwGetCurrentContext(), keycode) == GLFW_PRESS; }
+        inline static bool IsKeyPressed(int keycode)
+        {
+            return glfwGetKey(glfwGetCurrentContext(), keycode) == GLFW_PRESS;
+        }
 
         inline static bool IsMouseButtonPressed(int mouseButtonCode)
         {
@@ -40,6 +43,20 @@ namespace Comet
             double xpos, ypos;
             glfwGetCursorPos(glfwGetCurrentContext(), &xpos, &ypos);
             return {static_cast<float>(xpos), static_cast<float>(ypos)};
+        }
+
+        static void CaptureCursor()
+        {
+            if (glfwRawMouseMotionSupported())
+            {
+                glfwSetInputMode(glfwGetCurrentContext(), GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
+            }
+
+            glfwSetInputMode(glfwGetCurrentContext(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+            // Need to center cursor before cursor position callback is run
+            // Prevents a possibly large xpos/ypos when entering the window
+            glfwSetCursorPos(glfwGetCurrentContext(), 0.0, 0.0);
         }
 
     private:

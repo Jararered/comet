@@ -1,6 +1,11 @@
 #include "RenderInterface.h"
+
+#include "handlers/Input.h"
+
 #include "imgui.h"
 #include "imgui_internal.h"
+
+using namespace Comet;
 
 RenderInterface::RenderInterface()
 {
@@ -25,7 +30,7 @@ void RenderInterface::Draw()
 
     if (ImGui::Button("Play"))
     {
-        MouseHandler::CaptureCursor();
+        Input::CaptureCursor();
     }
     ImGui::SameLine();
     if (ImGui::Button("Reset Renderer"))

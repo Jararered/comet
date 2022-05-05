@@ -18,10 +18,6 @@ public:
     static void SetupCallbacks();
     static void ResetMovement();
 
-    // +x is moving the mouse right
-    // +y is moving the mouse forward
-    static void CaptureCursor();
-
 private:
     MouseHandler() {}
     MouseHandler(MouseHandler const &);

@@ -42,18 +42,4 @@ void MouseHandler::SetupCallbacks()
     });
 }
 
-void MouseHandler::CaptureCursor()
-{
-    if (glfwRawMouseMotionSupported())
-    {
-        glfwSetInputMode(glfwGetCurrentContext(), GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
-    }
-
-    glfwSetInputMode(glfwGetCurrentContext(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
-    // Need to center cursor before cursor position callback is run
-    // Prevents a possibly large xpos/ypos when entering the window
-    glfwSetCursorPos(glfwGetCurrentContext(), 0.0, 0.0);
-}
-
 void MouseHandler::ResetMovement() { Get().m_MovementSinceLastFrame = {0.0, 0.0}; }
