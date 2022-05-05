@@ -52,7 +52,7 @@ private:
     // Purposfully setting this to an invalid index so that an update happens when
     // spawning in chunk 0, 0, 0
     glm::ivec3 m_ChunkIndex = {0, 1, 0};
-    unsigned char m_SelectedBlock = Blocks::Torch().ID;
+    unsigned char m_SelectedBlock = Blocks::Smoothstone_Slab().ID;
     Block m_LastBlockInsideOf;
 
     double oldOffset = 0.0;

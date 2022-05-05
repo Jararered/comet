@@ -23,7 +23,7 @@ Player::Player()
 
     m_GravityVel = {0.0f, 0.0f, 0.0f};
 
-    m_Flying = false;
+    m_Flying = true;
 
     Camera::SetPosition(m_Position);
     EntityHandler::AddToUpdater(this);
@@ -179,21 +179,24 @@ void Player::ProcessMovement()
     if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
         direction -= Camera::POSITIVE_Y;
 
-    if (KeyboardHandler::PressedSpace() && m_Standing)
-    {
-        m_Velocity += glm::vec3{0.0f, 7.5f, 0.0f};
-        std::cout << "jumping" << std::endl;
-    }
-
     if (m_Flying)
     {
+        if (KeyboardHandler::PressedSpace())
+            direction += Camera::POSITIVE_Y;
+
         m_Acceleration = {0.0f, 0.0f, 0.0f};
         m_Velocity = dt * (0.5f * m_LastAcceleration + m_Acceleration) + movementSpeed * direction;
         m_Position = dt * (0.5f * m_LastVelocity + m_Velocity) + m_LastPosition;
     }
     else
     {
-        m_Velocity += m_GravityVel + dt * 2.0f * Gravity;
+        if (KeyboardHandler::PressedSpace() && m_Standing)
+        {
+            m_Velocity += glm::vec3{0.0f, 8.5f, 0.0f};
+            std::cout << "jumping" << std::endl;
+        }
+
+        m_Velocity += m_GravityVel + dt * 2.5f * SimpleGravity;
         m_Position = dt * m_Velocity + m_LastPosition + dt * movementSpeed * direction;
     }
 }

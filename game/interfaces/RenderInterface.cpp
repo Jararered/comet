@@ -61,7 +61,7 @@ void RenderInterface::Draw()
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
 
-    if (ImGui::SliderInt("Render Distance", &m_RenderDistance, 0, 16))
+    if (ImGui::SliderInt("Render Distance", &m_RenderDistance, 0, 32))
     {
         World::SetRenderDistance(m_RenderDistance);
     }

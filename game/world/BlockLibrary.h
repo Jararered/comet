@@ -123,9 +123,9 @@ class Blocks
     inline static Block Iron_Block() { return Block(ID::Iron_Block, false, true, Block::Shapes::Cube); }
     inline static Block Smoothstone_Stacked_Slabs()
     {
-        return Block(ID::Smoothstone_Stacked_Slabs, false, true, Block::Shapes::Cube);
+        return Block(ID::Smoothstone_Stacked_Slabs, false, true, Block::Shapes::Slab);
     }
-    inline static Block Smoothstone_Slab() { return Block(ID::Smoothstone_Slab, false, true, Block::Shapes::Cube); }
+    inline static Block Smoothstone_Slab() { return Block(ID::Smoothstone_Slab, true, true, Block::Shapes::Slab); }
     inline static Block Bricks() { return Block(ID::Bricks, false, true, Block::Shapes::Cube); }
     inline static Block TNT() { return Block(ID::TNT, false, true, Block::Shapes::Cube); }
     inline static Block Bookshelf() { return Block(ID::Bookshelf, false, true, Block::Shapes::Cube); }

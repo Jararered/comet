@@ -431,6 +431,11 @@ void Chunk::GenerateMesh()
                     Block::RenderTorchBlock(currentBlock, {x, y, z}, &m_Geometry);
                     continue;
                 }
+                if (currentBlock.Shape == Block::Shapes::Slab)
+                {
+                    Block::RenderSlabBlock(currentBlock, {x, y, z}, {px, nx, py, ny, pz, nz}, &m_Geometry);
+                    continue;
+                }
             }
         }
     }

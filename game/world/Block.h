@@ -17,7 +17,8 @@ struct Block
     {
         Cube,
         Flower,
-        Torch
+        Torch,
+        Slab
     };
 
     unsigned char ID = 0;
@@ -29,6 +30,7 @@ struct Block
                                 Geometry *geometry);
     static void RenderFlowerBlock(Block currentBlock, glm::ivec3 Coordinate, Geometry *geometry);
     static void RenderTorchBlock(Block currentBlock, glm::ivec3 Coordinate, Geometry *geometry);
+    static void RenderSlabBlock(Block currentBlock, glm::ivec3 Coordinate, std::array<bool, 6> BlockFacesToRender, Geometry *geometry);
 
     template <class Archive> void serialize(Archive &ar) { ar(ID); }
 };
