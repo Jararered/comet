@@ -1,5 +1,6 @@
 #include "Player.h"
 
+#include "handlers/KeyboardHandler.h"
 #include "handlers/MouseHandler.h"
 #include "physics/Gravity.h"
 #include <cmath>
@@ -15,7 +16,9 @@ Player::Player()
     m_Acceleration = {0.0f, 0.0f, 0.0f};
     m_LastAcceleration = {0.0f, 0.0f, 0.0f};
 
-    m_Flying = true;
+    m_GravityVel = {0.0f, 0.0f, 0.0f};
+
+    m_Flying = false;
 
     Camera::SetPosition(m_Position);
     EntityHandler::AddToUpdater(this);
@@ -147,16 +150,24 @@ void Player::ProcessMovement()
         direction -= m_RightVector;
     if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_D) == GLFW_PRESS)
         direction += m_RightVector;
+
     // Fixes diagonal directed movement to not be faster than along an axis.
     // Only happens when holding two buttons that are off axis from each other.
     if (direction.x != 0.0f || direction.y != 0.0f)
         direction = glm::normalize(direction);
+
     // Still perform up/down movements after normalization.
     // Don't care about limiting speed along verticals.
-    if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_SPACE) == GLFW_PRESS)
-        direction += Camera::POSITIVE_Y;
+    // if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_SPACE) == GLFW_PRESS)
+    //     direction += Camera::POSITIVE_Y;
     if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
         direction -= Camera::POSITIVE_Y;
+
+    if (KeyboardHandler::PressedSpace() && m_Standing)
+    {
+        m_Velocity += glm::vec3{0.0f, 7.5f, 0.0f};
+        std::cout << "jumping" << std::endl;
+    }
 
     if (m_Flying)
     {
@@ -166,9 +177,8 @@ void Player::ProcessMovement()
     }
     else
     {
-        m_Acceleration = Gravity;
-        m_Velocity = dt * m_Acceleration + movementSpeed * direction;
-        m_Position = dt * m_Velocity + m_LastPosition;
+        m_Velocity += m_GravityVel + dt * 2.0f * Gravity;
+        m_Position = dt * m_Velocity + m_LastPosition + dt * movementSpeed * direction;
     }
 }
 
@@ -310,10 +320,13 @@ void Player::CheckYCollision()
     std::vector<glm::ivec3> positions;
     std::vector<bool> tests;
     Collision collision;
+    bool bottomCollision;
 
     // Y Processing
     if (m_Position.y > m_LastPosition.y)
     {
+        bottomCollision = false;
+        m_Standing = false;
         positions = {{upper.x, upper.y, upper.z},
                      {upper.x, upper.y, lower.z},
                      {lower.x, upper.y, lower.z},
@@ -321,6 +334,7 @@ void Player::CheckYCollision()
     }
     else
     {
+        bottomCollision = true;
         positions = {{upper.x, lower.y, upper.z},
                      {upper.x, lower.y, lower.z},
                      {lower.x, lower.y, lower.z},
@@ -340,6 +354,20 @@ void Player::CheckYCollision()
         m_Position.y = m_LastPosition.y;
         m_Velocity.y = 0.0f;
         UpdateBoundingBox();
+    }
+
+    // Checking if colliding with a block beneath player
+    if (bottomCollision)
+    {
+        if (tests[0] || tests[1] || tests[2] || tests[3])
+        {
+            m_Standing = true;
+            m_GravityVel = {0.0f, 0.0f, 0.0f};
+        }
+        else
+        {
+            m_Standing = false;
+        }
     }
 }
 

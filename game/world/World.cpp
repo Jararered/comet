@@ -15,8 +15,8 @@ void World::Initialize()
     EntityHandler::Initialize();
 
     // Shader/Texture Setup
-    ShaderProgram blockShader("./shaders/block.vert", "./shaders/block.frag");
-    Texture texture("./textures/terrain.png");
+    ShaderProgram blockShader("../game/shaders/block.vert", "../game/shaders/block.frag");
+    Texture texture("../game/textures/terrain.png");
     TextureMap::Configure(texture.Width(), texture.Height(), 16);
 
     World::SetSeed(1);

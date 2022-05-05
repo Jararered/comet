@@ -1,4 +1,5 @@
 #include "KeyboardHandler.h"
+#include "glfw/glfw3.h"
 
 void KeyboardHandler::Initialize() { Instance().SetupCallbacks(); }
 
@@ -20,8 +21,22 @@ void KeyboardHandler::KeyCallback(int key, int scancode, int action, int mods)
         // glfwSetWindowShouldClose(glfwGetCurrentContext(), 1);
         MouseHandler::ReleaseCursor();
     }
-    // if (key == GLFW_KEY_HOME && action == GLFW_PRESS)
-    // {
-    //     WindowHandler::CenterWindow();
-    // }
+
+    if (glfwGetKey(WindowHandler::Window(), GLFW_KEY_SPACE) == GLFW_PRESS)
+    {
+        if (!Instance().m_PressedSpace && !Instance().m_HoldingSpace)
+        {
+            Instance().m_PressedSpace = true;
+        }
+        else
+        {
+            Instance().m_PressedSpace = false;
+            Instance().m_HoldingSpace = true;
+        }
+    }
+    else
+    {
+        Instance().m_PressedSpace = false;
+        Instance().m_HoldingSpace = false;
+    }
 }

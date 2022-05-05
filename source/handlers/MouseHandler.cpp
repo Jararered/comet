@@ -24,17 +24,7 @@ void MouseHandler::SetupCallbacks()
 
 void MouseHandler::ScrollCallback(double xoffset, double yoffset) { m_ScrollOffset += yoffset; }
 
-void MouseHandler::MouseButtonCallback(int button, int action, int mods)
-{
-    // if (Engine::IsUsingGUI())
-    //     return;
-
-    // // Captures cursor if not currently captured, reguardless of mouse button
-    // if (action == GLFW_PRESS && !m_CursorCaptured)
-    // {
-    //     CaptureCursor();
-    // }
-}
+void MouseHandler::MouseButtonCallback(int button, int action, int mods) {}
 
 void MouseHandler::CursorPosCallback(double xpos, double ypos)
 {
@@ -121,7 +111,5 @@ void MouseHandler::ReleaseCursor()
     glfwSetInputMode(WindowHandler::Window(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     Instance().m_CursorCaptured = false;
 }
-
-
 
 void MouseHandler::ResetMovement() { Instance().m_MovementSinceLastFrame = {0.0, 0.0}; }

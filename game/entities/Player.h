@@ -8,13 +8,14 @@
 #include "handlers/MouseHandler.h"
 #include "physics/Collision.h"
 
+#include "world/BlockLibrary.h"
 #include "world/Chunk.h"
 #include "world/World.h"
-#include "world/BlockLibrary.h"
+
 
 class Player : public Entity
 {
-  public:
+public:
     Player();
     ~Player();
 
@@ -39,14 +40,19 @@ class Player : public Entity
 
     void GetRequestedChunks();
 
-  private:
+private:
+    // Player States
+    bool m_InWater = false;
+    bool m_Flying;
+    bool m_Standing;
+
+    glm::vec3 m_GravityVel;
+
     // Purposfully setting this to an invalid index so that an update happens when
     // spawning in chunk 0, 0, 0
     glm::ivec3 m_ChunkIndex = {0, 1, 0};
     unsigned char m_SelectedBlock = Blocks::Torch().ID;
     Block m_LastBlockInsideOf;
-    bool m_InWater = false;
-    bool m_Flying;
 
     double oldOffset = 0.0;
     double newOffset = 0.0;
@@ -64,7 +70,7 @@ class Player : public Entity
     float m_Yaw = glm::radians(0.0f);
     float m_Pitch = glm::radians(0.0f);
 
-  public:
+public:
     glm::ivec3 ChunkIndex() const { return m_ChunkIndex; }
     void SetChunkIndex(const glm::ivec3 &ChunkIndex) { m_ChunkIndex = ChunkIndex; }
 
@@ -73,6 +79,4 @@ class Player : public Entity
 
     bool IsInWater() const { return m_InWater; }
     void SetInWater(bool InWater) { m_InWater = InWater; }
-
-
 };
