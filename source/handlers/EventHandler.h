@@ -11,8 +11,8 @@ public:
         return instance;
     }
 
-    static void Initialize();
-    static void PollEvents();
+    static void Initialize() { Get(); }
+    static void PollEvents() { glfwPollEvents(); }
 
 private:
     EventHandler() {}

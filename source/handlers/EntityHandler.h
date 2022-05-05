@@ -13,18 +13,31 @@ public:
         return instance;
     }
 
-    static void Initialize();
+    static void Initialize() { Get(); }
 
-    static void AddToUpdater(Entity *entity);
-    static void RemoveFromUpdater(Entity *entity);
+    static void AddToUpdater(Entity *entity) { Get().m_Updates.insert(entity); }
+    static void AddToFrameUpdater(Entity *entity) { Get().m_FrameUpdates.insert(entity); }
 
-    static void AddToFrameUpdater(Entity *entity);
-    static void RemoveFromFrameUpdater(Entity *entity);
+    static void RemoveFromUpdater(Entity *entity) { Get().m_Updates.erase(entity); }
+    static void RemoveFromFrameUpdater(Entity *entity) { Get().m_FrameUpdates.erase(entity); }
+
+    // Should be called from the engine loop, not the game loop
+    static void Update()
+    {
+        for (const auto &entity : Get().m_Updates)
+        {
+            entity->Update();
+        }
+    }
 
     // Should be called from the game loop, not the engine loop
-    static void Update();
-    // Should be called from the engine loop, not the game loop
-    static void FrameUpdate();
+    static void FrameUpdate()
+    {
+        for (const auto &entity : Get().m_Updates)
+        {
+            entity->FrameUpdate();
+        }
+    }
 
 private:
     EntityHandler() {}
