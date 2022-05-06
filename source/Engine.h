@@ -3,14 +3,15 @@
 #include <comet.pch>
 
 #include "handlers/EntityHandler.h"
-#include "handlers/EventHandler.h"
 
-#include "Camera.h"
-#include "Renderer.h"
+#include "input/Input.h"
+
 #include "render/ShaderProgram.h"
 #include "render/Texture.h"
 #include "render/TextureMap.h"
 
+#include "Renderer.h"
+#include "Camera.h"
 #include "Timer.h"
 
 class Engine

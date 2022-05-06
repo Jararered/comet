@@ -1,5 +1,4 @@
 #include "Engine.h"
-#include "handlers/Input.h"
 
 using namespace Comet;
 
@@ -9,12 +8,9 @@ void Engine::Initialize()
 
     // Engine Components
     Window::Initialize();
-    EventHandler::Initialize();
-
-    // Rendering Components
-    TextureMap::Initialize();
     Renderer::Initialize();
     Camera::Initialize();
+    TextureMap::Initialize();
 }
 
 void Engine::Finalize()

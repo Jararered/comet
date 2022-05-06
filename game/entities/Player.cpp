@@ -1,10 +1,8 @@
 #include "Player.h"
 
-#include "handlers/Input.h"
-#include "handlers/KeyboardKeyCodes.h"
-#include "handlers/MouseButtonCodes.h"
+#include "input/Input.h"
+
 #include "physics/Gravity.h"
-#include <cmath>
 
 using namespace Comet;
 

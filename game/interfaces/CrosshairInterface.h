@@ -4,11 +4,13 @@
 
 #include "handlers/Interface.h"
 #include "handlers/InterfaceHandler.h"
-#include "handlers/Window.h"
+
 #include "render/Mesh.h"
 #include "render/ShaderProgram.h"
 #include "render/Texture.h"
 #include "render/Vertex.h"
+
+#include "Window.h"
 
 class CrosshairInterface : public Interface
 {

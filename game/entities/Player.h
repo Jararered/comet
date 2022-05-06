@@ -2,7 +2,6 @@
 
 #include <comet.pch>
 
-#include "Renderer.h"
 #include "handlers/Entity.h"
 #include "handlers/EntityHandler.h"
 #include "physics/Collision.h"
@@ -11,6 +10,7 @@
 #include "world/Chunk.h"
 #include "world/World.h"
 
+#include "Renderer.h"
 
 class Player : public Entity
 {

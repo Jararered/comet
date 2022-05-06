@@ -3,11 +3,11 @@
 #include <comet.pch>
 
 #include "handlers/InterfaceHandler.h"
-#include "handlers/Window.h"
 
 #include "render/Mesh.h"
 #include "render/ShaderProgram.h"
 
+#include "Window.h"
 #include "Camera.h"
 
 struct Lock

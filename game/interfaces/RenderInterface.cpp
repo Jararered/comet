@@ -1,6 +1,6 @@
 #include "RenderInterface.h"
 
-#include "handlers/Input.h"
+#include "input/Input.h"
 
 #include "imgui.h"
 #include "imgui_internal.h"
