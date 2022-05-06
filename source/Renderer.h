@@ -3,7 +3,7 @@
 #include <comet.pch>
 
 #include "handlers/InterfaceHandler.h"
-#include "handlers/WindowHandler.h"
+#include "handlers/Window.h"
 
 #include "render/Mesh.h"
 #include "render/ShaderProgram.h"

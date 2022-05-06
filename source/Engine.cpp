@@ -8,7 +8,7 @@ void Engine::Initialize()
     Get().m_TimeDelta = 0.0;
 
     // Engine Components
-    WindowHandler::Initialize();
+    Window::Initialize();
     EventHandler::Initialize();
 
     // Rendering Components

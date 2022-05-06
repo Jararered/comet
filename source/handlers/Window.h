@@ -5,12 +5,12 @@
 
 #include "Engine.h"
 
-class WindowHandler
+class Window
 {
 public:
     inline static auto &Get()
     {
-        static WindowHandler instance;
+        static Window instance;
         return instance;
     }
 
@@ -23,16 +23,16 @@ public:
     int CreateWindow();
 
 private:
-    WindowHandler() {}
-    WindowHandler(WindowHandler const &);
-    void operator=(WindowHandler const &) {}
+    Window() {}
+    Window(Window const &);
+    void operator=(Window const &) {}
 
     GLFWwindow *m_GLFWwindow = nullptr;
     int m_WindowHeight = 0;
     int m_WindowWidth = 0;
 
 public:
-    static GLFWwindow *Window() { return Get().m_GLFWwindow; }
+    static GLFWwindow *GetGLFWwindow() { return Get().m_GLFWwindow; }
 
     static int WindowHeight() { return Get().m_WindowHeight; }
     static void SetWindowHeight(int WindowHeight) { Get().m_WindowHeight = WindowHeight; }

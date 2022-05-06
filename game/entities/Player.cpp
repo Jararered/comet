@@ -172,7 +172,7 @@ void Player::ProcessMovement()
 
     // Still perform up/down movements after normalization.
     // Don't care about limiting speed along verticals.
-    if (Input::IsKeyPressed(CT_KEY_SPACE))
+    if (Input::IsKeyPressed(CT_KEY_LEFT_SHIFT))
         direction -= Camera::POSITIVE_Y;
 
     if (m_Flying)
@@ -298,7 +298,7 @@ void Player::CheckXCollision()
 
     std::vector<glm::ivec3> positions;
     std::vector<bool> tests;
-    Collision collision;
+    Collision blockBoundingBox;
 
     if (m_Position.x > m_LastPosition.x)
     {
@@ -315,8 +315,8 @@ void Player::CheckXCollision()
     {
         if (World::GetBlock(positions[i]).IsSolid)
         {
-            collision = Collision::CollisionCenteredXYZ(positions[i], 1.0f, 1.0f, 1.0f);
-            tests[i] = Collision::Intersect(m_BoundingBox, collision);
+            blockBoundingBox = Collision::BoundingBoxCentered(positions[i], 1.0f, 1.0f, 1.0f);
+            tests[i] = Collision::IsIntersect(m_BoundingBox, blockBoundingBox);
         }
     }
     if (tests[0] || tests[1] || tests[2] || tests[3] || tests[4] || tests[5])
@@ -335,7 +335,7 @@ void Player::CheckYCollision()
 
     std::vector<glm::ivec3> positions;
     std::vector<bool> tests;
-    Collision collision;
+    Collision blockBoundingBox;
     bool bottomCollision;
 
     // Y Processing
@@ -357,8 +357,8 @@ void Player::CheckYCollision()
     {
         if (World::GetBlock(positions[i]).IsSolid)
         {
-            collision = Collision::CollisionCenteredXYZ(positions[i], 1.0f, 1.0f, 1.0f);
-            tests[i] = Collision::Intersect(m_BoundingBox, collision);
+            blockBoundingBox = Collision::BoundingBoxCentered(positions[i], 1.0f, 1.0f, 1.0f);
+            tests[i] = Collision::IsIntersect(m_BoundingBox, blockBoundingBox);
         }
     }
     if (tests[0] || tests[1] || tests[2] || tests[3])
@@ -391,7 +391,7 @@ void Player::CheckZCollision()
 
     std::vector<glm::ivec3> positions;
     std::vector<bool> tests;
-    Collision collision;
+    Collision blockBoundingBox;
 
     // Z Processing
     if (m_Position.z > m_LastPosition.z)
@@ -409,8 +409,8 @@ void Player::CheckZCollision()
     {
         if (World::GetBlock(positions[i]).IsSolid)
         {
-            collision = Collision::CollisionCenteredXYZ(positions[i], 1.0f, 1.0f, 1.0f);
-            tests[i] = Collision::Intersect(m_BoundingBox, collision);
+            blockBoundingBox = Collision::BoundingBoxCentered(positions[i], 1.0f, 1.0f, 1.0f);
+            tests[i] = Collision::IsIntersect(m_BoundingBox, blockBoundingBox);
         }
     }
     if (tests[0] || tests[1] || tests[2] || tests[3] || tests[4] || tests[5])
