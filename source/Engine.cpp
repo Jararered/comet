@@ -1,4 +1,7 @@
 #include "Engine.h"
+#include "handlers/Input.h"
+
+using namespace Comet;
 
 void Engine::Initialize()
 {
@@ -7,8 +10,6 @@ void Engine::Initialize()
     // Engine Components
     WindowHandler::Initialize();
     EventHandler::Initialize();
-    KeyboardHandler::Initialize();
-    MouseHandler::Initialize();
 
     // Rendering Components
     TextureMap::Initialize();
@@ -33,8 +34,6 @@ void Engine::Thread()
 
         // Update camera views for inputs
         Camera::Update();
-        // Reset accumulated movement
-        MouseHandler::ResetMovement();
 
         // Drawing the mesh render queue
         Renderer::DrawMeshQueue();
@@ -45,7 +44,7 @@ void Engine::Thread()
         Renderer::SwapBuffers();
 
         // Poll events for next frame
-        EventHandler::PollEvents();
+        Input::PollEvents();
 
         Get().m_TimeDelta = glfwGetTime() - Get().m_TimeLast;
         Get().m_TimeLast = glfwGetTime();

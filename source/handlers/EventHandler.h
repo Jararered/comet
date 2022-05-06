@@ -12,7 +12,6 @@ public:
     }
 
     static void Initialize() { Get(); }
-    static void PollEvents() { glfwPollEvents(); }
 
 private:
     EventHandler() {}

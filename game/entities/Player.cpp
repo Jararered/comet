@@ -1,10 +1,8 @@
 #include "Player.h"
 
 #include "handlers/Input.h"
-#include "handlers/KeyboardHandler.h"
 #include "handlers/KeyboardKeyCodes.h"
 #include "handlers/MouseButtonCodes.h"
-#include "handlers/MouseHandler.h"
 #include "physics/Gravity.h"
 #include <cmath>
 
@@ -181,7 +179,7 @@ void Player::ProcessMovement()
 
     if (m_Flying)
     {
-        if (KeyboardHandler::PressedSpace())
+        if (Input::IsKeyPressed(CT_KEY_SPACE))
             direction += Camera::POSITIVE_Y;
 
         m_Acceleration = {0.0f, 0.0f, 0.0f};
@@ -190,7 +188,7 @@ void Player::ProcessMovement()
     }
     else
     {
-        if (KeyboardHandler::PressedSpace() && m_Standing)
+        if (Input::IsKeyPressed(CT_KEY_SPACE) && m_Standing)
         {
             m_Velocity += glm::vec3{0.0f, 8.5f, 0.0f};
             std::cout << "jumping" << std::endl;
@@ -207,8 +205,9 @@ void Player::ProcessRotation()
     // The delta x and delta y variables from the mouse handler are an
     // accumulation of movement over each frame, and this function is
     // run each frame as well, so no need to rely on a dt.
-    m_Yaw += (MouseHandler::DeltaX() * m_RotationSpeed) / 300.0;
-    m_Pitch += (MouseHandler::DeltaY() * m_RotationSpeed) / 300.0;
+    glm::vec2 mouseMovement = Input::GetMouseMovement();
+    m_Yaw += (mouseMovement.x * m_RotationSpeed) / 300.0;
+    m_Pitch += (mouseMovement.y * m_RotationSpeed) / 300.0;
 
     // Keep yaw angle from getting to imprecise
     if (m_Yaw > glm::radians(360.0f))
@@ -240,7 +239,7 @@ void Player::ProcessRotation()
 
 void Player::ProcessScrolls()
 {
-    newOffset = MouseHandler::ScrollOffset();
+    newOffset = Input::GetScrollOffset();
 
     if (newOffset > oldOffset)
     {
@@ -254,7 +253,7 @@ void Player::ProcessScrolls()
         std::cout << static_cast<int>(m_SelectedBlock) << std::endl;
     }
 
-    oldOffset = MouseHandler::ScrollOffset();
+    oldOffset = newOffset;
 }
 
 void Player::UpdateCamera()

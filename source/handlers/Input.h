@@ -2,47 +2,74 @@
 
 #include <comet.pch>
 
+#include "Callbacks.h"
 #include "KeyboardKeyCodes.h"
 #include "MouseButtonCodes.h"
 
-#include "glfw/glfw3.h"
-
 namespace Comet
 {
-    class Input
+    namespace Input
     {
-    public:
-        inline static auto &Get()
+        // Updates the current state of all inputs
+        static void PollEvents() { glfwPollEvents(); }
+
+        // Scroll related functions
+        inline static float GetScrollOffset()
         {
-            static Input instance;
-            return instance;
+            double scrolloffset = Callbacks::GetScrollOffset();
+            return scrolloffset;
         }
 
+        // Keyboard related functions
         inline static bool IsKeyPressed(int keycode)
         {
-            return glfwGetKey(glfwGetCurrentContext(), keycode) == GLFW_PRESS;
+            int state = glfwGetKey(glfwGetCurrentContext(), keycode);
+            return state == GLFW_PRESS;
         }
 
+        // Mouse button related functions
         inline static bool IsMouseButtonPressed(int mouseButtonCode)
         {
-            return glfwGetMouseButton(glfwGetCurrentContext(), mouseButtonCode) == GLFW_PRESS;
+            int state = glfwGetMouseButton(glfwGetCurrentContext(), mouseButtonCode);
+            return state == GLFW_PRESS;
         }
 
         inline static bool IsLeftClick()
         {
-            return glfwGetMouseButton(glfwGetCurrentContext(), CT_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
+            int state = glfwGetMouseButton(glfwGetCurrentContext(), CT_MOUSE_BUTTON_LEFT);
+            return state == GLFW_PRESS;
         }
 
         inline static bool IsRightClick()
         {
-            return glfwGetMouseButton(glfwGetCurrentContext(), CT_MOUSE_BUTTON_RIGHT) == GLFW_PRESS;
+            int state = glfwGetMouseButton(glfwGetCurrentContext(), CT_MOUSE_BUTTON_RIGHT);
+            return state == GLFW_PRESS;
         }
 
+        // Mouse position functions
         static glm::vec2 GetMousePosition()
         {
             double xpos, ypos;
             glfwGetCursorPos(glfwGetCurrentContext(), &xpos, &ypos);
-            return {static_cast<float>(xpos), static_cast<float>(ypos)};
+            return {static_cast<float>(xpos), static_cast<float>(-ypos)};
+        }
+
+        // Mouse handling functions
+        static bool IsMouseCaptured()
+        {
+            int option = glfwGetInputMode(glfwGetCurrentContext(), GLFW_CURSOR);
+            return option == GLFW_CURSOR_DISABLED;
+        }
+
+                static glm::vec2 GetMouseMovement()
+        {
+            if (IsMouseCaptured())
+            {
+                glm::vec2 mousepos = GetMousePosition();
+                glfwSetCursorPos(glfwGetCurrentContext(), 0.0, 0.0);
+                return mousepos;
+            }
+            return {0.0f, 0.0f};
         }
 
         static void CaptureCursor()
@@ -51,7 +78,6 @@ namespace Comet
             {
                 glfwSetInputMode(glfwGetCurrentContext(), GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
             }
-
             glfwSetInputMode(glfwGetCurrentContext(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
             // Need to center cursor before cursor position callback is run
@@ -59,9 +85,10 @@ namespace Comet
             glfwSetCursorPos(glfwGetCurrentContext(), 0.0, 0.0);
         }
 
-    private:
-        Input() {}
-        Input(Input const &);
-        void operator=(Input const &);
-    };
+        static void ReleaseCursor()
+        {
+            glfwSetInputMode(glfwGetCurrentContext(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+            glfwSetCursorPos(glfwGetCurrentContext(), 0.0, 0.0);
+        }
+    }; // namespace Input
 } // namespace Comet

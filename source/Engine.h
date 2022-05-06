@@ -4,8 +4,6 @@
 
 #include "handlers/EntityHandler.h"
 #include "handlers/EventHandler.h"
-#include "handlers/KeyboardHandler.h"
-#include "handlers/MouseHandler.h"
 
 #include "Camera.h"
 #include "Renderer.h"
