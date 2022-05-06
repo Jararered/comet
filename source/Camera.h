@@ -27,7 +27,7 @@ private:
     Camera(Camera const &);
     void operator=(Camera const &) {}
 
-    float m_FOV = glm::radians(85.0f);
+    float m_FOV = glm::radians(100.0f);
     float m_Aspect = 16.0f / 9.0f;
     float m_Near = 0.1f;
     float m_Far = 1000.0f;

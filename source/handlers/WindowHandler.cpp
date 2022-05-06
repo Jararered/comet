@@ -15,13 +15,12 @@ int WindowHandler::CreateWindow()
         return -1;
     }
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 
     // Create a windowed mode window and its OpenGL context
-    m_GLFWwindow = glfwCreateWindow(1, 1, "Comet (OpenGL 4.6)", NULL, NULL);
+    m_GLFWwindow = glfwCreateWindow(1, 1, "Comet (OpenGL 3.3)", NULL, NULL);
     if (!m_GLFWwindow)
     {
         std::cout << "[Error] Failed to create OpenGL window.\n";
@@ -43,8 +42,6 @@ int WindowHandler::CreateWindow()
     glfwSwapInterval(1);
 
     CenterWindow();
-
-    glfwShowWindow(m_GLFWwindow);
 
     return 0;
 }

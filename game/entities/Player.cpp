@@ -154,15 +154,15 @@ void Player::ProcessMovement()
     float movementSpeed = m_MovementSpeed;
     glm::vec3 direction = {0.0f, 0.0f, 0.0f};
     glm::vec3 cameraFowardXZ = {m_ForwardVector.x, 0.0f, m_ForwardVector.z};
-    if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+    if (Input::IsKeyPressed(CT_KEY_LEFT_CONTROL))
         movementSpeed *= 3;
-    if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_W) == GLFW_PRESS)
+    if (Input::IsKeyPressed(CT_KEY_W))
         direction += cameraFowardXZ;
-    if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_S) == GLFW_PRESS)
+    if (Input::IsKeyPressed(CT_KEY_S))
         direction -= cameraFowardXZ;
-    if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_A) == GLFW_PRESS)
+    if (Input::IsKeyPressed(CT_KEY_A))
         direction -= m_RightVector;
-    if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_D) == GLFW_PRESS)
+    if (Input::IsKeyPressed(CT_KEY_D))
         direction += m_RightVector;
 
     // Fixes diagonal directed movement to not be faster than along an axis.
@@ -172,9 +172,7 @@ void Player::ProcessMovement()
 
     // Still perform up/down movements after normalization.
     // Don't care about limiting speed along verticals.
-    // if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_SPACE) == GLFW_PRESS)
-    //     direction += Camera::POSITIVE_Y;
-    if (glfwGetKey(glfwGetCurrentContext(), GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+    if (Input::IsKeyPressed(CT_KEY_SPACE))
         direction -= Camera::POSITIVE_Y;
 
     if (m_Flying)
