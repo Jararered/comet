@@ -21,6 +21,8 @@ Player::Player()
 
     m_Flying = true;
 
+    m_BlockOverlayShader.Create("..\\game\\shaders\\PositionColor.vert", "..\\game\\shaders\\PositionColor.frag");
+
     Camera::SetPosition(m_Position);
     EntityHandler::AddToUpdater(this);
     EntityHandler::AddToFrameUpdater(this);
@@ -33,24 +35,14 @@ void Player::Update() { GetRequestedChunks(); }
 void Player::FrameUpdate()
 {
     if (Input::IsLeftClick() && !m_BreakingBlock)
-    {
-        m_BreakingBlock = true;
         Player::BreakBlock();
-    }
     if (!Input::IsLeftClick())
-    {
         m_BreakingBlock = false;
-    }
 
     if (Input::IsRightClick() && !m_PlacingBlock)
-    {
-        m_PlacingBlock = true;
         Player::PlaceBlock();
-    }
     if (!Input::IsRightClick())
-    {
         m_PlacingBlock = false;
-    }
 
     // Update movement and collision
     ProcessMovement();
@@ -64,21 +56,48 @@ void Player::FrameUpdate()
     // Update user input/selection
     ProcessScrolls();
 
-    // Update overlays if inside of a block
-    Block blockInsideOf = World::GetBlock(round(m_Position));
-    if (blockInsideOf.ID == ID::Water && blockInsideOf.ID != m_LastBlockInsideOf.ID)
-    {
-        m_InWater = true;
-        Renderer::SetOverlayColor({-0.1f, -0.1f, 0.3f});
+    { // Update overlays if inside of a block
+        Block blockInsideOf = World::GetBlock(round(m_Position));
+        if (blockInsideOf.ID == ID::Water && blockInsideOf.ID != m_LastBlockInsideOf.ID)
+        {
+            m_InWater = true;
+            Renderer::SetOverlayColor({-0.1f, -0.1f, 0.3f});
+        }
+        if (blockInsideOf.ID != ID::Water && m_LastBlockInsideOf.ID == ID::Water)
+        {
+            m_InWater = false;
+            Renderer::SetOverlayColor({0.0f, 0.0f, 0.0f});
+        }
+        m_LastBlockInsideOf = blockInsideOf;
     }
 
-    if (blockInsideOf.ID != ID::Water && m_LastBlockInsideOf.ID == ID::Water)
-    {
-        m_InWater = false;
-        Renderer::SetOverlayColor({0.0f, 0.0f, 0.0f});
-    }
+    CreateBlockOverlay();
+}
 
-    m_LastBlockInsideOf = blockInsideOf;
+void Player::CreateBlockOverlay()
+{
+    glm::vec3 direction = m_Direction;
+
+    while (glm::length(direction) < 5.0f)
+    {
+        direction += glm::normalize(direction);
+        if (World::GetBlock(round(m_Position + direction)).ID != 0)
+        {
+            // if (m_BlockOverlayGeometry.Vertices.size() > 0)
+            //     return;
+
+            glm::vec3 pos = round(m_Position + direction);
+
+
+
+            m_BlockOverlayMesh =
+                Mesh(&m_BlockOverlayGeometry.Vertices, &m_BlockOverlayGeometry.Indices, &m_BlockOverlayShader);
+            continue;
+        }
+        m_BlockOverlayGeometry.Vertices.clear();
+        m_BlockOverlayGeometry.Indices.clear();
+        m_BlockOverlayGeometry.Offset = 0;
+    }
 }
 
 void Player::GetRequestedChunks()
@@ -90,6 +109,7 @@ void Player::GetRequestedChunks()
 
 void Player::PlaceBlock()
 {
+    m_PlacingBlock = true;
     float step = 1.0f / 16.0f;
     glm::vec3 direction = m_Direction;
     glm::vec3 position = m_Position;
@@ -119,6 +139,7 @@ void Player::PlaceBlock()
 
 void Player::BreakBlock()
 {
+    m_BreakingBlock = true;
     float step = 1.0f / 16.0f;
     glm::vec3 direction = m_Direction;
     glm::vec3 position = m_Position;

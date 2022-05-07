@@ -1,6 +1,7 @@
 #pragma once
 
-// Redefined from GLFW mouse button codes
+// Copied from the GLFW mouse button defines
+
 #define CT_MOUSE_BUTTON_1         0
 #define CT_MOUSE_BUTTON_2         1
 #define CT_MOUSE_BUTTON_3         2

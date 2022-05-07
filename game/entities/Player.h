@@ -37,6 +37,7 @@ public:
     void CheckZCollision();
 
     void GetRequestedChunks();
+    void CreateBlockOverlay();
 
 private:
     // Player States
@@ -53,6 +54,11 @@ private:
     glm::ivec3 m_ChunkIndex = {0, 1, 0};
     unsigned char m_SelectedBlock = Blocks::Smoothstone_Slab().ID;
     Block m_LastBlockInsideOf;
+
+    glm::ivec3 m_LookingAtBlock;
+    Geometry m_BlockOverlayGeometry;
+    ShaderProgram m_BlockOverlayShader;
+    Mesh m_BlockOverlayMesh;
 
     double oldOffset = 0.0;
     double newOffset = 0.0;

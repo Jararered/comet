@@ -19,7 +19,7 @@ enum RenderShape
 };
 class World
 {
-  public:
+public:
     inline static auto &Instance()
     {
         static World instance;
@@ -53,7 +53,7 @@ class World
     static int RenderShape() { return Instance().m_RenderShape; }
     static void SetRenderShape(int RenderShape) { Instance().m_RenderShape = RenderShape; }
 
-  private:
+private:
     World() {}
     World(World const &);
     void operator=(World const &) {}
