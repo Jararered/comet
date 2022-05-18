@@ -10,6 +10,7 @@ using namespace Comet;
 RenderInterface::RenderInterface()
 {
     InterfaceHandler::AddInterface(this);
+
     m_RenderDistance = World::RenderDistance();
     m_RenderShape = World::RenderShape();
     m_WorldSeed = ChunkGenerator::Seed();
@@ -22,12 +23,6 @@ RenderInterface::~RenderInterface() {}
 void RenderInterface::Draw()
 {
     ImGui::Begin("Render Menu");
-
-    if (ImGui::IsItemHovered())
-    {
-        std::cout << "using gui" << std::endl;;
-    }
-
     if (ImGui::Button("Play"))
     {
         Input::CaptureCursor();
