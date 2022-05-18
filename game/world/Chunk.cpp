@@ -213,8 +213,7 @@ void Chunk::GenerateFlowers()
 
             noise1 = ChunkGenerator::GetFastNoise((m_Chunk.x * CHUNK_WIDTH) + x + 1, (m_Chunk.z * CHUNK_WIDTH) + z);
             noise2 = ChunkGenerator::GetMediumNoise((m_Chunk.x * CHUNK_WIDTH) + x + 1, (m_Chunk.z * CHUNK_WIDTH) + z);
-            float noise3 =
-                ChunkGenerator::GetFastNoise((m_Chunk.x * CHUNK_WIDTH) + x + 2, (m_Chunk.z * CHUNK_WIDTH) + z);
+            float noise3 = ChunkGenerator::GetFastNoise((m_Chunk.x * CHUNK_WIDTH) + x + 2, (m_Chunk.z * CHUNK_WIDTH) + z);
 
             if (noise1 > 0.75f && noise2 > 0.1f)
             {
@@ -414,6 +413,16 @@ void Chunk::GenerateMesh()
                     ny = (nyBlock.ID == ID::Water || !nyBlock.IsTransparent) ? false : true;
                     pz = (pzBlock.ID == ID::Water || !pzBlock.IsTransparent) ? false : true;
                     nz = (nzBlock.ID == ID::Water || !nzBlock.IsTransparent) ? false : true;
+
+                    if (py)
+                    {
+                        Block::RenderWaterBlock(currentBlock, {x, y, z}, {px, nx, py, ny, pz, nz}, &m_Geometry);
+                    }
+                    else
+                    {
+                        Block::RenderCubeBlock(currentBlock, {x, y, z}, {px, nx, py, ny, pz, nz}, &m_Geometry);
+                    }
+                    continue;
                 }
 
                 if (currentBlock.Shape == Block::Shapes::Cube)
@@ -421,7 +430,7 @@ void Chunk::GenerateMesh()
                     Block::RenderCubeBlock(currentBlock, {x, y, z}, {px, nx, py, ny, pz, nz}, &m_Geometry);
                     continue;
                 }
-                if (currentBlock.Shape == Block::Shapes::Flower)
+                if (currentBlock.Shape == Block::Shapes::Cross)
                 {
                     Block::RenderFlowerBlock(currentBlock, {x, y, z}, &m_Geometry);
                     continue;
@@ -431,7 +440,7 @@ void Chunk::GenerateMesh()
                     Block::RenderTorchBlock(currentBlock, {x, y, z}, &m_Geometry);
                     continue;
                 }
-                if (currentBlock.Shape == Block::Shapes::Slab)
+                if (currentBlock.Shape == Block::Shapes::Half)
                 {
                     Block::RenderSlabBlock(currentBlock, {x, y, z}, {px, nx, py, ny, pz, nz}, &m_Geometry);
                     continue;

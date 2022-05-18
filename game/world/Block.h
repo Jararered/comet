@@ -16,9 +16,9 @@ struct Block
     enum Shapes
     {
         Cube,
-        Flower,
+        Cross,
         Torch,
-        Slab
+        Half
     };
 
     unsigned char ID = 0;
@@ -26,11 +26,11 @@ struct Block
     bool IsSolid = false;
     unsigned int Shape = Shapes::Cube;
 
-    static void RenderCubeBlock(Block currentBlock, glm::ivec3 Coordinate, std::array<bool, 6> BlockFacesToRender,
-                                Geometry *geometry);
-    static void RenderFlowerBlock(Block currentBlock, glm::ivec3 Coordinate, Geometry *geometry);
-    static void RenderTorchBlock(Block currentBlock, glm::ivec3 Coordinate, Geometry *geometry);
-    static void RenderSlabBlock(Block currentBlock, glm::ivec3 Coordinate, std::array<bool, 6> BlockFacesToRender, Geometry *geometry);
+    static void RenderCubeBlock(Block block, glm::ivec3 coord, std::array<bool, 6> faces, Geometry *geometry);
+    static void RenderFlowerBlock(Block block, glm::ivec3 coord, Geometry *geometry);
+    static void RenderTorchBlock(Block block, glm::ivec3 coord, Geometry *geometry);
+    static void RenderSlabBlock(Block block, glm::ivec3 coord, std::array<bool, 6> faces, Geometry *geometry);
+    static void RenderWaterBlock(Block block, glm::ivec3 coord, std::array<bool, 6> faces, Geometry *geometry);
 
     template <class Archive> void serialize(Archive &ar) { ar(ID); }
 };

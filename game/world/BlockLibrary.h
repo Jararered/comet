@@ -108,24 +108,24 @@ class Blocks
     inline static Block Powered_Rail() { return Block(ID::Powered_Rail, true, false, Block::Shapes::Cube); }
     inline static Block Detector_Rail() { return Block(ID::Detector_Rail, true, false, Block::Shapes::Cube); }
     inline static Block Stickey_Piston() { return Block(ID::Stickey_Piston, false, true, Block::Shapes::Cube); }
-    inline static Block Cobweb() { return Block(ID::Cobweb, true, false, Block::Shapes::Flower); }
-    inline static Block _Dead_Oak_Sapling() { return Block(ID::_Dead_Oak_Sapling, false, true, Block::Shapes::Flower); }
-    inline static Block _Dead_Sapling() { return Block(ID::_Dead_Sapling, false, true, Block::Shapes::Flower); }
+    inline static Block Cobweb() { return Block(ID::Cobweb, true, false, Block::Shapes::Cross); }
+    inline static Block _Dead_Oak_Sapling() { return Block(ID::_Dead_Oak_Sapling, false, true, Block::Shapes::Cross); }
+    inline static Block _Dead_Sapling() { return Block(ID::_Dead_Sapling, false, true, Block::Shapes::Cross); }
     inline static Block Piston() { return Block(ID::Piston, false, true, Block::Shapes::Cube); }
     inline static Block _Piston_Head() { return Block(ID::_Piston_Head, false, true, Block::Shapes::Cube); }
     inline static Block White_Wool() { return Block(ID::White_Wool, false, true, Block::Shapes::Cube); }
     inline static Block _Grass_Top() { return Block(ID::_Grass_Top, false, true, Block::Shapes::Cube); }
-    inline static Block Yellow_Flower() { return Block(ID::Yellow_Flower, true, false, Block::Shapes::Flower); }
-    inline static Block Red_Flower() { return Block(ID::Red_Flower, true, false, Block::Shapes::Flower); }
-    inline static Block Brown_Mushroom() { return Block(ID::Brown_Mushroom, true, false, Block::Shapes::Flower); }
-    inline static Block Red_Mushroom() { return Block(ID::Red_Mushroom, true, false, Block::Shapes::Flower); }
+    inline static Block Yellow_Flower() { return Block(ID::Yellow_Flower, true, false, Block::Shapes::Cross); }
+    inline static Block Red_Flower() { return Block(ID::Red_Flower, true, false, Block::Shapes::Cross); }
+    inline static Block Brown_Mushroom() { return Block(ID::Brown_Mushroom, true, false, Block::Shapes::Cross); }
+    inline static Block Red_Mushroom() { return Block(ID::Red_Mushroom, true, false, Block::Shapes::Cross); }
     inline static Block Gold_Block() { return Block(ID::Gold_Block, false, true, Block::Shapes::Cube); }
     inline static Block Iron_Block() { return Block(ID::Iron_Block, false, true, Block::Shapes::Cube); }
     inline static Block Smoothstone_Stacked_Slabs()
     {
-        return Block(ID::Smoothstone_Stacked_Slabs, false, true, Block::Shapes::Slab);
+        return Block(ID::Smoothstone_Stacked_Slabs, false, true, Block::Shapes::Half);
     }
-    inline static Block Smoothstone_Slab() { return Block(ID::Smoothstone_Slab, true, true, Block::Shapes::Slab); }
+    inline static Block Smoothstone_Slab() { return Block(ID::Smoothstone_Slab, true, true, Block::Shapes::Half); }
     inline static Block Bricks() { return Block(ID::Bricks, false, true, Block::Shapes::Cube); }
     inline static Block TNT() { return Block(ID::TNT, false, true, Block::Shapes::Cube); }
     inline static Block Bookshelf() { return Block(ID::Bookshelf, false, true, Block::Shapes::Cube); }
@@ -331,7 +331,7 @@ class Blocks
         return Air();
     }
 
-    static std::array<unsigned char, 6> GetIndices(unsigned char blockID)
+    static std::array<unsigned char, 6> GetTextures(unsigned char blockID)
     {
         return Instance().m_BlockIndices.at(blockID);
     }
