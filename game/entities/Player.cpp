@@ -3,12 +3,13 @@
 #include "input/Input.h"
 
 #include "physics/Gravity.h"
+#include <cmath>
 
 using namespace Comet;
 
 Player::Player()
 {
-    m_Position = {0.0f, 50.0f, 0.0f};
+    m_Position = {0.0f, 50.0f, std::pow(2.0f, 16.0f)};
     m_LastPosition = {0.0f, 50.0f, 0.0f};
 
     m_Velocity = {0.0f, 0.0f, 0.0f};

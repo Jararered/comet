@@ -119,12 +119,6 @@ void World::SetBlock(glm::ivec3 worldCoord, Block blockToSet)
             Instance().m_ChunkDataMap.at({index.x, index.y, index.z + 1})->GenerateMesh();
             Renderer::UpdateMeshInQueue({index.x, index.y, index.z + 1});
         }
-
-        return;
-    }
-    else
-    {
-        return;
     }
 }
 

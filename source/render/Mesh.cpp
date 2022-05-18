@@ -3,8 +3,7 @@
 Mesh::Mesh() {}
 
 Mesh::Mesh(std::vector<Vertex> *vertices, std::vector<unsigned int> *indices, ShaderProgram *shader)
-    : m_Vertices(vertices), m_Indices(indices), m_Shader(shader), m_Count(static_cast<unsigned int>(indices->size())),
-      m_PushedToGPU(false), m_ModelMatrix(1.0f), m_TimeCreated(glfwGetTime())
+    : m_Vertices(vertices), m_Indices(indices), m_Shader(shader), m_Count(static_cast<unsigned int>(indices->size())), m_PushedToGPU(false), m_ModelMatrix(1.0f), m_TimeCreated(glfwGetTime())
 {
 }
 
@@ -62,9 +61,7 @@ void Mesh::Update()
 
     if (m_TimeDelta < 0.25)
     {
-        m_ModelMatrix = glm::translate(
-            glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -10.0f, 0.0f)),
-            glm::vec3(0.0f, static_cast<float>(10.0 * glm::sin(2 * 3.141592653589 * m_TimeDelta)), 0.0f));
+        m_ModelMatrix = glm::translate(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -10.0f, 0.0f)), glm::vec3(0.0f, static_cast<float>(10.0 * glm::sin(2 * 3.141592653589 * m_TimeDelta)), 0.0f));
         m_Transparency = m_TimeDelta * 4.0;
     }
     else

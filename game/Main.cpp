@@ -16,13 +16,13 @@ int main(void)
     // as well as the core OpenGL context.
     Engine::Initialize();
 
-    // Starting world thread and configuring
-    World::Initialize();
-    World::InitializeThread();
-
     // Create player entity and add it to the entity handler
     // Entity handler is now on the world thread
     Player player;
+
+    // Starting world thread and configuring
+    World::Initialize();
+    World::InitializeThread();
 
     // Create the debugging menu
     RenderInterface renderInterface;
