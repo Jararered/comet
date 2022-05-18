@@ -1,6 +1,6 @@
 # We'll use defaults from the LLVM style, but with 4 columns indentation.
 BasedOnStyle: Microsoft
-ColumnLimit: 120
+ColumnLimit: 200
 IndentWidth: 4
 AllowShortFunctionsOnASingleLine: All
 AccessModifierOffset: -4
