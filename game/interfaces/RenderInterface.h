@@ -12,13 +12,13 @@
 
 class RenderInterface : public Interface
 {
-  public:
+public:
     RenderInterface();
     ~RenderInterface();
 
     void Draw() override;
 
-  private:
+private:
     int m_RenderDistance;
     int m_RenderShape;
     int m_WorldSeed;

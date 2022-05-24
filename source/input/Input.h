@@ -61,7 +61,7 @@ namespace Comet
             return option == GLFW_CURSOR_DISABLED;
         }
 
-                static glm::vec2 GetMouseMovement()
+        static glm::vec2 GetMouseMovement()
         {
             if (IsMouseCaptured())
             {

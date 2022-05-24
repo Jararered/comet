@@ -245,13 +245,7 @@ void World::Generate()
     // Generates chunks
     for (const auto &index : Instance().m_ChunksToGenerate)
     {
-        // Heap creation, started getting a stack overflow error
-        // due to the size of these bad boys
-        // Chunk *chunk = new Chunk(index);
-
         // Generates chunk data
-        // Instance().m_ChunkDataMap.emplace(index, Chunk(index));
-        // Instance().m_ChunkDataMap.insert_or_assign(index, chunk);
         Instance().m_ChunkDataMap[index] = std::make_shared<Chunk>(index);
         Instance().m_ChunkDataMap.at(index)->Allocate();
         Instance().m_ChunkDataMap.at(index)->Generate();
@@ -276,9 +270,6 @@ void World::Generate()
     // Deletes chunks
     for (const auto &index : Instance().m_ChunksToDelete)
     {
-        // Heap delete
-        // delete Instance().m_ChunkDataMap.at(index);
-
         // Remove chunk from data
         Instance().m_ChunkDataMap.erase(index);
     }

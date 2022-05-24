@@ -8,10 +8,7 @@
 struct Block
 {
     Block() {}
-    Block(unsigned char id, bool isTransparent, bool isSolid, unsigned int shape)
-        : ID(id), IsTransparent(isTransparent), IsSolid(isSolid), Shape(shape)
-    {
-    }
+    Block(unsigned char id, bool isTransparent, bool isSolid, unsigned int shape) : ID(id), IsTransparent(isTransparent), IsSolid(isSolid), Shape(shape) {}
 
     enum Shapes
     {

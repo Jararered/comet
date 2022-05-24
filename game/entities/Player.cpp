@@ -9,7 +9,7 @@ using namespace Comet;
 
 Player::Player()
 {
-    m_Position = {0.0f, 50.0f, std::pow(2.0f, 16.0f)};
+    m_Position = {0.0f, 50.0f, 0.0f};
     m_LastPosition = {0.0f, 50.0f, 0.0f};
 
     m_Velocity = {0.0f, 0.0f, 0.0f};
@@ -20,7 +20,7 @@ Player::Player()
 
     m_GravityVel = {0.0f, 0.0f, 0.0f};
 
-    m_Flying = true;
+    m_Flying = false;
 
     m_BlockOverlayShader.Create("..\\game\\shaders\\PositionColor.vert", "..\\game\\shaders\\PositionColor.frag");
 
