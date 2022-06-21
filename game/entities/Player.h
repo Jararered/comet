@@ -24,8 +24,6 @@ public:
     void PlaceBlock();
     void BreakBlock();
 
-    void ProcessScrolls();
-
     void ProcessMovement(float dt);
     void ProcessRotation();
     void UpdateCamera();
@@ -42,7 +40,7 @@ public:
 private:
     // Player States
     bool m_InWater = false;
-    bool m_Flying = false;
+    bool m_Flying = true;
     bool m_Standing = false;
     bool m_BreakingBlock = false;
     bool m_PlacingBlock = false;

@@ -19,9 +19,14 @@ Player::Player()
     EntityHandler::AddToFrameUpdater(this);
 }
 
-Player::~Player() {}
+Player::~Player()
+{
+}
 
-void Player::Update() { GetRequestedChunks(); }
+void Player::Update()
+{
+    GetRequestedChunks();
+}
 
 void Player::FrameUpdate(float dt)
 {
@@ -46,7 +51,6 @@ void Player::FrameUpdate(float dt)
     // Update camera movement
     ProcessRotation();
     UpdateCamera();
-
 
     // Update user input/selection
     // ProcessScrolls();
@@ -195,20 +199,9 @@ void Player::ProcessMovement(float dt)
         {
             direction += Camera::POSITIVE_Y;
         }
-        // m_Acceleration = {0.0f, 0.0f, 0.0f};
-        // m_Velocity = dt * (0.5f * m_LastAcceleration + m_Acceleration) + movementSpeed * direction;
-        // m_Position = dt * (0.5f * m_LastVelocity + m_Velocity) + m_LastPosition;
     }
-    else
-    {
-        ApplyMovement(direction * dt * movementSpeed);
-        // if (Input::IsKeyPressed(CT_KEY_SPACE) && m_Standing)
-        // {
-        //     m_Velocity += glm::vec3{0.0f, 8.5f, 0.0f};
-        // }
-        // m_Velocity += m_GravityVel + dt * 2.5f * SimpleGravity;
-        // m_Position = dt * m_Velocity + m_LastPosition + dt * movementSpeed * direction;
-    }
+
+    ApplyMovement(direction * dt * movementSpeed);
 }
 
 void Player::ProcessRotation()
@@ -247,25 +240,6 @@ void Player::ProcessRotation()
 
     m_ForwardVector = glm::normalize(m_Direction);
     m_RightVector = glm::cross(m_ForwardVector, Camera::POSITIVE_Y);
-}
-
-void Player::ProcessScrolls()
-{
-    newOffset = Input::GetScrollOffset();
-
-    if (newOffset > oldOffset)
-    {
-        m_SelectedBlock = m_SelectedBlock + 1;
-        std::cout << static_cast<int>(m_SelectedBlock) << std::endl;
-    }
-
-    if (newOffset < oldOffset)
-    {
-        m_SelectedBlock = m_SelectedBlock - 1;
-        std::cout << static_cast<int>(m_SelectedBlock) << std::endl;
-    }
-
-    oldOffset = newOffset;
 }
 
 void Player::UpdateCamera()

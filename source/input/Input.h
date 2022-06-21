@@ -2,24 +2,14 @@
 
 #include <comet.pch>
 
-#include "Callbacks.h"
 #include "KeyboardKeyCodes.h"
 #include "MouseButtonCodes.h"
+#include "Window.h"
 
 namespace Comet
 {
     namespace Input
     {
-        // Updates the current state of all inputs
-        static void PollEvents() { glfwPollEvents(); }
-
-        // Scroll related functions
-        inline static float GetScrollOffset()
-        {
-            double scrolloffset = Callbacks::GetScrollOffset();
-            return scrolloffset;
-        }
-
         // Keyboard related functions
         inline static bool IsKeyPressed(int keycode)
         {
@@ -87,8 +77,21 @@ namespace Comet
 
         static void ReleaseCursor()
         {
+            glm::ivec2 size;
+            glfwGetWindowSize(glfwGetCurrentContext(), &size.x, &size.y);
             glfwSetInputMode(glfwGetCurrentContext(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-            glfwSetCursorPos(glfwGetCurrentContext(), 0.0, 0.0);
+            glfwSetCursorPos(glfwGetCurrentContext(), static_cast<double>(size.x / 2), static_cast<double>(size.y / 2));
+        }
+
+        // Updates the current state of all inputs
+        static void PollEvents()
+        {
+            glfwPollEvents();
+
+            if (IsKeyPressed(CT_KEY_ESCAPE))
+            {
+                Input::ReleaseCursor();
+            }
         }
     }; // namespace Input
 } // namespace Comet

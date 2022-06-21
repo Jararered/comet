@@ -62,8 +62,7 @@ void Window::CenterWindow()
 
     glfwGetMonitorPos(monitors[0], &monitorX, &monitorY);
 
-    glfwSetWindowPos(glfwGetCurrentContext(), monitorX + (videoMode->width - newWindowWidth) / 2,
-        monitorY + (videoMode->height - newWindowHeight) / 2);
+    glfwSetWindowPos(glfwGetCurrentContext(), monitorX + (videoMode->width - newWindowWidth) / 2, monitorY + (videoMode->height - newWindowHeight) / 2);
     glfwSetWindowSize(glfwGetCurrentContext(), newWindowWidth, newWindowHeight);
     glViewport(0, 0, newWindowWidth, newWindowHeight);
 }
@@ -71,9 +70,11 @@ void Window::CenterWindow()
 void Window::SetupCallbacks()
 {
     glfwSetWindowSizeCallback(glfwGetCurrentContext(), [](GLFWwindow *window, int width, int height) {});
-    glfwSetFramebufferSizeCallback(
-        glfwGetCurrentContext(), [](GLFWwindow *window, int width, int height) { glViewport(0, 0, width, height); });
+    glfwSetFramebufferSizeCallback(glfwGetCurrentContext(), [](GLFWwindow *window, int width, int height) { glViewport(0, 0, width, height); });
     glfwSetWindowCloseCallback(glfwGetCurrentContext(), [](GLFWwindow *window) { Engine::SetShouldClose(true); });
 }
 
-bool Window::CloseWindow() { return glfwWindowShouldClose(Get().m_GLFWwindow); }
+bool Window::CloseWindow()
+{
+    return glfwWindowShouldClose(Get().m_GLFWwindow);
+}

@@ -17,7 +17,6 @@ public:
     static void Initialize();
     static void CenterWindow();
     static void SetupCallbacks();
-
     static bool CloseWindow();
 
     int CreateWindow();

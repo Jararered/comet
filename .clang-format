@@ -2,7 +2,7 @@
 BasedOnStyle: Microsoft
 ColumnLimit: 200
 IndentWidth: 4
-AllowShortFunctionsOnASingleLine: All
+AllowShortFunctionsOnASingleLine: None
 AccessModifierOffset: -4
 NamespaceIndentation: All
 AlignAfterOpenBracket: DontAlign
