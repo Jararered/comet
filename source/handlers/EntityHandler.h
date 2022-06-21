@@ -31,11 +31,11 @@ public:
     }
 
     // Should be called from the game loop, not the engine loop
-    static void FrameUpdate()
+    static void FrameUpdate(float dt)
     {
-        for (const auto &entity : Get().m_Updates)
+        for (const auto &entity : Get().m_FrameUpdates)
         {
-            entity->FrameUpdate();
+            entity->FrameUpdate(dt);
         }
     }
 

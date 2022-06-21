@@ -10,9 +10,10 @@
 #include "render/Texture.h"
 #include "render/TextureMap.h"
 
-#include "Renderer.h"
 #include "Camera.h"
+#include "Renderer.h"
 #include "Timer.h"
+#include "Utilities.h"
 
 class Engine
 {
@@ -24,9 +25,8 @@ public:
     }
 
     static void Initialize();
-    static void Finalize();
-
     static void Thread();
+    static void Finalize();
 
 private:
     Engine() {}
@@ -34,13 +34,8 @@ private:
     void operator=(Engine const &);
 
     bool m_ShouldClose = false;
-    double m_TimeDelta = 0.0; // ms
-    double m_TimeLast = 0.0;  // ms
 
 public:
     static bool IsShouldClose() { return Get().m_ShouldClose; }
     static void SetShouldClose(bool ShouldClose) { Get().m_ShouldClose = ShouldClose; }
-
-    static double TimeDelta() { return Get().m_TimeDelta; }
-    static double TimeLast() { return Get().m_TimeLast; }
 };

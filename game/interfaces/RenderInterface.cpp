@@ -87,6 +87,9 @@ void RenderInterface::Draw()
         Renderer::SetBackgroundColor(m_BackgroundColor);
     }
 
+    ImGui::Text("Physics Time: %.3f", Utilities::Statistics::PhysicsTime);
+    ImGui::Text("Render Time: %.3f", Utilities::Statistics::RenderTime);
+
     ImGui::Text("Performance: %.1f FPS", ImGui::GetIO().Framerate);
     ImGui::Text("Draws/Frame: %d", Renderer::DrawCallsPerFrame());
 

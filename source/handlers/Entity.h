@@ -1,48 +1,50 @@
 #pragma once
 
 #include <comet.pch>
-#include <stdint.h>
 
-class Entity
+struct Entity
 {
-public:
-    Entity() {}
-    ~Entity() {}
+    glm::vec3 m_Position = {0.0f, 0.0f, 0.0f};
+    glm::vec3 m_LastPosition = {0.0f, 0.0f, 0.0f};
+    glm::vec3 m_Acceleration = {0.0f, 0.0f, 0.0f};
+    glm::vec3 m_Gravity = {0.0f, 0.0f, 0.0f};
+
+    void SetPosition(glm::vec3 newPosition)
+    {
+        m_Position = newPosition;
+        m_LastPosition = newPosition;
+    }
 
     // Updated on the main thread
     // GLFW calls are valid here
-    virtual void FrameUpdate() {}
+    virtual void FrameUpdate(float dt)
+    {
+        ApplyGravity();
+        UpdatePosition(dt);
+    }
 
     // Updated on separate threads
     // Used for user-made threads
     virtual void Update() {}
 
-protected:
-    glm::vec3 m_Position;
-    glm::vec3 m_LastPosition;
+    virtual void ApplyGravity() { m_Acceleration += m_Gravity; }
 
-    glm::vec3 m_Velocity;
-    glm::vec3 m_LastVelocity;
+    virtual void ApplyAcceleration(glm::vec3 acceleration) { m_Acceleration += acceleration; }
 
-    glm::vec3 m_Acceleration;
-    glm::vec3 m_LastAcceleration;
+    virtual void ApplyMovement(glm::vec3 positionChange)
+    {
+        m_Position += positionChange;
+        m_LastPosition += positionChange;
+    }
 
-public:
-    glm::vec3 Position() const { return m_Position; }
-    void SetPosition(const glm::vec3 &Position) { m_Position = Position; }
+    virtual void UpdatePosition(float dt)
+    {
+        const glm::vec3 Velocity = m_Position - m_LastPosition;
 
-    glm::vec3 LastPosition() const { return m_LastPosition; }
-    void SetLastPosition(const glm::vec3 &LastPosition) { m_LastPosition = LastPosition; }
+        m_LastPosition = m_Position;
 
-    glm::vec3 Velocity() const { return m_Velocity; }
-    void SetVelocity(const glm::vec3 &Velocity) { m_Velocity = Velocity; }
+        m_Position = m_LastPosition + Velocity + m_Acceleration * dt * dt;
 
-    glm::vec3 LastVelocity() const { return m_LastVelocity; }
-    void SetLastVelocity(const glm::vec3 &LastVelocity) { m_LastVelocity = LastVelocity; }
-
-    glm::vec3 Acceleration() const { return m_Acceleration; }
-    void SetAcceleration(const glm::vec3 &Acceleration) { m_Acceleration = Acceleration; }
-
-    glm::vec3 LastAcceleration() const { return m_LastAcceleration; }
-    void SetLastAcceleration(const glm::vec3 &LastAcceleration) { m_LastAcceleration = LastAcceleration; }
+        m_Acceleration = {0.0, 0.0, 0.0};
+    }
 };

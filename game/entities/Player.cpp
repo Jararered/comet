@@ -1,5 +1,6 @@
 #include "Player.h"
 
+#include "handlers/Entity.h"
 #include "input/Input.h"
 
 #include "physics/Gravity.h"
@@ -9,20 +10,9 @@ using namespace Comet;
 
 Player::Player()
 {
-    m_Position = {0.0f, 50.0f, 0.0f};
-    m_LastPosition = {0.0f, 50.0f, 0.0f};
+    SetPosition({0.0f, 50.0f, 0.0f});
 
-    m_Velocity = {0.0f, 0.0f, 0.0f};
-    m_LastVelocity = {0.0f, 0.0f, 0.0f};
-
-    m_Acceleration = {0.0f, 0.0f, 0.0f};
-    m_LastAcceleration = {0.0f, 0.0f, 0.0f};
-
-    m_GravityVel = {0.0f, 0.0f, 0.0f};
-
-    m_Flying = false;
-
-    m_BlockOverlayShader.Create("..\\game\\shaders\\PositionColor.vert", "..\\game\\shaders\\PositionColor.frag");
+    // m_BlockOverlayShader.Create("..\\game\\shaders\\PositionColor.vert", "..\\game\\shaders\\PositionColor.frag");
 
     Camera::SetPosition(m_Position);
     EntityHandler::AddToUpdater(this);
@@ -33,72 +23,71 @@ Player::~Player() {}
 
 void Player::Update() { GetRequestedChunks(); }
 
-void Player::FrameUpdate()
+void Player::FrameUpdate(float dt)
 {
-    if (Input::IsLeftClick() && !m_BreakingBlock)
-        Player::BreakBlock();
-    if (!Input::IsLeftClick())
-        m_BreakingBlock = false;
+    Entity::FrameUpdate(dt);
 
-    if (Input::IsRightClick() && !m_PlacingBlock)
-        Player::PlaceBlock();
-    if (!Input::IsRightClick())
-        m_PlacingBlock = false;
+    // if (Input::IsLeftClick() && !m_BreakingBlock)
+    //     Player::BreakBlock();
+    // if (!Input::IsLeftClick())
+    //     m_BreakingBlock = false;
+
+    // if (Input::IsRightClick() && !m_PlacingBlock)
+    //     Player::PlaceBlock();
+    // if (!Input::IsRightClick())
+    //     m_PlacingBlock = false;
 
     // Update movement and collision
-    ProcessMovement();
-    UpdateBoundingBox();
-    ProcessCollision();
+
+    ProcessMovement(dt);
+    // UpdateBoundingBox();
+    // ProcessCollision();
 
     // Update camera movement
     ProcessRotation();
     UpdateCamera();
 
+
     // Update user input/selection
-    ProcessScrolls();
+    // ProcessScrolls();
 
-    { // Update overlays if inside of a block
-        Block blockInsideOf = World::GetBlock(round(m_Position));
-        if (blockInsideOf.ID == ID::Water && blockInsideOf.ID != m_LastBlockInsideOf.ID)
-        {
-            m_InWater = true;
-            Renderer::SetOverlayColor({-0.1f, -0.1f, 0.3f});
-        }
-        if (blockInsideOf.ID != ID::Water && m_LastBlockInsideOf.ID == ID::Water)
-        {
-            m_InWater = false;
-            Renderer::SetOverlayColor({0.0f, 0.0f, 0.0f});
-        }
-        m_LastBlockInsideOf = blockInsideOf;
-    }
+    // Update overlays if inside of a block
+    // {
+    //     Block blockInsideOf = World::GetBlock(round(m_Position));
+    //     if (blockInsideOf.ID == ID::Water && blockInsideOf.ID != m_LastBlockInsideOf.ID)
+    //     {
+    //         m_InWater = true;
+    //         Renderer::SetOverlayColor({-0.1f, -0.1f, 0.3f});
+    //     }
+    //     if (blockInsideOf.ID != ID::Water && m_LastBlockInsideOf.ID == ID::Water)
+    //     {
+    //         m_InWater = false;
+    //         Renderer::SetOverlayColor({0.0f, 0.0f, 0.0f});
+    //     }
+    //     m_LastBlockInsideOf = blockInsideOf;
+    // }
 
-    CreateBlockOverlay();
+    // CreateBlockOverlay();
 }
 
 void Player::CreateBlockOverlay()
 {
-    glm::vec3 direction = m_Direction;
+    // glm::vec3 direction = m_Direction;
 
-    while (glm::length(direction) < 5.0f)
-    {
-        direction += glm::normalize(direction);
-        if (World::GetBlock(round(m_Position + direction)).ID != 0)
-        {
-            // if (m_BlockOverlayGeometry.Vertices.size() > 0)
-            //     return;
+    // while (glm::length(direction) < 5.0f)
+    // {
+    //     direction += glm::normalize(direction);
+    //     if (World::GetBlock(round(m_Position + direction)).ID != 0)
+    //     {
+    //         glm::vec3 pos = round(m_Position + direction);
 
-            glm::vec3 pos = round(m_Position + direction);
-
-
-
-            m_BlockOverlayMesh =
-                Mesh(&m_BlockOverlayGeometry.Vertices, &m_BlockOverlayGeometry.Indices, &m_BlockOverlayShader);
-            continue;
-        }
-        m_BlockOverlayGeometry.Vertices.clear();
-        m_BlockOverlayGeometry.Indices.clear();
-        m_BlockOverlayGeometry.Offset = 0;
-    }
+    //         m_BlockOverlayMesh = Mesh(&m_BlockOverlayGeometry.Vertices, &m_BlockOverlayGeometry.Indices, &m_BlockOverlayShader);
+    //         continue;
+    //     }
+    //     m_BlockOverlayGeometry.Vertices.clear();
+    //     m_BlockOverlayGeometry.Indices.clear();
+    //     m_BlockOverlayGeometry.Offset = 0;
+    // }
 }
 
 void Player::GetRequestedChunks()
@@ -156,26 +145,31 @@ void Player::BreakBlock()
     }
 }
 
-void Player::ProcessMovement()
+void Player::ProcessMovement(float dt)
 {
-    float dt = static_cast<float>(Engine::TimeDelta());
-
     // Checks for first frame and if a lag spike occurs
     if (dt < 0.0001f || dt > 0.25f)
+    {
         return;
+    }
 
-    // Setting last values
-    m_LastAcceleration = 1 / dt * (m_LastVelocity - m_Velocity);
-    m_LastVelocity = 1 / dt * (m_Position - m_LastPosition);
-    m_LastPosition = m_Position;
+    // m_LastAcceleration = 1 / dt * (m_LastVelocity - m_Velocity);
+    // m_LastVelocity = 1 / dt * (m_Position - m_LastPosition);
+    // m_LastPosition = m_Position;
+
+    // ApplyMovement({1.0f, 0.0f, 0.0f});
 
     // Basic movement processing
     // Used so when walking forward vertical movement doesn't occur.
     float movementSpeed = m_MovementSpeed;
     glm::vec3 direction = {0.0f, 0.0f, 0.0f};
     glm::vec3 cameraFowardXZ = {m_ForwardVector.x, 0.0f, m_ForwardVector.z};
+
+    // Speed increase
     if (Input::IsKeyPressed(CT_KEY_LEFT_CONTROL))
         movementSpeed *= 3;
+
+    // WASD movement
     if (Input::IsKeyPressed(CT_KEY_W))
         direction += cameraFowardXZ;
     if (Input::IsKeyPressed(CT_KEY_S))
@@ -198,22 +192,22 @@ void Player::ProcessMovement()
     if (m_Flying)
     {
         if (Input::IsKeyPressed(CT_KEY_SPACE))
+        {
             direction += Camera::POSITIVE_Y;
-
-        m_Acceleration = {0.0f, 0.0f, 0.0f};
-        m_Velocity = dt * (0.5f * m_LastAcceleration + m_Acceleration) + movementSpeed * direction;
-        m_Position = dt * (0.5f * m_LastVelocity + m_Velocity) + m_LastPosition;
+        }
+        // m_Acceleration = {0.0f, 0.0f, 0.0f};
+        // m_Velocity = dt * (0.5f * m_LastAcceleration + m_Acceleration) + movementSpeed * direction;
+        // m_Position = dt * (0.5f * m_LastVelocity + m_Velocity) + m_LastPosition;
     }
     else
     {
-        if (Input::IsKeyPressed(CT_KEY_SPACE) && m_Standing)
-        {
-            m_Velocity += glm::vec3{0.0f, 8.5f, 0.0f};
-            std::cout << "jumping" << std::endl;
-        }
-
-        m_Velocity += m_GravityVel + dt * 2.5f * SimpleGravity;
-        m_Position = dt * m_Velocity + m_LastPosition + dt * movementSpeed * direction;
+        ApplyMovement(direction * dt * movementSpeed);
+        // if (Input::IsKeyPressed(CT_KEY_SPACE) && m_Standing)
+        // {
+        //     m_Velocity += glm::vec3{0.0f, 8.5f, 0.0f};
+        // }
+        // m_Velocity += m_GravityVel + dt * 2.5f * SimpleGravity;
+        // m_Position = dt * m_Velocity + m_LastPosition + dt * movementSpeed * direction;
     }
 }
 
@@ -306,137 +300,134 @@ void Player::ProcessCollision()
 
 void Player::UpdateBoundingBox()
 {
-    m_BoundingBox = {m_Position.x + (0.5f * m_Width), m_Position.x - (0.5f * m_Width), m_Position.y + 0.25f,
-        m_Position.y - m_Height, m_Position.z + (0.5f * m_Width), m_Position.z - (0.5f * m_Width)};
+    m_BoundingBox = {m_Position.x + (0.5f * m_Width), m_Position.x - (0.5f * m_Width), m_Position.y + 0.25f, m_Position.y - m_Height, m_Position.z + (0.5f * m_Width), m_Position.z - (0.5f * m_Width)};
 }
 
 void Player::CheckXCollision()
 {
     // Process movement in each direction
-    glm::ivec3 lower = glm::ivec3(floor(m_Position));
-    glm::ivec3 upper = glm::ivec3(ceil(m_Position));
+    // glm::ivec3 lower = glm::ivec3(floor(m_Position));
+    // glm::ivec3 upper = glm::ivec3(ceil(m_Position));
 
-    std::vector<glm::ivec3> positions;
-    std::vector<bool> tests;
-    Collision blockBoundingBox;
+    // std::vector<glm::ivec3> positions;
+    // std::vector<bool> tests;
+    // Collision blockBoundingBox;
 
-    if (m_Position.x > m_LastPosition.x)
-    {
-        positions = {{upper.x, upper.y, upper.z}, {upper.x, upper.y, lower.z}, {upper.x, lower.y, lower.z},
-            {upper.x, lower.y, upper.z}, {upper.x, lower.y - 1, lower.z}, {upper.x, lower.y - 1, upper.z}};
-    }
-    else
-    {
-        positions = {{lower.x, upper.y, upper.z}, {lower.x, upper.y, lower.z}, {lower.x, lower.y, lower.z},
-            {lower.x, lower.y, upper.z}, {lower.x, lower.y - 1, lower.z}, {lower.x, lower.y - 1, upper.z}};
-    }
-    tests = {false, false, false, false, false, false};
-    for (int i = 0; i < 6; i++)
-    {
-        if (World::GetBlock(positions[i]).IsSolid)
-        {
-            blockBoundingBox = Collision::BoundingBoxCentered(positions[i], 1.0f, 1.0f, 1.0f);
-            tests[i] = Collision::IsIntersect(m_BoundingBox, blockBoundingBox);
-        }
-    }
-    if (tests[0] || tests[1] || tests[2] || tests[3] || tests[4] || tests[5])
-    {
-        m_Position.x = m_LastPosition.x;
-        m_Velocity.x = 0.0f;
-        UpdateBoundingBox();
-    }
+    // if (m_Position.x > m_LastPosition.x)
+    // {
+    //     positions = {
+    //         {upper.x, upper.y, upper.z}, {upper.x, upper.y, lower.z}, {upper.x, lower.y, lower.z}, {upper.x, lower.y, upper.z}, {upper.x, lower.y - 1, lower.z}, {upper.x, lower.y - 1, upper.z}};
+    // }
+    // else
+    // {
+    //     positions = {
+    //         {lower.x, upper.y, upper.z}, {lower.x, upper.y, lower.z}, {lower.x, lower.y, lower.z}, {lower.x, lower.y, upper.z}, {lower.x, lower.y - 1, lower.z}, {lower.x, lower.y - 1, upper.z}};
+    // }
+    // tests = {false, false, false, false, false, false};
+    // for (int i = 0; i < 6; i++)
+    // {
+    //     if (World::GetBlock(positions[i]).IsSolid)
+    //     {
+    //         blockBoundingBox = Collision::BoundingBoxCentered(positions[i], 1.0f, 1.0f, 1.0f);
+    //         tests[i] = Collision::IsIntersect(m_BoundingBox, blockBoundingBox);
+    //     }
+    // }
+    // if (tests[0] || tests[1] || tests[2] || tests[3] || tests[4] || tests[5])
+    // {
+    //     m_Position.x = m_LastPosition.x;
+    //     m_Velocity.x = 0.0f;
+    //     UpdateBoundingBox();
+    // }
 }
 
 void Player::CheckYCollision()
 {
     // Process movement in each direction
-    glm::ivec3 lower = glm::ivec3(floor(m_Position - glm::vec3(0.0f, m_Height, 0.0f)));
-    glm::ivec3 upper = glm::ivec3(ceil(m_Position));
+    // glm::ivec3 lower = glm::ivec3(floor(m_Position - glm::vec3(0.0f, m_Height, 0.0f)));
+    // glm::ivec3 upper = glm::ivec3(ceil(m_Position));
 
-    std::vector<glm::ivec3> positions;
-    std::vector<bool> tests;
-    Collision blockBoundingBox;
-    bool bottomCollision;
+    // std::vector<glm::ivec3> positions;
+    // std::vector<bool> tests;
+    // Collision blockBoundingBox;
+    // bool bottomCollision;
 
-    // Y Processing
-    if (m_Position.y > m_LastPosition.y)
-    {
-        bottomCollision = false;
-        m_Standing = false;
-        positions = {{upper.x, upper.y, upper.z}, {upper.x, upper.y, lower.z}, {lower.x, upper.y, lower.z},
-            {lower.x, upper.y, upper.z}};
-    }
-    else
-    {
-        bottomCollision = true;
-        positions = {{upper.x, lower.y, upper.z}, {upper.x, lower.y, lower.z}, {lower.x, lower.y, lower.z},
-            {lower.x, lower.y, upper.z}};
-    }
-    tests = {false, false, false, false};
-    for (int i = 0; i < 4; i++)
-    {
-        if (World::GetBlock(positions[i]).IsSolid)
-        {
-            blockBoundingBox = Collision::BoundingBoxCentered(positions[i], 1.0f, 1.0f, 1.0f);
-            tests[i] = Collision::IsIntersect(m_BoundingBox, blockBoundingBox);
-        }
-    }
-    if (tests[0] || tests[1] || tests[2] || tests[3])
-    {
-        m_Position.y = m_LastPosition.y;
-        m_Velocity.y = 0.0f;
-        UpdateBoundingBox();
-    }
+    // // Y Processing
+    // if (m_Position.y > m_LastPosition.y)
+    // {
+    //     bottomCollision = false;
+    //     m_Standing = false;
+    //     positions = {{upper.x, upper.y, upper.z}, {upper.x, upper.y, lower.z}, {lower.x, upper.y, lower.z}, {lower.x, upper.y, upper.z}};
+    // }
+    // else
+    // {
+    //     bottomCollision = true;
+    //     positions = {{upper.x, lower.y, upper.z}, {upper.x, lower.y, lower.z}, {lower.x, lower.y, lower.z}, {lower.x, lower.y, upper.z}};
+    // }
+    // tests = {false, false, false, false};
+    // for (int i = 0; i < 4; i++)
+    // {
+    //     if (World::GetBlock(positions[i]).IsSolid)
+    //     {
+    //         blockBoundingBox = Collision::BoundingBoxCentered(positions[i], 1.0f, 1.0f, 1.0f);
+    //         tests[i] = Collision::IsIntersect(m_BoundingBox, blockBoundingBox);
+    //     }
+    // }
+    // if (tests[0] || tests[1] || tests[2] || tests[3])
+    // {
+    //     m_Position.y = m_LastPosition.y;
+    //     m_Velocity.y = 0.0f;
+    //     UpdateBoundingBox();
+    // }
 
-    // Checking if colliding with a block beneath player
-    if (bottomCollision)
-    {
-        if (tests[0] || tests[1] || tests[2] || tests[3])
-        {
-            m_Standing = true;
-            m_GravityVel = {0.0f, 0.0f, 0.0f};
-        }
-        else
-        {
-            m_Standing = false;
-        }
-    }
+    // // Checking if colliding with a block beneath player
+    // if (bottomCollision)
+    // {
+    //     if (tests[0] || tests[1] || tests[2] || tests[3])
+    //     {
+    //         m_Standing = true;
+    //         m_GravityVel = {0.0f, 0.0f, 0.0f};
+    //     }
+    //     else
+    //     {
+    //         m_Standing = false;
+    //     }
+    // }
 }
 
 void Player::CheckZCollision()
 {
     // Process movement in each direction
-    glm::ivec3 lower = glm::ivec3(floor(m_Position));
-    glm::ivec3 upper = glm::ivec3(ceil(m_Position));
+    // glm::ivec3 lower = glm::ivec3(floor(m_Position));
+    // glm::ivec3 upper = glm::ivec3(ceil(m_Position));
 
-    std::vector<glm::ivec3> positions;
-    std::vector<bool> tests;
-    Collision blockBoundingBox;
+    // std::vector<glm::ivec3> positions;
+    // std::vector<bool> tests;
+    // Collision blockBoundingBox;
 
-    // Z Processing
-    if (m_Position.z > m_LastPosition.z)
-    {
-        positions = {{upper.x, upper.y, upper.z}, {lower.x, upper.y, upper.z}, {lower.x, lower.y, upper.z},
-            {upper.x, lower.y, upper.z}, {lower.x, lower.y - 1, upper.z}, {upper.x, lower.y - 1, upper.z}};
-    }
-    else
-    {
-        positions = {{upper.x, upper.y, lower.z}, {lower.x, upper.y, lower.z}, {lower.x, lower.y, lower.z},
-            {upper.x, lower.y, lower.z}, {lower.x, lower.y - 1, lower.z}, {upper.x, lower.y - 1, lower.z}};
-    }
-    tests = {false, false, false, false, false, false};
-    for (int i = 0; i < 6; i++)
-    {
-        if (World::GetBlock(positions[i]).IsSolid)
-        {
-            blockBoundingBox = Collision::BoundingBoxCentered(positions[i], 1.0f, 1.0f, 1.0f);
-            tests[i] = Collision::IsIntersect(m_BoundingBox, blockBoundingBox);
-        }
-    }
-    if (tests[0] || tests[1] || tests[2] || tests[3] || tests[4] || tests[5])
-    {
-        m_Position.z = m_LastPosition.z;
-        m_Velocity.z = 0.0f;
-        UpdateBoundingBox();
-    }
+    // // Z Processing
+    // if (m_Position.z > m_LastPosition.z)
+    // {
+    //     positions = {
+    //         {upper.x, upper.y, upper.z}, {lower.x, upper.y, upper.z}, {lower.x, lower.y, upper.z}, {upper.x, lower.y, upper.z}, {lower.x, lower.y - 1, upper.z}, {upper.x, lower.y - 1, upper.z}};
+    // }
+    // else
+    // {
+    //     positions = {
+    //         {upper.x, upper.y, lower.z}, {lower.x, upper.y, lower.z}, {lower.x, lower.y, lower.z}, {upper.x, lower.y, lower.z}, {lower.x, lower.y - 1, lower.z}, {upper.x, lower.y - 1, lower.z}};
+    // }
+    // tests = {false, false, false, false, false, false};
+    // for (int i = 0; i < 6; i++)
+    // {
+    //     if (World::GetBlock(positions[i]).IsSolid)
+    //     {
+    //         blockBoundingBox = Collision::BoundingBoxCentered(positions[i], 1.0f, 1.0f, 1.0f);
+    //         tests[i] = Collision::IsIntersect(m_BoundingBox, blockBoundingBox);
+    //     }
+    // }
+    // if (tests[0] || tests[1] || tests[2] || tests[3] || tests[4] || tests[5])
+    // {
+    //     m_Position.z = m_LastPosition.z;
+    //     m_Velocity.z = 0.0f;
+    //     UpdateBoundingBox();
+    // }
 }

@@ -3,15 +3,15 @@ cmake_minimum_required(VERSION 3.16)
 get_filename_component(PROJECT_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 
 set(CMAKE_CXX_STANDARD 23)
+
 # set(CMAKE_CXX_STANDARD_LIBRARIES "-static-libgcc -static-libstdc++ -lwsock32 -lws2_32 ${CMAKE_CXX_STANDARD_LIBRARIES}")
 # set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-Bstatic,--whole-archive -lwinpthread -Wl,--no-whole-archive")
-
-
 project(${PROJECT_NAME})
 
 if(${CMAKE_CL_64})
-  set(CMAKE_64_BIT_POSTFIX -x64)
+    set(CMAKE_64_BIT_POSTFIX -x64)
 endif(${CMAKE_CL_64})
+
 set(CMAKE_DEBUG_POSTFIX -debug)
 
 include_directories(
@@ -25,7 +25,6 @@ include_directories(
     libraries/stb_image/include
     libraries/FastNoiseLite/include
     libraries/cereal/include
-
 )
 
 # Added so that glad would shut the fuck up

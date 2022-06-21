@@ -21,16 +21,13 @@ class Mesh
     void Finalize();
 
   private:
-    std::vector<Vertex> *m_Vertices;
-    std::vector<unsigned int> *m_Indices;
+    std::vector<Vertex> *p_Vertices;
+    std::vector<unsigned int> *p_Indices;
+    ShaderProgram *p_Shader = nullptr;
 
     unsigned int m_VAO = 0;
     unsigned int m_VBO = 0;
-    unsigned int m_VBOSize = 0;
     unsigned int m_IBO = 0;
-    unsigned int m_IBOSize = 0;
-    ShaderProgram *m_Shader = nullptr;
-    unsigned int m_Count = 0;
     double m_Transparency = 0.0;
 
     glm::mat4 m_ModelMatrix = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
@@ -40,17 +37,14 @@ class Mesh
     double m_TimeDelta = 0.0;
 
   public:
-    ShaderProgram *Shader() const { return m_Shader; }
-    void SetShader(ShaderProgram *Shader) { m_Shader = Shader; }
+    ShaderProgram *Shader() const { return p_Shader; }
+    void SetShader(ShaderProgram *Shader) { p_Shader = Shader; }
 
-    unsigned int Count() const { return m_Count; }
-    void SetCount(unsigned int Count) { m_Count = Count; }
+    std::vector<Vertex> *Vertices() const { return p_Vertices; }
+    void SetVertices(std::vector<Vertex> *Vertices) { p_Vertices = Vertices; }
 
-    std::vector<Vertex> *Vertices() const { return m_Vertices; }
-    void SetVertices(std::vector<Vertex> *Vertices) { m_Vertices = Vertices; }
-
-    std::vector<unsigned int> *Indices() const { return m_Indices; }
-    void SetIndices(std::vector<unsigned int> *Indices) { m_Indices = Indices; }
+    std::vector<unsigned int> *Indices() const { return p_Indices; }
+    void SetIndices(std::vector<unsigned int> *Indices) { p_Indices = Indices; }
 
     glm::mat4 ModelMatrix() const { return m_ModelMatrix; }
     void SetModelMatrix(const glm::mat4 &ModelMatrix) { m_ModelMatrix = ModelMatrix; }
@@ -61,8 +55,8 @@ class Mesh
     double TimeCreated() const { return m_TimeCreated; }
     void SetTimeCreated(double TimeCreated) { m_TimeCreated = TimeCreated; }
 
-    double TimeDelta() const { return m_TimeDelta; }
-    void SetTimeDelta(double TimeDelta) { m_TimeDelta = TimeDelta; }
+    double Dt() const { return m_TimeDelta; }
+    void SetTimeDelta(double Dt) { m_TimeDelta = Dt; }
 
     double Transparency() const { return m_Transparency; }
     void SetTransparency(double Transparency) { m_Transparency = Transparency; }

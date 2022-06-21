@@ -2,6 +2,7 @@
 
 #include "World.h"
 #include "world/WorldConfig.h"
+#include <winsock.h>
 
 Chunk::Chunk(glm::ivec3 id) : m_Chunk(id) {}
 
@@ -121,60 +122,37 @@ void Chunk::GenerateTrees()
                 SetBlock({x, y, z}, Blocks::Dirt());
                 SetBlock({x, y + 1, z}, Blocks::Oak_Log());
                 SetBlock({x, y + 2, z}, Blocks::Oak_Log());
+
                 if (noise1 > 0.95f)
                 {
                     SetBlock({x, y + 3, z}, Blocks::Oak_Log());
                     y += 1;
                 }
-                SetBlock({x - 2, y + 3, z - 1}, Blocks::Oak_Leaves());
-                SetBlock({x - 2, y + 3, z}, Blocks::Oak_Leaves());
-                SetBlock({x - 2, y + 3, z + 1}, Blocks::Oak_Leaves());
-                SetBlock({x - 1, y + 3, z - 2}, Blocks::Oak_Leaves());
-                SetBlock({x - 1, y + 3, z - 1}, Blocks::Oak_Leaves());
-                SetBlock({x - 1, y + 3, z}, Blocks::Oak_Leaves());
-                SetBlock({x - 1, y + 3, z + 1}, Blocks::Oak_Leaves());
-                SetBlock({x - 1, y + 3, z + 2}, Blocks::Oak_Leaves());
-                SetBlock({x, y + 3, z - 2}, Blocks::Oak_Leaves());
-                SetBlock({x, y + 3, z - 1}, Blocks::Oak_Leaves());
+
+                for (int xoffset = -2; xoffset < 3; xoffset++)
+                {
+                    for (int yoffset = -2; yoffset < 3; yoffset++)
+                    {
+                        SetBlock({x + xoffset, y + 3, z + yoffset}, Blocks::Oak_Leaves());
+                    }
+                }
 
                 SetBlock({x, y + 3, z}, Blocks::Oak_Log());
 
-                SetBlock({x, y + 3, z + 1}, Blocks::Oak_Leaves());
-                SetBlock({x, y + 3, z + 2}, Blocks::Oak_Leaves());
-                SetBlock({x + 1, y + 3, z - 2}, Blocks::Oak_Leaves());
-                SetBlock({x + 1, y + 3, z - 1}, Blocks::Oak_Leaves());
-                SetBlock({x + 1, y + 3, z}, Blocks::Oak_Leaves());
-                SetBlock({x + 1, y + 3, z + 1}, Blocks::Oak_Leaves());
-                SetBlock({x + 1, y + 3, z + 2}, Blocks::Oak_Leaves());
-                SetBlock({x + 2, y + 3, z - 1}, Blocks::Oak_Leaves());
-                SetBlock({x + 2, y + 3, z}, Blocks::Oak_Leaves());
-                SetBlock({x + 2, y + 3, z + 1}, Blocks::Oak_Leaves());
-                SetBlock({x - 2, y + 4, z - 1}, Blocks::Oak_Leaves());
-                SetBlock({x - 2, y + 4, z}, Blocks::Oak_Leaves());
-                SetBlock({x - 2, y + 4, z + 1}, Blocks::Oak_Leaves());
-                SetBlock({x - 1, y + 4, z - 2}, Blocks::Oak_Leaves());
-                SetBlock({x - 1, y + 4, z - 1}, Blocks::Oak_Leaves());
-                SetBlock({x - 1, y + 4, z}, Blocks::Oak_Leaves());
-                SetBlock({x - 1, y + 4, z + 1}, Blocks::Oak_Leaves());
-                SetBlock({x - 1, y + 4, z + 2}, Blocks::Oak_Leaves());
-                SetBlock({x, y + 4, z - 2}, Blocks::Oak_Leaves());
-                SetBlock({x, y + 4, z - 1}, Blocks::Oak_Leaves());
-                SetBlock({x, y + 4, z}, Blocks::Oak_Leaves());
-                SetBlock({x, y + 4, z + 1}, Blocks::Oak_Leaves());
-                SetBlock({x, y + 4, z + 2}, Blocks::Oak_Leaves());
-                SetBlock({x + 1, y + 4, z - 2}, Blocks::Oak_Leaves());
-                SetBlock({x + 1, y + 4, z - 1}, Blocks::Oak_Leaves());
-                SetBlock({x + 1, y + 4, z}, Blocks::Oak_Leaves());
-                SetBlock({x + 1, y + 4, z + 1}, Blocks::Oak_Leaves());
-                SetBlock({x + 1, y + 4, z + 2}, Blocks::Oak_Leaves());
-                SetBlock({x + 2, y + 4, z - 1}, Blocks::Oak_Leaves());
-                SetBlock({x + 2, y + 4, z}, Blocks::Oak_Leaves());
-                SetBlock({x + 2, y + 4, z + 1}, Blocks::Oak_Leaves());
+                for (int xoffset = -2; xoffset < 3; xoffset++)
+                {
+                    for (int yoffset = -2; yoffset < 3; yoffset++)
+                    {
+                        SetBlock({x + xoffset, y + 4, z + yoffset}, Blocks::Oak_Leaves());
+                    }
+                }
+
                 SetBlock({x - 1, y + 5, z}, Blocks::Oak_Leaves());
                 SetBlock({x, y + 5, z - 1}, Blocks::Oak_Leaves());
                 SetBlock({x, y + 5, z}, Blocks::Oak_Leaves());
                 SetBlock({x, y + 5, z + 1}, Blocks::Oak_Leaves());
                 SetBlock({x + 1, y + 5, z}, Blocks::Oak_Leaves());
+
                 SetBlock({x - 1, y + 6, z}, Blocks::Oak_Leaves());
                 SetBlock({x, y + 6, z - 1}, Blocks::Oak_Leaves());
                 SetBlock({x, y + 6, z}, Blocks::Oak_Leaves());

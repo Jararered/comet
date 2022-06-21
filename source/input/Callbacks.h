@@ -18,19 +18,15 @@ namespace Comet
     private:
         Callbacks()
         {
-            glfwSetScrollCallback(glfwGetCurrentContext(), [](GLFWwindow *window, double xoffset, double yoffset) {
-                Get().m_ScrollOffset += yoffset;
-                std::cout << Get().m_ScrollOffset << "\n";
-            });
+            glfwSetScrollCallback(glfwGetCurrentContext(), [](GLFWwindow *window, double xoffset, double yoffset) { Get().m_ScrollOffset += yoffset; });
 
-            glfwSetKeyCallback(
-                glfwGetCurrentContext(), [](GLFWwindow *window, int key, int scancode, int action, int mods) {
-                    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-                    {
-                        glfwSetInputMode(glfwGetCurrentContext(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-                        glfwSetCursorPos(glfwGetCurrentContext(), 0.0, 0.0);
-                    }
-                });
+            glfwSetKeyCallback(glfwGetCurrentContext(), [](GLFWwindow *window, int key, int scancode, int action, int mods) {
+                if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+                {
+                    glfwSetInputMode(glfwGetCurrentContext(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+                    glfwSetCursorPos(glfwGetCurrentContext(), 0.0, 0.0);
+                }
+            });
         }
         Callbacks(Callbacks const &);
         void operator=(Callbacks const &);

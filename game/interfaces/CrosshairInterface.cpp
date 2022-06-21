@@ -28,6 +28,6 @@ void CrosshairInterface::Draw()
     glUniform1i(glGetUniformLocation(m_ShaderProgram.GetID(), "u_Texture"), 0);
 
     glEnable(GL_BLEND);
-    glDrawElements(GL_TRIANGLES, m_Mesh.Count(), GL_UNSIGNED_INT, (void *)0);
+    glDrawElements(GL_TRIANGLES, m_Mesh.Indices()->size(), GL_UNSIGNED_INT, (void *)0);
     glDisable(GL_BLEND);
 }

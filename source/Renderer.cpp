@@ -86,7 +86,7 @@ void Renderer::DrawMeshQueue()
         glUniform1i(glGetUniformLocation(shaderID, "u_Texture"), 0);
 
         // Drawing mesh
-        glDrawElements(GL_TRIANGLES, mesh.Count(), GL_UNSIGNED_INT, (void *)0);
+        glDrawElements(GL_TRIANGLES, mesh.Indices()->size(), GL_UNSIGNED_INT, (void *)0);
         drawCalls++;
     }
 

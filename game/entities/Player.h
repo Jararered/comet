@@ -18,15 +18,15 @@ public:
     Player();
     ~Player();
 
-    void Update() override;
-    void FrameUpdate() override;
+    void Update();
+    void FrameUpdate(float dt);
 
     void PlaceBlock();
     void BreakBlock();
 
     void ProcessScrolls();
 
-    void ProcessMovement();
+    void ProcessMovement(float dt);
     void ProcessRotation();
     void UpdateCamera();
 
@@ -42,17 +42,18 @@ public:
 private:
     // Player States
     bool m_InWater = false;
-    bool m_Flying;
-    bool m_Standing;
+    bool m_Flying = false;
+    bool m_Standing = false;
     bool m_BreakingBlock = false;
     bool m_PlacingBlock = false;
+    bool m_ThirdPersonCamera = false;
 
-    glm::vec3 m_GravityVel;
+    glm::vec3 m_GravityVel = {0.0f, 0.0f, 0.0f};
 
     // Purposfully setting this to an invalid index so that an update happens when
     // spawning in chunk 0, 0, 0
     glm::ivec3 m_ChunkIndex = {0, 1, 0};
-    unsigned char m_SelectedBlock = Blocks::Smoothstone_Slab().ID;
+    unsigned char m_SelectedBlock = Blocks::Stone().ID;
     Block m_LastBlockInsideOf;
 
     glm::ivec3 m_LookingAtBlock;
