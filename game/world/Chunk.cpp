@@ -2,7 +2,6 @@
 
 #include "World.h"
 #include "world/WorldConfig.h"
-#include <winsock.h>
 
 Chunk::Chunk(glm::ivec3 id) : m_Chunk(id) {}
 
