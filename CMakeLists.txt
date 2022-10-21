@@ -31,9 +31,7 @@ include_directories(
 add_definitions(-DGLFW_INCLUDE_NONE)
 add_definitions(-DGLM_ENABLE_EXPERIMENTAL)
 
-link_directories(
-    libraries/glfw/lib
-)
+find_package(glfw3 3.3 REQUIRED)
 
 # Game files
 file(GLOB_RECURSE GAME_CPP_FILES game/*.cpp)
@@ -63,9 +61,7 @@ add_executable(
 
 target_precompile_headers(${PROJECT_NAME} PUBLIC "$<$<COMPILE_LANGUAGE:CXX>:comet.pch>")
 
-target_link_libraries(${PROJECT_NAME}
-    glfw3
-)
+target_link_libraries(${PROJECT_NAME} glfw)
 
 # Added to that OpenGL context does not start terminal
 # set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "/ENTRY:mainCRTStartup /SUBSYSTEM:WINDOWS")
