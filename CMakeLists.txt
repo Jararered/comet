@@ -31,7 +31,11 @@ include_directories(
 add_definitions(-DGLFW_INCLUDE_NONE)
 add_definitions(-DGLM_ENABLE_EXPERIMENTAL)
 
-find_package(glfw3 3.3 REQUIRED)
+link_directories(
+    libraries/glfw/lib
+)
+
+find_package(glfw3 3.3 PATHS libraries/glfw/lib)
 
 # Game files
 file(GLOB_RECURSE GAME_CPP_FILES game/*.cpp)
