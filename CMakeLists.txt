@@ -33,9 +33,10 @@ add_definitions(-DGLM_ENABLE_EXPERIMENTAL)
 
 if (WIN32)
     link_directories(libraries/glfw/lib/windows)
-    endif(WIN32)
+endif(WIN32)
 if (UNIX)
-    link_directories(libraries/glfw/lib/macos)
+    find_package(glfw3 3.3 REQUIRED)
+    # link_directories(libraries/glfw/lib/macos)
 endif(UNIX)    
 
 # Game files
@@ -66,7 +67,11 @@ add_executable(
 
 target_precompile_headers(${PROJECT_NAME} PUBLIC "$<$<COMPILE_LANGUAGE:CXX>:comet.pch>")
 
-target_link_libraries(${PROJECT_NAME} glfw3)
-
+if (WIN32)
+    target_link_libraries(${PROJECT_NAME} glfw3)
+endif(WIN32)
+if (UNIX)
+    target_link_libraries(${PROJECT_NAME} glfw)
+endif(UNIX)
 # Added to that OpenGL context does not start terminal
 # set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "/ENTRY:mainCRTStartup /SUBSYSTEM:WINDOWS")
