@@ -40,7 +40,7 @@ void Chunk::Generate()
             block = Blocks::GetBlockFromID(block.ID);
         }
 
-        SetGenerated(false);
+        m_Generated = false;
     }
     else
     {
@@ -52,7 +52,7 @@ void Chunk::Generate()
         GenerateSand();
         GenerateWater();
 
-        SetGenerated(true);
+        m_Generated = true;
     }
 }
 

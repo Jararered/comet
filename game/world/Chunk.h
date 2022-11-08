@@ -72,13 +72,9 @@ struct Chunk
     glm::ivec3 m_Chunk = {0, 0, 0};
 
   public:
-    bool IsModified() const { return m_Modified; }
-    void SetModified(bool Modified) { m_Modified = Modified; }
+    Geometry *GetGeometry() { return &m_Geometry; }
 
-    bool IsGenerated() const { return m_Generated; }
-    void SetGenerated(bool Generated) { m_Generated = Generated; }
-
-    Geometry *Geometry() { return &m_Geometry; }
+    void Modify() {m_Modified = true;}
 
     template <class Archive> void save(Archive &ar) const { ar(m_BlockData); }
     template <class Archive> void load(Archive &ar) { ar(m_BlockData); }

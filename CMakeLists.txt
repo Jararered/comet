@@ -35,8 +35,7 @@ if (WIN32)
     link_directories(libraries/glfw/lib/windows)
 endif(WIN32)
 if (UNIX)
-    find_package(glfw3 3.3 REQUIRED)
-    # link_directories(libraries/glfw/lib/macos)
+    find_package(glfw3 REQUIRED)
 endif(UNIX)    
 
 # Game files

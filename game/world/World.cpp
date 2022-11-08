@@ -93,7 +93,7 @@ void World::SetBlock(glm::ivec3 worldCoord, Block blockToSet)
     if (auto entry = Instance().m_ChunkDataMap.find(index); entry != Instance().m_ChunkDataMap.end())
     {
         entry->second->SetBlock({chunkCoord.x, chunkCoord.y, chunkCoord.z}, blockToSet);
-        entry->second->SetModified(true);
+        entry->second->Modify();
         entry->second->GenerateMesh();
 
         Renderer::UpdateMeshInQueue(index);
@@ -289,6 +289,6 @@ void World::Generate()
 void World::GenerateMesh(glm::ivec3 index)
 {
     std::shared_ptr<Chunk> chunk = Instance().m_ChunkDataMap.at(index);
-    Mesh mesh(&chunk->Geometry()->Vertices, &chunk->Geometry()->Indices, &Instance().m_Shader);
+    Mesh mesh(&chunk->GetGeometry()->Vertices, &chunk->GetGeometry()->Indices, &Instance().m_Shader);
     Renderer::AddMeshToQueue(index, mesh);
 }
