@@ -56,7 +56,7 @@ private:
 
     glm::ivec3 m_LookingAtBlock;
     Geometry m_BlockOverlayGeometry;
-    ShaderProgram m_BlockOverlayShader;
+    Shader m_BlockOverlayShader;
     Mesh m_BlockOverlayMesh;
 
     double oldOffset = 0.0;

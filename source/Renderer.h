@@ -5,7 +5,7 @@
 #include "handlers/InterfaceHandler.h"
 
 #include "render/Mesh.h"
-#include "render/ShaderProgram.h"
+#include "render/Shader.h"
 
 #include "Window.h"
 #include "Camera.h"

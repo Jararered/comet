@@ -3,7 +3,7 @@
 #include <comet.pch>
 #include <memory>
 
-#include "render/ShaderProgram.h"
+#include "render/Shader.h"
 
 #include "BlockLibrary.h"
 #include "Chunk.h"
@@ -40,13 +40,13 @@ public:
     static glm::ivec3 GetChunkCoord(glm::ivec3 worldPos);
     static glm::ivec3 GetChunkIndex(glm::ivec3 worldPos);
 
-    static void SetShader(const ShaderProgram &shader) { Instance().m_Shader = shader; }
+    static void SetShader(const Shader &shader) { Instance().m_Shader = shader; }
     static void SetSeed(int seed) { ChunkGenerator::SetSeed(seed); }
     static int Seed() { return Instance().m_Seed; }
     static void ProcessRequestedChunks(glm::ivec3 centerChunkIndex);
 
     // Shader Functions
-    const ShaderProgram &GetShader() { return m_Shader; }
+    const Shader &GetShader() { return m_Shader; }
 
     static int RenderDistance() { return Instance().m_RenderDistance; }
     static void SetRenderDistance(int RenderDistance) { Instance().m_RenderDistance = RenderDistance; }
@@ -71,7 +71,7 @@ private:
     std::unordered_set<glm::ivec3> m_ChunksToRender;
     std::unordered_set<glm::ivec3> m_ChunksToUnrender;
 
-    ShaderProgram m_Shader;
+    Shader m_Shader;
     Texture m_Texture;
     int m_Seed = 0;
     int m_RenderDistance = 0;

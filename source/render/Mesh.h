@@ -2,14 +2,14 @@
 
 #include <comet.pch>
 
-#include "ShaderProgram.h"
+#include "Shader.h"
 #include "Vertex.h"
 
 class Mesh
 {
   public:
     Mesh();
-    Mesh(std::vector<Vertex> *vertices, std::vector<unsigned int> *indices, ShaderProgram *shader);
+    Mesh(std::vector<Vertex> *vertices, std::vector<unsigned int> *indices, Shader *shader);
     ~Mesh();
 
     void Bind();
@@ -23,7 +23,7 @@ class Mesh
   private:
     std::vector<Vertex> *p_Vertices;
     std::vector<unsigned int> *p_Indices;
-    ShaderProgram *p_Shader = nullptr;
+    Shader *p_Shader = nullptr;
 
     unsigned int m_VAO = 0;
     unsigned int m_VBO = 0;
@@ -37,8 +37,8 @@ class Mesh
     double m_TimeDelta = 0.0;
 
   public:
-    ShaderProgram *Shader() const { return p_Shader; }
-    void SetShader(ShaderProgram *Shader) { p_Shader = Shader; }
+    Shader *GetShader() const { return p_Shader; }
+    void SetShader(Shader *Shader) { p_Shader = Shader; }
 
     std::vector<Vertex> *Vertices() const { return p_Vertices; }
     void SetVertices(std::vector<Vertex> *Vertices) { p_Vertices = Vertices; }

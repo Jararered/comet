@@ -6,7 +6,7 @@
 
 #include "input/Input.h"
 
-#include "render/ShaderProgram.h"
+#include "render/Shader.h"
 #include "render/Texture.h"
 #include "render/TextureMap.h"
 

@@ -69,7 +69,7 @@ void Renderer::DrawMeshQueue()
 
     for (auto &[index, mesh] : Get().m_MeshMap)
     {
-        shaderID = mesh.Shader()->GetID();
+        shaderID = mesh.GetShader()->GetID();
 
         mesh.Update();
 

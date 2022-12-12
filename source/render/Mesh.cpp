@@ -2,7 +2,7 @@
 
 Mesh::Mesh() {}
 
-Mesh::Mesh(std::vector<Vertex> *vertices, std::vector<unsigned int> *indices, ShaderProgram *shader)
+Mesh::Mesh(std::vector<Vertex> *vertices, std::vector<unsigned int> *indices, Shader *shader)
     : p_Vertices(vertices), p_Indices(indices), p_Shader(shader), m_PushedToGPU(false), m_ModelMatrix(1.0f), m_TimeCreated(glfwGetTime())
 {
 }

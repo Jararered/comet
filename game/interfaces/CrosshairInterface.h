@@ -6,7 +6,7 @@
 #include "handlers/InterfaceHandler.h"
 
 #include "render/Mesh.h"
-#include "render/ShaderProgram.h"
+#include "render/Shader.h"
 #include "render/Texture.h"
 #include "render/Vertex.h"
 
@@ -23,7 +23,7 @@ public:
 private:
     std::vector<Vertex> m_Vertices;
     std::vector<unsigned int> m_Indices;
-    ShaderProgram m_ShaderProgram;
+    Shader m_Shader;
     Texture m_Texture;
     Mesh m_Mesh;
 };
