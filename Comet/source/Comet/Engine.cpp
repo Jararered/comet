@@ -1,0 +1,48 @@
+#include "Engine.hpp"
+
+using namespace Comet;
+
+void Engine::Initialize()
+{
+    // Engine Components
+    Window::Initialize();
+    Renderer::Initialize();
+    Camera::Initialize();
+    TextureMap::Initialize();
+}
+
+void Engine::Finalize()
+{
+    // Finalizing systems with threads
+    glfwTerminate();
+}
+
+void Engine::Thread()
+{
+    while (!Engine::IsShouldClose())
+    {
+        double physicsStartTime = Clock::Time();
+        EntityManager::FrameUpdate(Clock::Time());
+        Statistics::PhysicsTime = Clock::Time() - physicsStartTime;
+
+        // Reset clock after processing all Dt based events, mainly physics-related funtionality
+        Clock::Reset();
+
+        // Update camera views for inputs
+        Camera::Update();
+
+        double renderTimeStart = Clock::Time();
+        // Clears color and depth buffers
+        Renderer::NewFrame();
+        // Drawing the mesh render queue
+        Renderer::DrawMeshQueue();
+        // Draw UI after everything else
+        Renderer::DrawInterfaceQueue();
+        // Swaps buffers to display new drawn frame
+        Renderer::SwapBuffers();
+        Statistics::RenderTime = Clock::Time() - renderTimeStart;
+
+        // Poll events for next frame
+        Input::PollEvents();
+    }
+}
