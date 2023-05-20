@@ -175,3 +175,13 @@ void Renderer::ProcessMeshQueues()
     Get().m_MeshesToDelete.clear();
     QueueLock.DeleteQueue.unlock();
 }
+
+void Renderer::Update()
+{
+    NewFrame();
+
+    DrawMeshQueue();
+    DrawInterfaceQueue();
+
+    SwapBuffers();   
+}

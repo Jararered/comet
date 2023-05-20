@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Comet/Renderer.hpp>
+#include <Comet/Renderer/Renderer.hpp>
 #include <Comet/Renderer/Shader.hpp>
 #include <Comet/Renderer/Texture.hpp>
 #include <Comet/Engine.hpp>

@@ -9,7 +9,7 @@ add_definitions(-DGLM_ENABLE_EXPERIMENTAL)
 link_directories(libraries/glfw/lib/windows)
 
 include_directories(
-    source
+    source/Comet
     ${CMAKE_SOURCE_DIR}/libraries/glad/include
     ${CMAKE_SOURCE_DIR}/libraries/glfw/include
     ${CMAKE_SOURCE_DIR}/libraries/glm/include

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Comet/Renderer.hpp>
+#include <Comet/Renderer/Renderer.hpp>
 #include <Comet/Renderer/TextureMap.hpp>
 #include <Comet/Renderer/Vertex.hpp>
 #include <Comet/Timer.hpp>

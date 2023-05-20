@@ -10,6 +10,7 @@ include_directories(
     source/Sandbox 
 
     ${CMAKE_SOURCE_DIR}/Comet/source
+    ${CMAKE_SOURCE_DIR}/Comet/source/Comet
     ${CMAKE_SOURCE_DIR}/libraries/glad/include
     ${CMAKE_SOURCE_DIR}/libraries/glfw/include
     ${CMAKE_SOURCE_DIR}/libraries/glm/include

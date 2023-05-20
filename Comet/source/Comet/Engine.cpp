@@ -32,14 +32,9 @@ void Engine::Thread()
         Camera::Update();
 
         double renderTimeStart = Clock::Time();
-        // Clears color and depth buffers
-        Renderer::NewFrame();
-        // Drawing the mesh render queue
-        Renderer::DrawMeshQueue();
-        // Draw UI after everything else
-        Renderer::DrawInterfaceQueue();
-        // Swaps buffers to display new drawn frame
-        Renderer::SwapBuffers();
+
+        Renderer::Update();
+
         Statistics::RenderTime = Clock::Time() - renderTimeStart;
 
         // Poll events for next frame

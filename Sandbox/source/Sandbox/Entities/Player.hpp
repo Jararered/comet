@@ -8,7 +8,7 @@
 #include "World/Chunk.hpp"
 #include "World/World.hpp"
 
-#include <Comet/Renderer.hpp>
+#include <Comet/Renderer/Renderer.hpp>
 
 class Player : public Entity
 {

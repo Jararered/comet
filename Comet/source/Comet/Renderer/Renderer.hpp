@@ -2,8 +2,8 @@
 
 #include "Interfaces/InterfaceManager.hpp"
 
-#include "Renderer/Mesh.hpp"
-#include "Renderer/Shader.hpp"
+#include "Mesh.hpp"
+#include "Shader.hpp"
 
 #include "Window.hpp"
 #include "Camera.hpp"
@@ -31,6 +31,8 @@ public:
     static Lock QueueLock;
 
     static void Initialize();
+    static void Update();
+    
     static void NewFrame();
     static void SwapBuffers();
     static void ResetRenderer();

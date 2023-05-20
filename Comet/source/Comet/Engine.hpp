@@ -4,12 +4,12 @@
 
 #include "Input/Input.hpp"
 
+#include "Renderer/Renderer.hpp"
+#include "Renderer/Camera.hpp"
 #include "Renderer/Shader.hpp"
 #include "Renderer/Texture.hpp"
 #include "Renderer/TextureMap.hpp"
 
-#include "Camera.hpp"
-#include "Renderer.hpp"
 #include "Timer.hpp"
 #include "Utilities.hpp"
 
