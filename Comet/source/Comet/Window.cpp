@@ -4,17 +4,10 @@
 
 void Window::Initialize()
 {
-    Get().CreateWindow();
-    Get().SetupCallbacks();
-}
-
-int Window::CreateWindow()
-{
     // Initialize the library
     if (!glfwInit())
     {
         std::cout << "[Error] Failed to initialize GLFW.\n";
-        return -1;
     }
 
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
@@ -29,7 +22,6 @@ int Window::CreateWindow()
     {
         std::cout << "[Error] Failed to create OpenGL window.\n";
         glfwTerminate();
-        return -1;
     }
 
     // Make the window's context current
@@ -39,15 +31,15 @@ int Window::CreateWindow()
     if (version == 0)
     {
         std::cout << "[Error] Failed to initialize OpenGL context.\n";
-        return -1;
     }
 
-    glfwSetWindowUserPointer(m_GLFWwindow, this);
+    // glfwSetWindowUserPointer(m_GLFWwindow, this);
     glfwSwapInterval(1);
 
     CenterWindow();
 
-    return 0;
+    glfwSetWindowSizeCallback(glfwGetCurrentContext(), [](GLFWwindow* window, int width, int height) {});
+    glfwSetFramebufferSizeCallback(glfwGetCurrentContext(), [](GLFWwindow* window, int width, int height) { glViewport(0, 0, width, height); });
 }
 
 void Window::CenterWindow()
@@ -69,13 +61,6 @@ void Window::CenterWindow()
     glfwSetWindowPos(glfwGetCurrentContext(), monitorX + (videoMode->width - newWindowWidth) / 2, monitorY + (videoMode->height - newWindowHeight) / 2);
     glfwSetWindowSize(glfwGetCurrentContext(), newWindowWidth, newWindowHeight);
     glViewport(0, 0, newWindowWidth, newWindowHeight);
-}
-
-void Window::SetupCallbacks()
-{
-    glfwSetWindowSizeCallback(glfwGetCurrentContext(), [](GLFWwindow* window, int width, int height) {});
-    glfwSetFramebufferSizeCallback(glfwGetCurrentContext(), [](GLFWwindow* window, int width, int height) { glViewport(0, 0, width, height); });
-    glfwSetWindowCloseCallback(glfwGetCurrentContext(), [](GLFWwindow* window) { Engine::SetShouldClose(true); });
 }
 
 bool Window::CloseWindow()

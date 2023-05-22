@@ -32,7 +32,7 @@ public:
 
     static void Initialize();
     static void Update();
-    
+
     static void NewFrame();
     static void SwapBuffers();
     static void ResetRenderer();
@@ -80,4 +80,5 @@ public:
 
     static unsigned int DrawCallsPerFrame() { return Get().m_DrawCallsPerFrame; }
     static void SetDrawCallsPerFrame(unsigned int DrawCallsPerFrame) { Get().m_DrawCallsPerFrame = DrawCallsPerFrame; }
+
 };

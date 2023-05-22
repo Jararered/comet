@@ -19,7 +19,7 @@ void Engine::Finalize()
 
 void Engine::Thread()
 {
-    while (!Engine::IsShouldClose())
+    while (!Window::ShouldClose())
     {
         double physicsStartTime = Clock::Time();
         EntityManager::FrameUpdate(Clock::Time());

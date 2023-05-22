@@ -37,7 +37,7 @@ void RenderInterface::Update()
     ImGui::SameLine();
     if (ImGui::Button("Exit"))
     {
-        Engine::SetShouldClose(true);
+        Window::SetShouldClose(true);
     }
 
     ImGui::Text("Render Modes: ");

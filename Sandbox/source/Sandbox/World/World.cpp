@@ -43,7 +43,7 @@ void World::InitializeThread()
 
 void World::Thread()
 {
-    while (!Engine::IsShouldClose() && !Renderer::IsResetting())
+    while (!Window::ShouldClose() && !Renderer::IsResetting())
     {
         EntityManager::Update();
 

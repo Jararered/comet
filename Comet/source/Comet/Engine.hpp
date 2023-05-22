@@ -30,10 +30,4 @@ private:
     Engine() {}
     Engine(Engine const&);
     void operator=(Engine const&);
-
-    bool m_ShouldClose = false;
-
-public:
-    static bool IsShouldClose() { return Get().m_ShouldClose; }
-    static void SetShouldClose(bool ShouldClose) { Get().m_ShouldClose = ShouldClose; }
 };
