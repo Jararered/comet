@@ -1,8 +1,13 @@
 #include "Window.hpp"
 
+#include "Engine.hpp"
+
+#include <glad/gl.h>
+#include <glfw/glfw3.h>
+
 #include <iostream>
 
-void Window::Initialize()
+Window::Window()
 {
     // Initialize the library
     if (!glfwInit())
@@ -33,13 +38,18 @@ void Window::Initialize()
         std::cout << "[Error] Failed to initialize OpenGL context.\n";
     }
 
-    // glfwSetWindowUserPointer(m_GLFWwindow, this);
     glfwSwapInterval(1);
 
+    // Centers window to current monitor
     CenterWindow();
 
     glfwSetWindowSizeCallback(glfwGetCurrentContext(), [](GLFWwindow* window, int width, int height) {});
     glfwSetFramebufferSizeCallback(glfwGetCurrentContext(), [](GLFWwindow* window, int width, int height) { glViewport(0, 0, width, height); });
+}
+
+Window::~Window()
+{
+    glfwSetWindowShouldClose(m_GLFWwindow, true);
 }
 
 void Window::CenterWindow()
@@ -63,7 +73,12 @@ void Window::CenterWindow()
     glViewport(0, 0, newWindowWidth, newWindowHeight);
 }
 
-bool Window::CloseWindow()
+bool Window::ShouldClose()
 {
-    return glfwWindowShouldClose(Get().m_GLFWwindow);
+    return glfwWindowShouldClose(m_GLFWwindow);
+}
+
+void Window::SetShouldClose(bool flag)
+{
+    glfwSetWindowShouldClose(m_GLFWwindow, flag);
 }

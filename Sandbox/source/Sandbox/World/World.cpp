@@ -22,7 +22,7 @@ void World::Initialize()
     Texture texture("Textures/terrain.png");
     TextureMap::Configure(texture.Width(), texture.Height(), 16);
 
-    World::SetSeed(1);
+    World::SetSeed(69420);
     World::SetShader(blockShader);
     World::SetRenderDistance(8);
 
@@ -32,18 +32,16 @@ void World::Initialize()
     Instance().m_ChunksToGenerate.clear();
     Instance().m_ChunksToRender.clear();
     Instance().m_ChunksToUnrender.clear();
-}
 
-void World::InitializeThread()
-{
     std::cout << "Initializing world thread...\n";
 
-    Instance().m_Thread = std::thread(&World::Thread);
+    Instance().m_Running = true;
+    Instance().m_Thread = std::thread(&World::Update);
 }
 
-void World::Thread()
+void World::Update()
 {
-    while (!Window::ShouldClose() && !Renderer::IsResetting())
+    while (Instance().m_Running)
     {
         EntityManager::Update();
 
@@ -57,6 +55,8 @@ void World::Thread()
 
 void World::Finalize()
 {
+    Instance().m_Running = false;
+
     std::cout << "Saving currently loaded chunks...\n";
 
     for (auto& chunk : Instance().m_ChunkDataMap)

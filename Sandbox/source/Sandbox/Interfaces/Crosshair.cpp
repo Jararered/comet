@@ -1,4 +1,4 @@
-#include "CrosshairInterface.hpp"
+#include "Crosshair.hpp"
 
 CrosshairInterface::CrosshairInterface()
 {

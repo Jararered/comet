@@ -1,6 +1,7 @@
-#include "RenderInterface.hpp"
+#include "RenderSettings.hpp"
 
 #include <Comet/Input/Input.hpp>
+#include <Comet/Utilities.hpp>
 
 using namespace Comet;
 
@@ -32,12 +33,6 @@ void RenderInterface::Update()
         Renderer::SetResetting(false);
 
         World::Initialize();
-        World::InitializeThread();
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("Exit"))
-    {
-        Window::SetShouldClose(true);
     }
 
     ImGui::Text("Render Modes: ");

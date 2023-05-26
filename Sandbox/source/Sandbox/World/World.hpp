@@ -17,6 +17,7 @@ enum RenderShape
     Square,
     Circle
 };
+
 class World
 {
 public:
@@ -25,10 +26,9 @@ public:
         static World instance;
         return instance;
     }
-    static void InitializeThread();
-    static void Thread();
 
     static void Initialize();
+    static void Update();
     static void Finalize();
 
     static void Generate();
@@ -75,6 +75,8 @@ private:
     int m_Seed = 0;
     int m_RenderDistance = 0;
     int m_RenderShape = RenderShape::Square;
+
+    bool m_Running;
 
     std::mutex m_Lock;
 

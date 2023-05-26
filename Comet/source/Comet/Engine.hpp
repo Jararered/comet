@@ -1,33 +1,19 @@
 #pragma once
 
-#include "Entities/EntityManager.hpp"
+#include "Window.hpp"
 
-#include "Input/Input.hpp"
-
-#include "Renderer/Renderer.hpp"
-#include "Renderer/Camera.hpp"
-#include "Renderer/Shader.hpp"
-#include "Renderer/Texture.hpp"
-#include "Renderer/TextureMap.hpp"
-
-#include "Timer.hpp"
-#include "Utilities.hpp"
+#include <memory>
 
 class Engine
 {
 public:
-    inline static auto& Get()
-    {
-        static Engine instance;
-        return instance;
-    }
+    Engine();
+    ~Engine();
 
-    static void Initialize();
-    static void Thread();
-    static void Finalize();
+    void Initialize();
+    void Update();
+    void Finalize();
 
 private:
-    Engine() {}
-    Engine(Engine const&);
-    void operator=(Engine const&);
+    std::unique_ptr<Window> m_Window;
 };

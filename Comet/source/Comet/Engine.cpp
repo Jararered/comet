@@ -1,25 +1,44 @@
 #include "Engine.hpp"
 
+#include "Entities/EntityManager.hpp"
+
+#include "Input/Input.hpp"
+
+#include "Renderer/Renderer.hpp"
+#include "Renderer/Camera.hpp"
+#include "Renderer/Shader.hpp"
+#include "Renderer/Texture.hpp"
+#include "Renderer/TextureMap.hpp"
+
+#include "Timer.hpp"
+#include "Utilities.hpp"
+
 using namespace Comet;
 
-void Engine::Initialize()
+Engine::Engine()
 {
-    // Engine Components
-    Window::Initialize();
+    m_Window = std::make_unique<Window>();
+    // Window::Initialize();
+
     Renderer::Initialize();
     Camera::Initialize();
     TextureMap::Initialize();
 }
 
-void Engine::Finalize()
+Engine::~Engine()
 {
     // Finalizing systems with threads
     glfwTerminate();
 }
 
-void Engine::Thread()
+void Engine::Initialize()
 {
-    while (!Window::ShouldClose())
+    Update();
+}
+
+void Engine::Update()
+{
+    while (!m_Window->ShouldClose())
     {
         double physicsStartTime = Clock::Time();
         EntityManager::FrameUpdate(Clock::Time());
@@ -40,4 +59,9 @@ void Engine::Thread()
         // Poll events for next frame
         Input::PollEvents();
     }
+}
+
+void Engine::Finalize()
+{
+    
 }
