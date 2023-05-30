@@ -7,10 +7,9 @@ add_definitions(-DGLFW_INCLUDE_NONE)
 add_definitions(-DGLM_ENABLE_EXPERIMENTAL)
 
 include_directories(
-    source/Sandbox 
-
-    ${CMAKE_SOURCE_DIR}/Comet/source
-    ${CMAKE_SOURCE_DIR}/Comet/source/Comet
+    include 
+    
+    ${CMAKE_SOURCE_DIR}/Comet/include
     ${CMAKE_SOURCE_DIR}/libraries/glad/include
     ${CMAKE_SOURCE_DIR}/libraries/glfw/include
     ${CMAKE_SOURCE_DIR}/libraries/glm/include

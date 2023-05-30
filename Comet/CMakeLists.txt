@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 
 get_filename_component(LIBRARY_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+project(${LIBRARY_NAME})
 
 # Added to silence GLAD when building
 add_definitions(-DGLFW_INCLUDE_NONE)
@@ -9,7 +10,7 @@ add_definitions(-DGLM_ENABLE_EXPERIMENTAL)
 link_directories(libraries/glfw/lib/windows)
 
 include_directories(
-    source/Comet
+    include
     ${CMAKE_SOURCE_DIR}/libraries/glad/include
     ${CMAKE_SOURCE_DIR}/libraries/glfw/include
     ${CMAKE_SOURCE_DIR}/libraries/glm/include
