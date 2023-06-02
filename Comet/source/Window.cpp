@@ -1,6 +1,6 @@
-#include "Window.hpp"
+#include "Window.h"
 
-#include "Engine.hpp"
+#include "Engine.h"
 
 #include <glad/gl.h>
 #include <glfw/glfw3.h>

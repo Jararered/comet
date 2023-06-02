@@ -1,4 +1,4 @@
-#include "Renderer/Shader.hpp"
+#include "Renderer/Shader.h"
 
 #include <string>
 #include <fstream>

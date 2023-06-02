@@ -1,7 +1,7 @@
 #pragma once
 
-#include "KeyboardKeyCodes.hpp"
-#include "MouseButtonCodes.hpp"
+#include "KeyboardKeyCodes.h"
+#include "MouseButtonCodes.h"
 
 #include <glfw/glfw3.h>
 #include <glm/vec2.hpp>
@@ -75,6 +75,7 @@ namespace Input
 
     static void ReleaseCursor()
     {
+        // Place cursor in the center of the window once released
         glm::ivec2 size;
         glfwGetWindowSize(glfwGetCurrentContext(), &size.x, &size.y);
         glfwSetInputMode(glfwGetCurrentContext(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);

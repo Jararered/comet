@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Vertex.hpp"
+#include "Vertex.h"
 
 #include <vector>
 

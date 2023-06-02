@@ -1,4 +1,4 @@
-#include "Renderer/Renderer.hpp"
+#include "Renderer/Renderer.h"
 
 #include <imgui.h>
 #include <imgui_impl_glfw.h>

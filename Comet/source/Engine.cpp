@@ -1,17 +1,17 @@
-#include "Engine.hpp"
+#include "Engine.h"
 
-#include "Entities/EntityManager.hpp"
+#include "Entities/EntityManager.h"
 
-#include "Input/Input.hpp"
+#include "Input/Input.h"
 
-#include "Renderer/Renderer.hpp"
-#include "Renderer/Camera.hpp"
-#include "Renderer/Shader.hpp"
-#include "Renderer/Texture.hpp"
-#include "Renderer/TextureMap.hpp"
+#include "Renderer/Renderer.h"
+#include "Renderer/Camera.h"
+#include "Renderer/Shader.h"
+#include "Renderer/Texture.h"
+#include "Renderer/TextureMap.h"
 
-#include "Timer.hpp"
-#include "Utilities.hpp"
+#include "Timer.h"
+#include "Utilities.h"
 
 using namespace Comet;
 

@@ -1,4 +1,4 @@
-#include "Timer.hpp"
+#include "Timer.h"
 
 #include <glfw/glfw3.h>
 

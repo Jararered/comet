@@ -1,4 +1,4 @@
-#include "Renderer/Mesh.hpp"
+#include "Renderer/Mesh.h"
 
 #include <glfw/glfw3.h>
 #include <glm/ext/matrix_transform.hpp>

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Shader.hpp"
-#include "Vertex.hpp"
+#include "Shader.h"
+#include "Vertex.h"
 
 #include <glm/mat4x4.hpp>
 

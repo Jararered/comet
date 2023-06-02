@@ -1,12 +1,12 @@
 #pragma once
 
-#include "Layer/LayerManager.hpp"
+#include "Layer/LayerManager.h"
 
-#include "Mesh.hpp"
-#include "Shader.hpp"
+#include "Mesh.h"
+#include "Shader.h"
 
-#include "Window.hpp"
-#include "Camera.hpp"
+#include "Window.h"
+#include "Camera.h"
 
 #include <glm/gtx/hash.hpp>
 
