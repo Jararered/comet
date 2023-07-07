@@ -1,16 +1,12 @@
-#include "Renderer/Mesh.h"
+#include "Mesh.h"
 
 #include <glfw/glfw3.h>
 #include <glm/ext/matrix_transform.hpp>
 
-Mesh::Mesh() {}
-
 Mesh::Mesh(std::vector<Vertex>* vertices, std::vector<unsigned int>* indices, Shader* shader)
-    : p_Vertices(vertices), p_Indices(indices), p_Shader(shader), m_PushedToGPU(false), m_ModelMatrix(1.0f), m_TimeCreated(glfwGetTime())
+    : p_Vertices(vertices), p_Indices(indices), p_Shader(shader), m_OnGPU(false), m_ModelMatrix(1.0f)
 {
 }
-
-Mesh::~Mesh() {}
 
 void Mesh::Bind()
 {
@@ -51,23 +47,11 @@ void Mesh::Initialize()
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-    m_PushedToGPU = true;
+    m_OnGPU = true;
 }
 
 void Mesh::Update()
 {
-    m_TimeDelta = glfwGetTime() - m_TimeCreated;
-
-    if (m_TimeDelta < 0.25)
-    {
-        m_ModelMatrix = glm::translate(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -10.0f, 0.0f)), glm::vec3(0.0f, static_cast<float>(10.0 * glm::sin(2 * 3.141592653589 * m_TimeDelta)), 0.0f));
-        m_Transparency = m_TimeDelta * 4.0;
-    }
-    else
-    {
-        m_ModelMatrix = glm::mat4(1.0f);
-        m_Transparency = 1.0;
-    }
 }
 
 void Mesh::UpdateGeometry()
@@ -94,5 +78,5 @@ void Mesh::Finalize()
     glDeleteBuffers(1, &m_VBO);
     glDeleteBuffers(1, &m_IBO);
 
-    m_PushedToGPU = false;
+    m_OnGPU = false;
 }

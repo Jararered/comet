@@ -12,7 +12,7 @@
 
 #include <mutex>
 
-struct Lock
+struct RenderLock
 {
     std::mutex AddQueue;
     std::mutex UpdateQueue;
@@ -28,7 +28,7 @@ public:
         return instance;
     }
 
-    static Lock QueueLock;
+    static RenderLock QueueLock;
 
     static void Initialize();
     static void Update();

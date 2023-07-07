@@ -1,13 +1,13 @@
 #pragma once
 
-#include <Renderer/Renderer.hpp>
-#include <Entities/Entity.hpp>
-#include <Entities/EntityManager.hpp>
-#include <Physics/Collision.hpp>
+#include <Renderer/Renderer.h>
+#include <Entities/Entity.h>
+#include <Entities/EntityManager.h>
+#include <Physics/Collision.h>
 
-#include "World/BlockLibrary.hpp"
-#include "World/Chunk.hpp"
-#include "World/World.hpp"
+#include "World/BlockLibrary.h"
+#include "World/Chunk.h"
+#include "World/World.h"
 
 
 class Player : public Entity

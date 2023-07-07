@@ -1,13 +1,13 @@
-#include <Engine.hpp>
+#include <Engine.h>
 
-#include "World/Block.hpp"
-#include "World/Chunk.hpp"
-#include "World/World.hpp"
+#include "World/Block.h"
+#include "World/Chunk.h"
+#include "World/World.h"
 
-#include "Layers/Crosshair.hpp"
-#include "Layers/RenderSettings.hpp"
+#include "Layers/Crosshair.h"
+#include "Layers/RenderSettings.h"
 
-#include "Entities/Player.hpp"
+#include "Entities/Player.h"
 
 int main(int argc, char const* argv[])
 {

@@ -1,4 +1,4 @@
-#include "Renderer/Renderer.h"
+#include "Renderer.h"
 
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
@@ -6,19 +6,14 @@
 
 #include <glfw/glfw3.h>
 
-Lock Renderer::QueueLock;
+RenderLock Renderer::QueueLock;
 
 void Renderer::Initialize()
 {
     Get();
 
-    // Enables z buffer depth testing, prevents incorrect depth rendering
     glEnable(GL_DEPTH_TEST);
-
-    // Culls the back face of geometry
     glCullFace(GL_BACK);
-
-    // For transparent objects, enables alpha values are considered when drawing.
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     IMGUI_CHECKVERSION();
@@ -48,9 +43,9 @@ void Renderer::SwapBuffers() { glfwSwapBuffers(glfwGetCurrentContext()); }
 
 void Renderer::DrawMeshQueue()
 {
-    unsigned int drawCalls = 0;
+    size_t drawCallCount = 0;
 
-    unsigned int shaderID;
+    uint16_t shaderID;
     auto& renderer = Get();
 
     ProcessMeshQueues();
@@ -74,18 +69,17 @@ void Renderer::DrawMeshQueue()
         // Uniforms
         glUniform3iv(glGetUniformLocation(shaderID, "u_Index"), 1, &index[0]);
         glUniform3fv(glGetUniformLocation(shaderID, "u_OverlayColor"), 1, &OverlayColor()[0]);
-        glUniform1f(glGetUniformLocation(shaderID, "u_Transparency"), mesh.Transparency());
-        glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_ModelMatrix"), 1, GL_FALSE, &mesh.ModelMatrix()[0][0]);
+        glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_ModelMatrix"), 1, GL_FALSE, &mesh.GetModelMatrix()[0][0]);
         glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_ViewMatrix"), 1, GL_FALSE, &Camera::ViewMatrix()[0][0]);
         glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_ProjMatrix"), 1, GL_FALSE, &Camera::ProjMatrix()[0][0]);
         glUniform1i(glGetUniformLocation(shaderID, "u_Texture"), 0);
 
         // Drawing mesh
-        glDrawElements(GL_TRIANGLES, mesh.Indices()->size(), GL_UNSIGNED_INT, (void*)0);
-        drawCalls++;
+        glDrawElements(GL_TRIANGLES, mesh.GetIndices()->size(), GL_UNSIGNED_INT, (void*)0);
+        drawCallCount++;
     }
 
-    SetDrawCallsPerFrame(drawCalls);
+    SetDrawCallsPerFrame(drawCallCount);
 }
 
 void Renderer::DrawInterfaceQueue()
@@ -135,7 +129,6 @@ void Renderer::ProcessMeshQueues()
     QueueLock.AddQueue.lock();
     for (const auto& [index, mesh] : Get().m_MeshesToAdd)
     {
-
         Get().m_MeshMap.insert_or_assign(index, mesh);
         Get().m_MeshMap.at(index).Initialize();
     }
@@ -155,10 +148,8 @@ void Renderer::ProcessMeshQueues()
     QueueLock.DeleteQueue.lock();
     for (const auto& index : Get().m_MeshesToDelete)
     {
-
         if (auto entry = Get().m_MeshMap.find(index); entry != Get().m_MeshMap.end())
         {
-            // Get().m_SolidMeshMap.at(index).Finalize();
             entry->second.Finalize();
             Get().m_MeshMap.erase(index);
         }

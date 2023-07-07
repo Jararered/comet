@@ -1,18 +1,18 @@
-#include "Renderer/Texture.h"
+#include "Texture.h"
 
 #include <stb_image.h>
 
 #include <iostream>
 
-Texture::Texture() {}
+void Texture::Bind()
+{
+    glBindTexture(GL_TEXTURE_2D, m_ID);
+}
 
-Texture::Texture(const char* filepath) { Create(filepath); }
-
-Texture::~Texture() {}
-
-void Texture::Bind() { glBindTexture(GL_TEXTURE_2D, m_ID); }
-
-void Texture::Unbind() { glBindTexture(GL_TEXTURE_2D, 0); }
+void Texture::Unbind()
+{
+    glBindTexture(GL_TEXTURE_2D, 0);
+}
 
 void Texture::Create(const char* filepath)
 {
@@ -31,11 +31,11 @@ void Texture::Create(const char* filepath)
     glGenerateMipmap(GL_TEXTURE_2D);
     stbi_image_free(data);
 
-    // Repeat options
+    // Repeat parameters
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-    // No upscaling
+    // Disables upscaling
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 }

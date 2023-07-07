@@ -5,15 +5,10 @@
 class Texture
 {
 public:
-    Texture();
-    Texture(const char* filepath);
-    ~Texture();
-
-    void Bind();
-    void Unbind();
-
     void Create(const char* filepath);
     void Delete();
+    void Bind();
+    void Unbind();
 
 private:
     int m_Width;

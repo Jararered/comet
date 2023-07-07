@@ -7,9 +7,8 @@ add_definitions(-DGLFW_INCLUDE_NONE)
 add_definitions(-DGLM_ENABLE_EXPERIMENTAL)
 
 include_directories(
-    include 
-    
-    ${CMAKE_SOURCE_DIR}/Comet/include
+    source
+    ${CMAKE_SOURCE_DIR}/Comet/source
     ${CMAKE_SOURCE_DIR}/libraries/glad/include
     ${CMAKE_SOURCE_DIR}/libraries/glfw/include
     ${CMAKE_SOURCE_DIR}/libraries/glm/include

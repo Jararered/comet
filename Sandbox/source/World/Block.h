@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Renderer/Geometry.hpp>
-#include <Renderer/TextureMap.hpp>
+#include <Renderer/Geometry.h>
+#include <Renderer/TextureMap.h>
 
 struct Block
 {

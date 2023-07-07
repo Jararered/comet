@@ -1,11 +1,11 @@
 #pragma once
 
-#include <Renderer/Renderer.hpp>
-#include <Layer/Layer.hpp>
-#include <Layer/LayerManager.hpp>
+#include <Renderer/Renderer.h>
+#include <Layer/Layer.h>
+#include <Layer/LayerManager.h>
 
-#include "World/ChunkGenerator.hpp"
-#include "World/World.hpp"
+#include "World/ChunkGenerator.h"
+#include "World/World.h"
 
 class Settings : public Layer
 {

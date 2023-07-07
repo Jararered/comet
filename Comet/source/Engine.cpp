@@ -50,7 +50,7 @@ void Engine::Update()
 
         double renderTimeStart = Clock::Time();
 
-        Renderer::Update();
+        m_Window->Update();
 
         // Poll events for next frame
         Input::PollEvents();

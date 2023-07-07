@@ -8,12 +8,10 @@ uniform ivec3 u_Index;
 uniform mat4 u_ProjMatrix;
 uniform mat4 u_ViewMatrix;
 uniform mat4 u_ModelMatrix;
-uniform float u_Transparency;
 
 out vec3 v_Position;
 out vec2 v_TextureCoordinates;
 out vec3 v_Normal;
-out float v_Transparency;
 
 void main()
 {
@@ -23,5 +21,4 @@ void main()
     v_Position = a_Position;
     v_TextureCoordinates = a_TextureCoordinates;
     v_Normal = a_Normal;
-    v_Transparency = u_Transparency;
 }

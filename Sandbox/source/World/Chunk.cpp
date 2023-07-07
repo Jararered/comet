@@ -1,7 +1,7 @@
-#include "World/Chunk.hpp"
+#include "Chunk.h"
 
-#include "World/World.hpp"
-#include "World/WorldConfig.hpp"
+#include "World.h"
+#include "WorldConfig.h"
 
 #include <fstream>
 #include <filesystem>
@@ -12,7 +12,7 @@ Chunk::Chunk(World* world, glm::ivec3 id) : m_World(world), m_Chunk(id)
 
 Chunk::~Chunk()
 {
-    if (m_Modified)
+    if (m_ChunkProperties.Modified)
     {
         SaveToDisk();
     }
@@ -52,9 +52,9 @@ void Chunk::Generate()
     std::string filename = ".\\worlddata\\" + std::to_string(m_Chunk.x) + " " + std::to_string(m_Chunk.z) + ".bin";
     if (std::filesystem::exists(filename))
     {
-        std::cout << "Chunk file found, loading chunk...\n";
+        std::cout << "Chunk::Generate(): Chunk file found, loading chunk...\n";
         LoadFromDisk(filename);
-        m_Generated = false;
+        m_ChunkProperties.Generated = false;
     }
     else
     {
@@ -66,7 +66,7 @@ void Chunk::Generate()
         GenerateSand();
         GenerateWater();
 
-        m_Generated = true;
+        m_ChunkProperties.Generated = true;
     }
 }
 

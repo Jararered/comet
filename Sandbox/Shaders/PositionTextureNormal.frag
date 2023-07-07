@@ -3,7 +3,6 @@
 in vec3 v_Position;
 in vec2 v_TextureCoordinates;
 in vec3 v_Normal;
-in float v_Transparency;
 
 uniform sampler2D u_Texture;
 uniform vec3 u_OverlayColor;
@@ -25,7 +24,7 @@ void main()
     vec3 diffuse = diff * lightColor;
 
     vec4 result = vec4((ambient + diffuse) / 2.0, 1.0);
-    vec4 transparency = vec4(1.0, 1.0, 1.0, v_Transparency);
+    vec4 transparency = vec4(1.0, 1.0, 1.0, 1.0);
 
     vec4 textureColors = texture(u_Texture, v_TextureCoordinates);
 

@@ -1,14 +1,14 @@
 #pragma once
 
-#include <Renderer/Renderer.hpp>
-#include <Renderer/Shader.hpp>
-#include <Renderer/Texture.hpp>
-#include <Engine.hpp>
+#include <Renderer/Renderer.h>
+#include <Renderer/Shader.h>
+#include <Renderer/Texture.h>
+#include <Engine.h>
 
-#include "BlockLibrary.hpp"
-#include "Chunk.hpp"
-#include "ChunkGenerator.hpp"
-#include "WorldConfig.hpp"
+#include "BlockLibrary.h"
+#include "Chunk.h"
+#include "ChunkGenerator.h"
+#include "WorldConfig.h"
 
 #include <memory>
 

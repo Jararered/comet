@@ -1,7 +1,7 @@
-#include "Layers/RenderSettings.hpp"
+#include "RenderSettings.h"
 
-#include <Input/Input.hpp>
-#include <Utilities.hpp>
+#include <Input/Input.h>
+#include <Utilities.h>
 
 void Settings::Draw()
 {

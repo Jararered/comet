@@ -1,6 +1,7 @@
 #pragma once
 
 struct GLFWwindow;
+class Renderer;
 
 class Window
 {
@@ -9,7 +10,8 @@ public:
     ~Window();
 
     void Initialize();
-    void CenterWindow();
+    void Update();
+    void Center();
     bool CloseWindow();
 
 private:
@@ -19,6 +21,7 @@ private:
 
 public:
     GLFWwindow* GetGLFWwindow() { return m_GLFWwindow; }
+    Renderer* m_Renderer;
 
     int WindowHeight() { return m_WindowHeight; }
     void SetWindowHeight(int WindowHeight) { m_WindowHeight = WindowHeight; }

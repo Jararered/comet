@@ -1,6 +1,6 @@
-#include "World/Block.hpp"
+#include "Block.h"
 
-#include "World/BlockLibrary.hpp"
+#include "BlockLibrary.h"
 
 void Block::RenderCubeBlock(const Block& block, const glm::ivec3& coord, const std::array<bool, 6>& faces, Geometry* geometry)
 {

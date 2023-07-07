@@ -1,12 +1,12 @@
 #pragma once
 
-#include <Layer/Layer.hpp>
-#include <Layer/LayerManager.hpp>
-#include <Renderer/Mesh.hpp>
-#include <Renderer/Shader.hpp>
-#include <Renderer/Texture.hpp>
-#include <Renderer/Vertex.hpp>
-#include <Window.hpp>
+#include <Layer/Layer.h>
+#include <Layer/LayerManager.h>
+#include <Renderer/Mesh.h>
+#include <Renderer/Shader.h>
+#include <Renderer/Texture.h>
+#include <Renderer/Vertex.h>
+#include <Window.h>
 
 class Crosshair : public Layer
 {

@@ -1,10 +1,10 @@
-#include "World/World.hpp"
+#include "World.h"
 
-#include "World/BlockLibrary.hpp"
-#include "World/Chunk.hpp"
-#include "World/ChunkGenerator.hpp"
+#include "BlockLibrary.h"
+#include "Chunk.h"
+#include "ChunkGenerator.h"
 
-#include "Entities/Player.hpp"
+#include "Entities/Player.h"
 
 #include <filesystem>
 #include <memory>
@@ -18,9 +18,13 @@ World::World(std::string folderName, long seed)
     Blocks::Initialize();
     EntityManager::Initialize();
 
-    // Shader/Texture Setup
-    Shader blockShader("Shaders/PositionTextureNormal.vert", "Shaders/PositionTextureNormal.frag");
-    Texture texture("Textures/terrain.png");
+    // Creating shader and texture
+    Shader blockShader;
+    blockShader.Create("Shaders/PositionTextureNormal.vert", "Shaders/PositionTextureNormal.frag");
+
+    Texture texture;
+    texture.Create("Textures/terrain.png");
+
     TextureMap::Configure(texture.Width(), texture.Height(), 16);
 
     SetSeed(seed);
@@ -102,7 +106,7 @@ void World::SetBlock(glm::ivec3 worldCoord, Block blockToSet)
     if (auto entry = m_ChunkDataMap.find(index); entry != m_ChunkDataMap.end())
     {
         entry->second->SetBlock({ chunkCoord.x, chunkCoord.y, chunkCoord.z }, blockToSet);
-        entry->second->Modify();
+        entry->second->GetChunkProperties().Modified = true;
         entry->second->GenerateMesh();
 
         Renderer::UpdateMeshInQueue(index);

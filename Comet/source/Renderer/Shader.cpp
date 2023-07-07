@@ -1,18 +1,18 @@
-#include "Renderer/Shader.h"
+#include "Shader.h"
 
 #include <string>
 #include <fstream>
 #include <iostream>
 
-Shader::Shader() {}
+void Shader::Bind()
+{
+    glUseProgram(m_ID);
+}
 
-Shader::Shader(const char* vertFile, const char* fragFile) { Create(vertFile, fragFile); }
-
-Shader::~Shader() {}
-
-void Shader::Bind() { glUseProgram(m_ID); }
-
-void Shader::Unbind() { glUseProgram(0); }
+void Shader::Unbind()
+{
+    glUseProgram(0);
+}
 
 void Shader::Create(const char* vertFile, const char* fragFile)
 {
@@ -23,7 +23,7 @@ void Shader::Create(const char* vertFile, const char* fragFile)
     int successvert;
     int successfrag;
     int successlink;
-    char infoLog[512];
+    char glShaderInfoLog[512];
 
     // Vertex Shader
     {
@@ -38,8 +38,8 @@ void Shader::Create(const char* vertFile, const char* fragFile)
     glGetShaderiv(vertexID, GL_COMPILE_STATUS, &successvert);
     if (!successvert)
     {
-        glGetShaderInfoLog(vertexID, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << "\n";
+        glGetShaderInfoLog(vertexID, 512, NULL, glShaderInfoLog);
+        std::cout << "Shader::Create(): Error compiling vertex shader:\n" << glShaderInfoLog << "\n";
     }
 
     // Fragment Shader
@@ -55,8 +55,8 @@ void Shader::Create(const char* vertFile, const char* fragFile)
     glGetShaderiv(fragmentID, GL_COMPILE_STATUS, &successfrag);
     if (!successfrag)
     {
-        glGetShaderInfoLog(fragmentID, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << "\n";
+        glGetShaderInfoLog(fragmentID, 512, NULL, glShaderInfoLog);
+        std::cout << "Shader::Create(): Error compiling fragment shader:\n" << glShaderInfoLog << "\n";
     }
 
     glAttachShader(m_ID, vertexID);
@@ -67,8 +67,8 @@ void Shader::Create(const char* vertFile, const char* fragFile)
     glGetProgramiv(m_ID, GL_LINK_STATUS, &successlink);
     if (!successlink)
     {
-        glGetProgramInfoLog(m_ID, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << "\n";
+        glGetProgramInfoLog(m_ID, 512, NULL, glShaderInfoLog);
+        std::cout << "Shader::Create(): Error linking vertex and fragment shaders:\n" << glShaderInfoLog << "\n";
     }
 
     glDeleteShader(vertexID);
@@ -76,7 +76,7 @@ void Shader::Create(const char* vertFile, const char* fragFile)
 
     if (successvert && successfrag && successlink)
     {
-        std::cout << "Successfully compiled shader: " << m_ID << "\n";
+        std::cout << "Shader::Create(): Successfully compiled shader: " << m_ID << "\n";
     }
 }
 
@@ -95,7 +95,7 @@ int Shader::GetUniformLocation(const std::string& name)
 
     if (location == -1)
     {
-        std::cout << "Uniform " << name << " not found. Ignoring...\n";
+        std::cout << "Shader::GetUniformLocation(): Uniform " << name << " not found. Ignoring...\n";
     }
 
     m_UniformMap[name] = location;

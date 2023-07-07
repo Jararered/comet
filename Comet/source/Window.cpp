@@ -1,6 +1,7 @@
 #include "Window.h"
 
 #include "Engine.h"
+#include "Renderer/Renderer.h"
 
 #include <glad/gl.h>
 #include <glfw/glfw3.h>
@@ -15,14 +16,16 @@ Window::Window()
         std::cout << "[Error] Failed to initialize GLFW.\n";
     }
 
+    int major = 3, minor = 3;
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, major);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, minor);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_TRUE);
 
     // Create a windowed mode window and its OpenGL context
-    m_GLFWwindow = glfwCreateWindow(1, 1, "Comet (OpenGL 3.3)", NULL, NULL);
+    std::string title = "Comet (OpenGL " + std::to_string(major) + "." + std::to_string(minor) +")";
+    m_GLFWwindow = glfwCreateWindow(1, 1, title.c_str(), NULL, NULL);
     if (!m_GLFWwindow)
     {
         std::cout << "[Error] Failed to create OpenGL window.\n";
@@ -41,7 +44,7 @@ Window::Window()
     glfwSwapInterval(1);
 
     // Centers window to current monitor
-    CenterWindow();
+    Center();
 
     glfwSetWindowSizeCallback(glfwGetCurrentContext(), [](GLFWwindow* window, int width, int height) {});
     glfwSetFramebufferSizeCallback(glfwGetCurrentContext(), [](GLFWwindow* window, int width, int height) { glViewport(0, 0, width, height); });
@@ -52,7 +55,12 @@ Window::~Window()
     glfwSetWindowShouldClose(m_GLFWwindow, true);
 }
 
-void Window::CenterWindow()
+void Window::Update()
+{
+    Renderer::Update();
+}
+
+void Window::Center()
 {
     int count;
     int monitorX, monitorY;

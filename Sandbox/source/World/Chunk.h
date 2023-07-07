@@ -1,21 +1,27 @@
 #pragma once
 
-#include <Renderer/Renderer.hpp>
-#include <Renderer/TextureMap.hpp>
-#include <Renderer/Vertex.hpp>
-#include <Timer.hpp>
+#include <Renderer/Renderer.h>
+#include <Renderer/TextureMap.h>
+#include <Renderer/Vertex.h>
+#include <Timer.h>
 
 #include <cereal/archives/binary.hpp>
 #include <cereal/types/array.hpp>
 
-#include "Block.hpp"
-#include "BlockLibrary.hpp"
-#include "ChunkGenerator.hpp"
-#include "WorldConfig.hpp"
+#include "Block.h"
+#include "BlockLibrary.h"
+#include "ChunkGenerator.h"
+#include "WorldConfig.h"
 
 #include <string>
 
 class World;
+
+struct ChunkProperties
+{
+    bool Modified = false;
+    bool Generated = false;
+};
 
 struct Chunk
 {
@@ -28,6 +34,7 @@ struct Chunk
     void Generate();
     void SaveToDisk();
     void LoadFromDisk(const std::string& filename);
+    ChunkProperties& GetChunkProperties() { return m_ChunkProperties; }
 
     void GenerateSurface();
     void GenerateTrees();
@@ -62,19 +69,17 @@ struct Chunk
 
     Geometry* GetGeometry() { return &m_Geometry; }
 
-    void Modify() { m_Modified = true; }
+
 
 private:
+    ChunkProperties m_ChunkProperties;
+
     std::array<Block, CHUNK_SIZE> m_BlockData;
 
     // only used during generation, not needed when saving chunk
     std::array<int, CHUNK_WIDTH* CHUNK_WIDTH> m_HeightData;
 
     Geometry m_Geometry;
-
-    // Flag to check if the chunk needs to be saved to disk or not
-    bool m_Modified = false;
-    bool m_Generated = false;
 
     World* m_World;
 

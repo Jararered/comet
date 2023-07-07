@@ -8,18 +8,12 @@
 class Shader
 {
 public:
-    Shader();
-    Shader(const char* vertFile, const char* fragFile);
-    ~Shader();
-
+    void Create(const char* vertFile, const char* fragFile);
+    void Delete();
     void Bind();
     void Unbind();
 
-    void Create(const char* vertFile, const char* fragFile);
-    void Delete();
-
     unsigned int GetID();
-
     int GetUniformLocation(const std::string& name);
 
 private:

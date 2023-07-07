@@ -1,8 +1,8 @@
-#include "Entities/Player.hpp"
+#include "Player.h"
 
-#include <Entities/Entity.hpp>
-#include <Input/Input.hpp>
-#include <physics/Constants.hpp>
+#include <Entities/Entity.h>
+#include <Input/Input.h>
+#include <physics/Constants.h>
 
 #include <cmath>
 
@@ -12,9 +12,6 @@ Player::Player(World* world)
     : m_World(world)
 {
     SetPosition({ 0.0f, 50.0f, 0.0f });
-
-    // m_BlockOverlayShader.Create("..\\game\\shaders\\PositionColor.vert", "..\\game\\shaders\\PositionColor.frag");
-
     Camera::SetPosition(m_Position);
 }
 
@@ -105,88 +102,68 @@ void Player::BreakBlock()
 
 void Player::ProcessMovement(float dt)
 {
-    // Checks for first frame and if a lag spike occurs
+    // Checks for first frame or if a lag spike occurs
     if (dt < 0.0001f || dt > 0.25f)
     {
         return;
     }
 
-    // m_LastAcceleration = 1 / dt * (m_LastVelocity - m_Velocity);
-    // m_LastVelocity = 1 / dt * (m_Position - m_LastPosition);
-    // m_LastPosition = m_Position;
-
-    // ApplyMovement({1.0f, 0.0f, 0.0f});
-
-    // Basic movement processing
-    // Used so when walking forward vertical movement doesn't occur.
-    float movementSpeed = m_MovementSpeed;
-    glm::vec3 direction = { 0.0f, 0.0f, 0.0f };
-    glm::vec3 cameraFowardXZ = { m_ForwardVector.x, 0.0f, m_ForwardVector.z };
-
-    // Speed increase
-    if (Input::IsKeyPressed(CT_KEY_LEFT_CONTROL))
-        movementSpeed *= 10;
-
-    // WASD movement
-    if (Input::IsKeyPressed(CT_KEY_W))
-        direction += cameraFowardXZ;
-    if (Input::IsKeyPressed(CT_KEY_S))
-        direction -= cameraFowardXZ;
-    if (Input::IsKeyPressed(CT_KEY_A))
-        direction -= m_RightVector;
-    if (Input::IsKeyPressed(CT_KEY_D))
-        direction += m_RightVector;
-
-    // Fixes diagonal directed movement to not be faster than along an axis.
-    // Only happens when holding two buttons that are off axis from each other.
-    if (direction.x != 0.0f || direction.y != 0.0f)
-        direction = glm::normalize(direction);
-
-    // Still perform up/down movements after normalization.
-    // Don't care about limiting speed along verticals.
-    if (Input::IsKeyPressed(CT_KEY_LEFT_SHIFT))
-        direction -= Camera::POSITIVE_Y ;
-
     if (m_Flying)
     {
-        if (Input::IsKeyPressed(CT_KEY_SPACE))
-        {
-            direction += Camera::POSITIVE_Y;
-        }
-    }
+        // Basic movement processing
+        // Used so when walking forward vertical movement doesn't occur.
+        float movementSpeed = m_MovementSpeed;
+        glm::vec3 direction = { 0.0f, 0.0f, 0.0f };
+        glm::vec3 cameraFowardXZ = { m_ForwardVector.x, 0.0f, m_ForwardVector.z };
 
-    ApplyMovement(direction * movementSpeed * dt);
+        // Speed increase
+        if (Input::IsKeyPressed(KEY_LEFT_CONTROL))
+            movementSpeed *= 10;
+
+        // WASD movement
+        if (Input::IsKeyPressed(KEY_W))
+            direction += cameraFowardXZ;
+        if (Input::IsKeyPressed(KEY_S))
+            direction -= cameraFowardXZ;
+        if (Input::IsKeyPressed(KEY_A))
+            direction -= m_RightVector;
+        if (Input::IsKeyPressed(KEY_D))
+            direction += m_RightVector;
+
+        // Fixes diagonal directed movement to not be faster than along an axis.
+        // Only happens when holding two buttons that are off axis from each other.
+        if (direction.x != 0.0f || direction.y != 0.0f)
+            direction = glm::normalize(direction);
+
+        // Still perform up/down movements after normalization.
+        // Don't care about limiting speed along verticals.
+        if (Input::IsKeyPressed(KEY_LEFT_SHIFT))
+            direction -= Camera::POSITIVE_Y;
+
+        if (Input::IsKeyPressed(KEY_SPACE))
+            direction += Camera::POSITIVE_Y;
+
+        ApplyMovement(direction * movementSpeed * dt);
+    }
 }
 
 void Player::ProcessRotation()
 {
-    // This no longer requires a delta time variable.
-    // The delta x and delta y variables from the mouse handler are an
-    // accumulation of movement over each frame, and this function is
-    // run each frame as well, so no need to rely on a dt.
     glm::vec2 mouseMovement = Input::GetMouseMovement();
     m_Yaw += (mouseMovement.x * m_RotationSpeed) / 300.0;
     m_Pitch += (mouseMovement.y * m_RotationSpeed) / 300.0;
 
     // Keep yaw angle from getting to imprecise
     if (m_Yaw > glm::radians(360.0f))
-    {
         m_Yaw -= glm::radians(360.0f);
-    }
-    else if (m_Yaw < glm::radians(-360.0f))
-    {
+    if (m_Yaw < glm::radians(-360.0f))
         m_Yaw += glm::radians(360.0f);
-    }
 
     // Keep pitch angle from going too far over
     if (m_Pitch > glm::radians(89.0f))
-    {
         m_Pitch = glm::radians(89.0f);
-    }
-    else if (m_Pitch < glm::radians(-89.0f))
-    {
+    if (m_Pitch < glm::radians(-89.0f))
         m_Pitch = glm::radians(-89.0f);
-    }
 
     m_Direction.x = glm::cos(m_Yaw) * glm::cos(m_Pitch);
     m_Direction.y = glm::sin(m_Pitch);
@@ -204,5 +181,9 @@ void Player::UpdateCamera()
 
 void Player::UpdateBoundingBox()
 {
-    m_BoundingBox = { m_Position.x + (0.5f * m_Width), m_Position.x - (0.5f * m_Width), m_Position.y + 0.25f, m_Position.y - m_Height, m_Position.z + (0.5f * m_Width), m_Position.z - (0.5f * m_Width) };
+    m_BoundingBox = {
+        m_Position.x + (0.5f * m_Width), m_Position.x - (0.5f * m_Width),
+        m_Position.y + 0.25f, m_Position.y - m_Height,
+        m_Position.z + (0.5f * m_Width), m_Position.z - (0.5f * m_Width)
+    };
 }

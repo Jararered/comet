@@ -24,13 +24,13 @@ namespace Input
 
     inline static bool IsLeftClick()
     {
-        int state = glfwGetMouseButton(glfwGetCurrentContext(), CT_MOUSE_BUTTON_LEFT);
+        int state = glfwGetMouseButton(glfwGetCurrentContext(), MOUSE_BUTTON_LEFT);
         return state == GLFW_PRESS;
     }
 
     inline static bool IsRightClick()
     {
-        int state = glfwGetMouseButton(glfwGetCurrentContext(), CT_MOUSE_BUTTON_RIGHT);
+        int state = glfwGetMouseButton(glfwGetCurrentContext(), MOUSE_BUTTON_RIGHT);
         return state == GLFW_PRESS;
     }
 
@@ -87,7 +87,7 @@ namespace Input
     {
         glfwPollEvents();
 
-        if (IsKeyPressed(CT_KEY_ESCAPE))
+        if (IsKeyPressed(KEY_ESCAPE))
         {
             Input::ReleaseCursor();
         }
