@@ -1,8 +1,8 @@
 #pragma once
 
-#include <glm/vec3.hpp>
-#include <glm/trigonometric.hpp>
 #include <glm/mat4x4.hpp>
+#include <glm/trigonometric.hpp>
+#include <glm/vec3.hpp>
 
 class Camera
 {
@@ -19,10 +19,10 @@ public:
     static void CalcProjMatrix();
 
     /* World Variables */
-    constexpr static glm::vec3 POSITIVE_X = { 1.0f, 0.0f, 0.0f };
-    constexpr static glm::vec3 POSITIVE_Y = { 0.0f, 1.0f, 0.0f };
-    constexpr static glm::vec3 POSITIVE_Z = { 0.0f, 0.0f, 1.0f };
-    constexpr static glm::vec3 WORLD_ORIGIN = { 0.0f, 0.0f, 0.0f };
+    constexpr static glm::vec3 POSITIVE_X = {1.0f, 0.0f, 0.0f};
+    constexpr static glm::vec3 POSITIVE_Y = {0.0f, 1.0f, 0.0f};
+    constexpr static glm::vec3 POSITIVE_Z = {0.0f, 0.0f, 1.0f};
+    constexpr static glm::vec3 WORLD_ORIGIN = {0.0f, 0.0f, 0.0f};
 
 private:
     Camera() {}
@@ -34,14 +34,12 @@ private:
     float m_Near = 0.1f;
     float m_Far = 1000.0f;
 
-    glm::vec3 m_Position = { 0.0f, 0.0f, 0.0f };
+    glm::vec3 m_Position = {0.0f, 0.0f, 0.0f};
 
-    glm::vec3 m_ForwardVector = { 0.0f, 0.0f, -1.0f };
+    glm::vec3 m_ForwardVector = {0.0f, 0.0f, -1.0f};
 
-    glm::mat4 m_ViewMatrix = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-                              0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
-    glm::mat4 m_ProjMatrix = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-                              0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+    glm::mat4 m_ViewMatrix = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+    glm::mat4 m_ProjMatrix = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
 
 public:
     static float FOV() { return Get().m_FOV; }

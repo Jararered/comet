@@ -10,7 +10,10 @@ void Camera::Initialize()
     CalcProjMatrix();
 }
 
-void Camera::Update() { CalcViewMatrix(); }
+void Camera::Update()
+{
+    CalcViewMatrix();
+}
 
 void Camera::CalcViewMatrix()
 {

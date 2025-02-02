@@ -3,8 +3,7 @@
 #include <glfw/glfw3.h>
 #include <glm/ext/matrix_transform.hpp>
 
-Mesh::Mesh(std::vector<Vertex>* vertices, std::vector<unsigned int>* indices, Shader* shader)
-    : p_Vertices(vertices), p_Indices(indices), p_Shader(shader), m_OnGPU(false), m_ModelMatrix(1.0f)
+Mesh::Mesh(std::vector<Vertex>* vertices, std::vector<unsigned int>* indices, Shader* shader) : p_Vertices(vertices), p_Indices(indices), p_Shader(shader), m_OnGPU(false), m_ModelMatrix(1.0f)
 {
 }
 

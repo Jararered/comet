@@ -39,7 +39,7 @@ namespace Input
     {
         double xpos, ypos;
         glfwGetCursorPos(glfwGetCurrentContext(), &xpos, &ypos);
-        return { static_cast<float>(xpos), static_cast<float>(-ypos) };
+        return {static_cast<float>(xpos), static_cast<float>(-ypos)};
     }
 
     // Mouse handling functions
@@ -57,7 +57,7 @@ namespace Input
             glfwSetCursorPos(glfwGetCurrentContext(), 0.0, 0.0);
             return mousepos;
         }
-        return { 0.0f, 0.0f };
+        return {0.0f, 0.0f};
     }
 
     static void CaptureCursor()

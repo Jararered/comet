@@ -4,8 +4,8 @@
 
 #include "Input/Input.h"
 
-#include "Renderer/Renderer.h"
 #include "Renderer/Camera.h"
+#include "Renderer/Renderer.h"
 #include "Renderer/Shader.h"
 #include "Renderer/Texture.h"
 #include "Renderer/TextureMap.h"
@@ -59,5 +59,4 @@ void Engine::Update()
 
 void Engine::Finalize()
 {
-    
 }

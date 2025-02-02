@@ -4,10 +4,10 @@
 
 struct Entity
 {
-    glm::vec3 m_Position = { 0.0f, 0.0f, 0.0f };
-    glm::vec3 m_LastPosition = { 0.0f, 0.0f, 0.0f };
-    glm::vec3 m_Acceleration = { 0.0f, 0.0f, 0.0f };
-    glm::vec3 m_Gravity = { 0.0f, 0.0f, 0.0f };
+    glm::vec3 m_Position = {0.0f, 0.0f, 0.0f};
+    glm::vec3 m_LastPosition = {0.0f, 0.0f, 0.0f};
+    glm::vec3 m_Acceleration = {0.0f, 0.0f, 0.0f};
+    glm::vec3 m_Gravity = {0.0f, 0.0f, 0.0f};
 
     void SetPosition(glm::vec3 newPosition)
     {
@@ -45,6 +45,6 @@ struct Entity
 
         m_Position = m_LastPosition + Velocity + m_Acceleration * dt * dt;
 
-        m_Acceleration = { 0.0, 0.0, 0.0 };
+        m_Acceleration = {0.0, 0.0, 0.0};
     }
 };

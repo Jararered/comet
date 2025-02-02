@@ -5,8 +5,8 @@
 #include "Mesh.h"
 #include "Shader.h"
 
-#include "Window.h"
 #include "Camera.h"
+#include "Window.h"
 
 #include <glm/gtx/hash.hpp>
 
@@ -56,8 +56,8 @@ private:
 
     unsigned int m_DrawCallsPerFrame = 0;
 
-    glm::vec3 m_OverlayColor = { 0.0f, 0.0f, 0.0f };
-    glm::vec3 m_BackgroundColor = { 0.0f, 0.0f, 0.0f };
+    glm::vec3 m_OverlayColor = {0.0f, 0.0f, 0.0f};
+    glm::vec3 m_BackgroundColor = {0.0f, 0.0f, 0.0f};
 
     std::unordered_map<glm::ivec3, Mesh> m_MeshMap;
 
@@ -75,5 +75,4 @@ public:
 
     static unsigned int DrawCallsPerFrame() { return Get().m_DrawCallsPerFrame; }
     static void SetDrawCallsPerFrame(unsigned int DrawCallsPerFrame) { Get().m_DrawCallsPerFrame = DrawCallsPerFrame; }
-
 };

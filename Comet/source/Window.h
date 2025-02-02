@@ -30,5 +30,4 @@ public:
 
     bool ShouldClose();
     void SetShouldClose(bool flag);
-
 };

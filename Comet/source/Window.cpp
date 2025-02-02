@@ -24,7 +24,7 @@ Window::Window()
     glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_TRUE);
 
     // Create a windowed mode window and its OpenGL context
-    std::string title = "Comet (OpenGL " + std::to_string(major) + "." + std::to_string(minor) +")";
+    std::string title = "Comet (OpenGL " + std::to_string(major) + "." + std::to_string(minor) + ")";
     m_GLFWwindow = glfwCreateWindow(1, 1, title.c_str(), NULL, NULL);
     if (!m_GLFWwindow)
     {

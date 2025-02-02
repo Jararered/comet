@@ -39,7 +39,10 @@ void Renderer::NewFrame()
     glClearColor(Get().m_BackgroundColor.x, Get().m_BackgroundColor.y, Get().m_BackgroundColor.z, 0.0f);
 }
 
-void Renderer::SwapBuffers() { glfwSwapBuffers(glfwGetCurrentContext()); }
+void Renderer::SwapBuffers()
+{
+    glfwSwapBuffers(glfwGetCurrentContext());
+}
 
 void Renderer::DrawMeshQueue()
 {
@@ -165,5 +168,5 @@ void Renderer::Update()
     DrawMeshQueue();
     DrawInterfaceQueue();
 
-    SwapBuffers();   
+    SwapBuffers();
 }
