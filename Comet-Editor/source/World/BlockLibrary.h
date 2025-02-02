@@ -141,189 +141,189 @@ public:
     static void Initialize()
     {
         // Assigning block IDs
-        Instance().m_BlockIndices.at(ID::Air) = { 0, 0, 0, 0, 0, 0 };
-        Instance().m_BlockIndices.at(ID::Stone) = { 1, 1, 1, 1, 1, 1 };
-        Instance().m_BlockIndices.at(ID::Grass) = { 3, 3, 0, 2, 3, 3 };
-        Instance().m_BlockIndices.at(ID::Dirt) = { 2, 2, 2, 2, 2, 2 };
-        Instance().m_BlockIndices.at(ID::Cobblestone) = { 16, 16, 16, 16, 16, 16 };
-        Instance().m_BlockIndices.at(ID::Oak_Planks) = { 4, 4, 4, 4, 4, 4 };
-        Instance().m_BlockIndices.at(ID::Oak_Sapling) = { 15, 15, 15, 15, 15, 15 };
-        Instance().m_BlockIndices.at(ID::Bedrock) = { 17, 17, 17, 17, 17, 17 };
-        Instance().m_BlockIndices.at(ID::Water) = { 207, 207, 207, 207, 207, 207 };
-        Instance().m_BlockIndices.at(ID::Water2) = { 207, 207, 207, 207, 207, 207 };
-        Instance().m_BlockIndices.at(ID::Lava) = { 255, 255, 255, 255, 255, 255 };
-        Instance().m_BlockIndices.at(ID::Lava2) = { 255, 255, 255, 255, 255, 255 };
-        Instance().m_BlockIndices.at(ID::Sand) = { 18, 18, 18, 18, 18, 18 };
-        Instance().m_BlockIndices.at(ID::Gravel) = { 19, 19, 19, 19, 19, 19 };
-        Instance().m_BlockIndices.at(ID::Gold_Ore) = { 32, 32, 32, 32, 32, 32 };
-        Instance().m_BlockIndices.at(ID::Iron_Ore) = { 33, 33, 33, 33, 33, 33 };
-        Instance().m_BlockIndices.at(ID::Coal_Ore) = { 34, 34, 34, 34, 34, 34 };
-        Instance().m_BlockIndices.at(ID::Oak_Log) = { 20, 20, 21, 21, 20, 20 };
-        Instance().m_BlockIndices.at(ID::Oak_Leaves) = { 52, 52, 52, 52, 52, 52 };
-        Instance().m_BlockIndices.at(ID::Sponge) = { 48, 48, 48, 48, 48, 48 };
-        Instance().m_BlockIndices.at(ID::Glass) = { 49, 49, 49, 49, 49, 49 };
-        Instance().m_BlockIndices.at(ID::Lapis_Lazuli_Ore) = { 160, 160, 160, 160, 160, 160 };
-        Instance().m_BlockIndices.at(ID::Lapis_Lazuli_Block) = { 144, 144, 144, 144, 144, 144 };
-        Instance().m_BlockIndices.at(ID::Dispenser) = { 46, 45, 1, 1, 45, 45 };
-        Instance().m_BlockIndices.at(ID::Sandstone) = { 192, 192, 176, 208, 192, 192 };
-        Instance().m_BlockIndices.at(ID::Noteblock) = { 74, 74, 75, 74, 74, 74 };
-        Instance().m_BlockIndices.at(ID::_Bed) = { 58, 58, 59, 58, 58, 58 };
-        Instance().m_BlockIndices.at(ID::Powered_Rail) = { 163, 163, 163, 163, 163, 163 };
-        Instance().m_BlockIndices.at(ID::Detector_Rail) = { 195, 195, 195, 195, 195, 195 };
-        Instance().m_BlockIndices.at(ID::Stickey_Piston) = { 84, 84, 82, 85, 84, 84 }; // Wrong
-        Instance().m_BlockIndices.at(ID::Cobweb) = { 11, 11, 11, 11, 11, 11 };
-        Instance().m_BlockIndices.at(ID::_Dead_Oak_Sapling) = { 43, 43, 43, 43, 43, 43 }; // Wrong
-        Instance().m_BlockIndices.at(ID::_Dead_Sapling) = { 43, 43, 43, 43, 43, 43 };     // Wrong
-        Instance().m_BlockIndices.at(ID::Piston) = { 84, 84, 83, 85, 84, 84 };            // Wrong
-        Instance().m_BlockIndices.at(ID::_Piston_Head) = { 83, 83, 83, 83, 83, 83 };      // Wrong
-        Instance().m_BlockIndices.at(ID::White_Wool) = { 64, 64, 64, 64, 64, 64 };
-        Instance().m_BlockIndices.at(ID::_Grass_Top) = { 0, 0, 0, 0, 0, 0 };
-        Instance().m_BlockIndices.at(ID::Yellow_Flower) = { 13, 13, 13, 13, 13, 13 };
-        Instance().m_BlockIndices.at(ID::Red_Flower) = { 12, 12, 12, 12, 12, 12 };
-        Instance().m_BlockIndices.at(ID::Brown_Mushroom) = { 29, 29, 29, 29, 29, 29 };
-        Instance().m_BlockIndices.at(ID::Red_Mushroom) = { 28, 28, 28, 28, 28, 28 };
-        Instance().m_BlockIndices.at(ID::Gold_Block) = { 23, 23, 23, 23, 23, 23 };
-        Instance().m_BlockIndices.at(ID::Iron_Block) = { 22, 22, 22, 22, 22, 22 };
-        Instance().m_BlockIndices.at(ID::Smoothstone_Stacked_Slabs) = { 5, 5, 6, 6, 5, 5 };
-        Instance().m_BlockIndices.at(ID::Smoothstone_Slab) = { 5, 5, 6, 6, 5, 5 };
-        Instance().m_BlockIndices.at(ID::Bricks) = { 7, 7, 7, 7, 7, 7 };
-        Instance().m_BlockIndices.at(ID::TNT) = { 8, 8, 9, 10, 8, 8 };
-        Instance().m_BlockIndices.at(ID::Bookshelf) = { 35, 35, 4, 4, 35, 35 };
-        Instance().m_BlockIndices.at(ID::Mossy_Cobblestone) = { 36, 36, 36, 36, 36, 36 };
-        Instance().m_BlockIndices.at(ID::Obsidian) = { 37, 37, 37, 37, 37, 37 };
-        Instance().m_BlockIndices.at(ID::Torch) = { 80, 80, 80, 80, 80, 80 };
-        Instance().m_BlockIndices.at(ID::Fire) = { 32, 32, 32, 32, 32, 32 };
-        Instance().m_BlockIndices.at(ID::Monster_Spawner) = { 65, 65, 65, 65, 65, 65 };
-        Instance().m_BlockIndices.at(ID::Oak_Stairs) = { 4, 4, 4, 4, 4, 4 };
-        Instance().m_BlockIndices.at(ID::Chest) = { 27, 26, 25, 25, 26, 26 };
-        Instance().m_BlockIndices.at(ID::_Redstone) = { 164, 164, 164, 164, 164, 164 };
-        Instance().m_BlockIndices.at(ID::Diamond_Ore) = { 50, 50, 50, 50, 50, 50 };
-        Instance().m_BlockIndices.at(ID::Diamond_Block) = { 24, 24, 24, 24, 24, 24 };
-        Instance().m_BlockIndices.at(ID::Crafting_Table) = { 60, 60, 43, 4, 59, 59 };
+        Instance().m_BlockIndices.at(ID::Air) = {0, 0, 0, 0, 0, 0};
+        Instance().m_BlockIndices.at(ID::Stone) = {1, 1, 1, 1, 1, 1};
+        Instance().m_BlockIndices.at(ID::Grass) = {3, 3, 0, 2, 3, 3};
+        Instance().m_BlockIndices.at(ID::Dirt) = {2, 2, 2, 2, 2, 2};
+        Instance().m_BlockIndices.at(ID::Cobblestone) = {16, 16, 16, 16, 16, 16};
+        Instance().m_BlockIndices.at(ID::Oak_Planks) = {4, 4, 4, 4, 4, 4};
+        Instance().m_BlockIndices.at(ID::Oak_Sapling) = {15, 15, 15, 15, 15, 15};
+        Instance().m_BlockIndices.at(ID::Bedrock) = {17, 17, 17, 17, 17, 17};
+        Instance().m_BlockIndices.at(ID::Water) = {207, 207, 207, 207, 207, 207};
+        Instance().m_BlockIndices.at(ID::Water2) = {207, 207, 207, 207, 207, 207};
+        Instance().m_BlockIndices.at(ID::Lava) = {255, 255, 255, 255, 255, 255};
+        Instance().m_BlockIndices.at(ID::Lava2) = {255, 255, 255, 255, 255, 255};
+        Instance().m_BlockIndices.at(ID::Sand) = {18, 18, 18, 18, 18, 18};
+        Instance().m_BlockIndices.at(ID::Gravel) = {19, 19, 19, 19, 19, 19};
+        Instance().m_BlockIndices.at(ID::Gold_Ore) = {32, 32, 32, 32, 32, 32};
+        Instance().m_BlockIndices.at(ID::Iron_Ore) = {33, 33, 33, 33, 33, 33};
+        Instance().m_BlockIndices.at(ID::Coal_Ore) = {34, 34, 34, 34, 34, 34};
+        Instance().m_BlockIndices.at(ID::Oak_Log) = {20, 20, 21, 21, 20, 20};
+        Instance().m_BlockIndices.at(ID::Oak_Leaves) = {52, 52, 52, 52, 52, 52};
+        Instance().m_BlockIndices.at(ID::Sponge) = {48, 48, 48, 48, 48, 48};
+        Instance().m_BlockIndices.at(ID::Glass) = {49, 49, 49, 49, 49, 49};
+        Instance().m_BlockIndices.at(ID::Lapis_Lazuli_Ore) = {160, 160, 160, 160, 160, 160};
+        Instance().m_BlockIndices.at(ID::Lapis_Lazuli_Block) = {144, 144, 144, 144, 144, 144};
+        Instance().m_BlockIndices.at(ID::Dispenser) = {46, 45, 1, 1, 45, 45};
+        Instance().m_BlockIndices.at(ID::Sandstone) = {192, 192, 176, 208, 192, 192};
+        Instance().m_BlockIndices.at(ID::Noteblock) = {74, 74, 75, 74, 74, 74};
+        Instance().m_BlockIndices.at(ID::_Bed) = {58, 58, 59, 58, 58, 58};
+        Instance().m_BlockIndices.at(ID::Powered_Rail) = {163, 163, 163, 163, 163, 163};
+        Instance().m_BlockIndices.at(ID::Detector_Rail) = {195, 195, 195, 195, 195, 195};
+        Instance().m_BlockIndices.at(ID::Stickey_Piston) = {84, 84, 82, 85, 84, 84}; // Wrong
+        Instance().m_BlockIndices.at(ID::Cobweb) = {11, 11, 11, 11, 11, 11};
+        Instance().m_BlockIndices.at(ID::_Dead_Oak_Sapling) = {43, 43, 43, 43, 43, 43}; // Wrong
+        Instance().m_BlockIndices.at(ID::_Dead_Sapling) = {43, 43, 43, 43, 43, 43};     // Wrong
+        Instance().m_BlockIndices.at(ID::Piston) = {84, 84, 83, 85, 84, 84};            // Wrong
+        Instance().m_BlockIndices.at(ID::_Piston_Head) = {83, 83, 83, 83, 83, 83};      // Wrong
+        Instance().m_BlockIndices.at(ID::White_Wool) = {64, 64, 64, 64, 64, 64};
+        Instance().m_BlockIndices.at(ID::_Grass_Top) = {0, 0, 0, 0, 0, 0};
+        Instance().m_BlockIndices.at(ID::Yellow_Flower) = {13, 13, 13, 13, 13, 13};
+        Instance().m_BlockIndices.at(ID::Red_Flower) = {12, 12, 12, 12, 12, 12};
+        Instance().m_BlockIndices.at(ID::Brown_Mushroom) = {29, 29, 29, 29, 29, 29};
+        Instance().m_BlockIndices.at(ID::Red_Mushroom) = {28, 28, 28, 28, 28, 28};
+        Instance().m_BlockIndices.at(ID::Gold_Block) = {23, 23, 23, 23, 23, 23};
+        Instance().m_BlockIndices.at(ID::Iron_Block) = {22, 22, 22, 22, 22, 22};
+        Instance().m_BlockIndices.at(ID::Smoothstone_Stacked_Slabs) = {5, 5, 6, 6, 5, 5};
+        Instance().m_BlockIndices.at(ID::Smoothstone_Slab) = {5, 5, 6, 6, 5, 5};
+        Instance().m_BlockIndices.at(ID::Bricks) = {7, 7, 7, 7, 7, 7};
+        Instance().m_BlockIndices.at(ID::TNT) = {8, 8, 9, 10, 8, 8};
+        Instance().m_BlockIndices.at(ID::Bookshelf) = {35, 35, 4, 4, 35, 35};
+        Instance().m_BlockIndices.at(ID::Mossy_Cobblestone) = {36, 36, 36, 36, 36, 36};
+        Instance().m_BlockIndices.at(ID::Obsidian) = {37, 37, 37, 37, 37, 37};
+        Instance().m_BlockIndices.at(ID::Torch) = {80, 80, 80, 80, 80, 80};
+        Instance().m_BlockIndices.at(ID::Fire) = {32, 32, 32, 32, 32, 32};
+        Instance().m_BlockIndices.at(ID::Monster_Spawner) = {65, 65, 65, 65, 65, 65};
+        Instance().m_BlockIndices.at(ID::Oak_Stairs) = {4, 4, 4, 4, 4, 4};
+        Instance().m_BlockIndices.at(ID::Chest) = {27, 26, 25, 25, 26, 26};
+        Instance().m_BlockIndices.at(ID::_Redstone) = {164, 164, 164, 164, 164, 164};
+        Instance().m_BlockIndices.at(ID::Diamond_Ore) = {50, 50, 50, 50, 50, 50};
+        Instance().m_BlockIndices.at(ID::Diamond_Block) = {24, 24, 24, 24, 24, 24};
+        Instance().m_BlockIndices.at(ID::Crafting_Table) = {60, 60, 43, 4, 59, 59};
     }
 
     static Block GetBlockFromID(unsigned char id)
     {
         switch (id)
         {
-        case (ID::Air):
-            return Air();
-        case (ID::Stone):
-            return Stone();
-        case (ID::Grass):
-            return Grass();
-        case (ID::Dirt):
-            return Dirt();
-        case (ID::Cobblestone):
-            return Cobblestone();
-        case (ID::Oak_Planks):
-            return Oak_Planks();
-        case (ID::Oak_Sapling):
-            return Oak_Sapling();
-        case (ID::Bedrock):
-            return Bedrock();
-        case (ID::Water):
-            return Water();
-        case (ID::Water2):
-            return Water2();
-        case (ID::Lava):
-            return Lava();
-        case (ID::Lava2):
-            return Lava2();
-        case (ID::Sand):
-            return Sand();
-        case (ID::Gravel):
-            return Gravel();
-        case (ID::Gold_Ore):
-            return Gold_Ore();
-        case (ID::Iron_Ore):
-            return Iron_Ore();
-        case (ID::Coal_Ore):
-            return Coal_Ore();
-        case (ID::Oak_Log):
-            return Oak_Log();
-        case (ID::Oak_Leaves):
-            return Oak_Leaves();
-        case (ID::Sponge):
-            return Sponge();
-        case (ID::Glass):
-            return Glass();
-        case (ID::Lapis_Lazuli_Ore):
-            return Lapis_Lazuli_Ore();
-        case (ID::Lapis_Lazuli_Block):
-            return Lapis_Lazuli_Block();
-        case (ID::Dispenser):
-            return Dispenser();
-        case (ID::Sandstone):
-            return Sandstone();
-        case (ID::Noteblock):
-            return Noteblock();
-        case (ID::_Bed):
-            return _Bed();
-        case (ID::Powered_Rail):
-            return Powered_Rail();
-        case (ID::Detector_Rail):
-            return Detector_Rail();
-        case (ID::Stickey_Piston):
-            return Stickey_Piston();
-        case (ID::Cobweb):
-            return Cobweb();
-        case (ID::_Dead_Oak_Sapling):
-            return _Dead_Oak_Sapling();
-        case (ID::_Dead_Sapling):
-            return _Dead_Sapling();
-        case (ID::Piston):
-            return Piston();
-        case (ID::_Piston_Head):
-            return _Piston_Head();
-        case (ID::White_Wool):
-            return White_Wool();
-        case (ID::_Grass_Top):
-            return _Grass_Top();
-        case (ID::Yellow_Flower):
-            return Yellow_Flower();
-        case (ID::Red_Flower):
-            return Red_Flower();
-        case (ID::Brown_Mushroom):
-            return Brown_Mushroom();
-        case (ID::Red_Mushroom):
-            return Red_Mushroom();
-        case (ID::Gold_Block):
-            return Gold_Block();
-        case (ID::Iron_Block):
-            return Iron_Block();
-        case (ID::Smoothstone_Stacked_Slabs):
-            return Smoothstone_Stacked_Slabs();
-        case (ID::Smoothstone_Slab):
-            return Smoothstone_Slab();
-        case (ID::Bricks):
-            return Bricks();
-        case (ID::TNT):
-            return TNT();
-        case (ID::Bookshelf):
-            return Bookshelf();
-        case (ID::Mossy_Cobblestone):
-            return Mossy_Cobblestone();
-        case (ID::Obsidian):
-            return Obsidian();
-        case (ID::Torch):
-            return Torch();
-        case (ID::Fire):
-            return Fire();
-        case (ID::Monster_Spawner):
-            return Monster_Spawner();
-        case (ID::Oak_Stairs):
-            return Oak_Stairs();
-        case (ID::Chest):
-            return Chest();
-        case (ID::_Redstone):
-            return _Redstone();
-        case (ID::Diamond_Ore):
-            return Diamond_Ore();
-        case (ID::Diamond_Block):
-            return Diamond_Block();
-        case (ID::Crafting_Table):
-            return Crafting_Table();
+            case (ID::Air):
+                return Air();
+            case (ID::Stone):
+                return Stone();
+            case (ID::Grass):
+                return Grass();
+            case (ID::Dirt):
+                return Dirt();
+            case (ID::Cobblestone):
+                return Cobblestone();
+            case (ID::Oak_Planks):
+                return Oak_Planks();
+            case (ID::Oak_Sapling):
+                return Oak_Sapling();
+            case (ID::Bedrock):
+                return Bedrock();
+            case (ID::Water):
+                return Water();
+            case (ID::Water2):
+                return Water2();
+            case (ID::Lava):
+                return Lava();
+            case (ID::Lava2):
+                return Lava2();
+            case (ID::Sand):
+                return Sand();
+            case (ID::Gravel):
+                return Gravel();
+            case (ID::Gold_Ore):
+                return Gold_Ore();
+            case (ID::Iron_Ore):
+                return Iron_Ore();
+            case (ID::Coal_Ore):
+                return Coal_Ore();
+            case (ID::Oak_Log):
+                return Oak_Log();
+            case (ID::Oak_Leaves):
+                return Oak_Leaves();
+            case (ID::Sponge):
+                return Sponge();
+            case (ID::Glass):
+                return Glass();
+            case (ID::Lapis_Lazuli_Ore):
+                return Lapis_Lazuli_Ore();
+            case (ID::Lapis_Lazuli_Block):
+                return Lapis_Lazuli_Block();
+            case (ID::Dispenser):
+                return Dispenser();
+            case (ID::Sandstone):
+                return Sandstone();
+            case (ID::Noteblock):
+                return Noteblock();
+            case (ID::_Bed):
+                return _Bed();
+            case (ID::Powered_Rail):
+                return Powered_Rail();
+            case (ID::Detector_Rail):
+                return Detector_Rail();
+            case (ID::Stickey_Piston):
+                return Stickey_Piston();
+            case (ID::Cobweb):
+                return Cobweb();
+            case (ID::_Dead_Oak_Sapling):
+                return _Dead_Oak_Sapling();
+            case (ID::_Dead_Sapling):
+                return _Dead_Sapling();
+            case (ID::Piston):
+                return Piston();
+            case (ID::_Piston_Head):
+                return _Piston_Head();
+            case (ID::White_Wool):
+                return White_Wool();
+            case (ID::_Grass_Top):
+                return _Grass_Top();
+            case (ID::Yellow_Flower):
+                return Yellow_Flower();
+            case (ID::Red_Flower):
+                return Red_Flower();
+            case (ID::Brown_Mushroom):
+                return Brown_Mushroom();
+            case (ID::Red_Mushroom):
+                return Red_Mushroom();
+            case (ID::Gold_Block):
+                return Gold_Block();
+            case (ID::Iron_Block):
+                return Iron_Block();
+            case (ID::Smoothstone_Stacked_Slabs):
+                return Smoothstone_Stacked_Slabs();
+            case (ID::Smoothstone_Slab):
+                return Smoothstone_Slab();
+            case (ID::Bricks):
+                return Bricks();
+            case (ID::TNT):
+                return TNT();
+            case (ID::Bookshelf):
+                return Bookshelf();
+            case (ID::Mossy_Cobblestone):
+                return Mossy_Cobblestone();
+            case (ID::Obsidian):
+                return Obsidian();
+            case (ID::Torch):
+                return Torch();
+            case (ID::Fire):
+                return Fire();
+            case (ID::Monster_Spawner):
+                return Monster_Spawner();
+            case (ID::Oak_Stairs):
+                return Oak_Stairs();
+            case (ID::Chest):
+                return Chest();
+            case (ID::_Redstone):
+                return _Redstone();
+            case (ID::Diamond_Ore):
+                return Diamond_Ore();
+            case (ID::Diamond_Block):
+                return Diamond_Block();
+            case (ID::Crafting_Table):
+                return Crafting_Table();
         }
         return Air();
     }

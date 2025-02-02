@@ -1,14 +1,13 @@
 #pragma once
 
-#include <Renderer/Renderer.h>
 #include <Entities/Entity.h>
 #include <Entities/EntityManager.h>
 #include <Physics/Collision.h>
+#include <Renderer/Renderer.h>
 
 #include "World/BlockLibrary.h"
 #include "World/Chunk.h"
 #include "World/World.h"
-
 
 class Player : public Entity
 {
@@ -51,11 +50,11 @@ private:
     bool m_ThirdPersonCamera = false;
     int m_RenderDistance = 16;
 
-    glm::vec3 m_GravityVel = { 0.0f, 0.0f, 0.0f };
+    glm::vec3 m_GravityVel = {0.0f, 0.0f, 0.0f};
 
     // Purposfully setting this to an invalid index so that an update happens when
     // spawning in chunk 0, 0, 0
-    glm::ivec3 m_ChunkIndex = { 0, 1, 0 };
+    glm::ivec3 m_ChunkIndex = {0, 1, 0};
     unsigned char m_SelectedBlock = Blocks::Stone().ID;
     Block m_LastBlockInsideOf;
 
@@ -74,9 +73,9 @@ private:
 
     float m_MovementSpeed = 4.317f; // m/s
     float m_RotationSpeed = 1.5f;
-    glm::vec3 m_ForwardVector = { 0.0f, 0.0f, -1.0f };
-    glm::vec3 m_Direction = { 0.0f, 0.0f, 0.0f };
-    glm::vec3 m_RightVector = { 1.0f, 0.0f, 0.0f };
+    glm::vec3 m_ForwardVector = {0.0f, 0.0f, -1.0f};
+    glm::vec3 m_Direction = {0.0f, 0.0f, 0.0f};
+    glm::vec3 m_RightVector = {1.0f, 0.0f, 0.0f};
     float m_Yaw = glm::radians(0.0f);
     float m_Pitch = glm::radians(0.0f);
 

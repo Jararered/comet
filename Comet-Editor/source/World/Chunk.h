@@ -59,17 +59,12 @@ struct Chunk
         return m_BlockData.at(chunkPos.x * CHUNK_HEIGHT * CHUNK_WIDTH + chunkPos.y * CHUNK_WIDTH + chunkPos.z);
     }
 
-    void SetBlock(glm::ivec3 chunkPos, Block block)
-    {
-        m_BlockData.at(chunkPos.x * CHUNK_HEIGHT * CHUNK_WIDTH + chunkPos.y * CHUNK_WIDTH + chunkPos.z) = block;
-    }
+    void SetBlock(glm::ivec3 chunkPos, Block block) { m_BlockData.at(chunkPos.x * CHUNK_HEIGHT * CHUNK_WIDTH + chunkPos.y * CHUNK_WIDTH + chunkPos.z) = block; }
 
     void SetHeight(int x, int z, int y) { m_HeightData.at(CHUNK_WIDTH * x + z) = y; }
     float GetHeight(int x, int z) { return m_HeightData.at(CHUNK_WIDTH * x + z); }
 
     Geometry* GetGeometry() { return &m_Geometry; }
-
-
 
 private:
     ChunkProperties m_ChunkProperties;
@@ -77,13 +72,13 @@ private:
     std::array<Block, CHUNK_SIZE> m_BlockData;
 
     // only used during generation, not needed when saving chunk
-    std::array<int, CHUNK_WIDTH* CHUNK_WIDTH> m_HeightData;
+    std::array<int, CHUNK_WIDTH * CHUNK_WIDTH> m_HeightData;
 
     Geometry m_Geometry;
 
     World* m_World;
 
-    glm::ivec3 m_Chunk = { 0, 0, 0 };
+    glm::ivec3 m_Chunk = {0, 0, 0};
 
 public:
     template <class Archive> void save(Archive& ar) const { ar(m_BlockData); }

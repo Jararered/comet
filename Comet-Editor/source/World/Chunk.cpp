@@ -3,8 +3,8 @@
 #include "World.h"
 #include "WorldConfig.h"
 
-#include <fstream>
 #include <filesystem>
+#include <fstream>
 
 Chunk::Chunk(World* world, glm::ivec3 id) : m_World(world), m_Chunk(id)
 {
@@ -91,15 +91,15 @@ void Chunk::GenerateSurface()
 
             SetHeight(x, z, height);
 
-            SetBlock({ x, y, z }, Blocks::Grass());
-            SetBlock({ x, y - 1, z }, Blocks::Dirt());
-            SetBlock({ x, y - 2, z }, Blocks::Dirt());
-            SetBlock({ x, y - 3, z }, Blocks::Dirt());
+            SetBlock({x, y, z}, Blocks::Grass());
+            SetBlock({x, y - 1, z}, Blocks::Dirt());
+            SetBlock({x, y - 2, z}, Blocks::Dirt());
+            SetBlock({x, y - 3, z}, Blocks::Dirt());
 
             // fill chunk under dirt with stone
             for (int i = 0; i < y - 3; i++)
             {
-                SetBlock({ x, i, z }, Blocks::Stone());
+                SetBlock({x, i, z}, Blocks::Stone());
             }
         }
     }
@@ -124,7 +124,7 @@ void Chunk::GenerateTrees()
                 continue;
 
             // Check to not generate a floating tree
-            if (GetBlock({ x, y - 1, z }).ID == ID::Air)
+            if (GetBlock({x, y - 1, z}).ID == ID::Air)
                 continue;
 
             noise1 = ChunkGenerator::GetFastNoise((m_Chunk.x * CHUNK_WIDTH) + x, (m_Chunk.z * CHUNK_WIDTH) + z);
@@ -132,13 +132,13 @@ void Chunk::GenerateTrees()
 
             if (noise1 > 0.9f && noise2 > 0.1f)
             {
-                SetBlock({ x, y, z }, Blocks::Dirt());
-                SetBlock({ x, y + 1, z }, Blocks::Oak_Log());
-                SetBlock({ x, y + 2, z }, Blocks::Oak_Log());
+                SetBlock({x, y, z}, Blocks::Dirt());
+                SetBlock({x, y + 1, z}, Blocks::Oak_Log());
+                SetBlock({x, y + 2, z}, Blocks::Oak_Log());
 
                 if (noise1 > 0.95f)
                 {
-                    SetBlock({ x, y + 3, z }, Blocks::Oak_Log());
+                    SetBlock({x, y + 3, z}, Blocks::Oak_Log());
                     y += 1;
                 }
 
@@ -146,31 +146,31 @@ void Chunk::GenerateTrees()
                 {
                     for (int yoffset = -2; yoffset < 3; yoffset++)
                     {
-                        SetBlock({ x + xoffset, y + 3, z + yoffset }, Blocks::Oak_Leaves());
+                        SetBlock({x + xoffset, y + 3, z + yoffset}, Blocks::Oak_Leaves());
                     }
                 }
 
-                SetBlock({ x, y + 3, z }, Blocks::Oak_Log());
+                SetBlock({x, y + 3, z}, Blocks::Oak_Log());
 
                 for (int xoffset = -2; xoffset < 3; xoffset++)
                 {
                     for (int yoffset = -2; yoffset < 3; yoffset++)
                     {
-                        SetBlock({ x + xoffset, y + 4, z + yoffset }, Blocks::Oak_Leaves());
+                        SetBlock({x + xoffset, y + 4, z + yoffset}, Blocks::Oak_Leaves());
                     }
                 }
 
-                SetBlock({ x - 1, y + 5, z }, Blocks::Oak_Leaves());
-                SetBlock({ x, y + 5, z - 1 }, Blocks::Oak_Leaves());
-                SetBlock({ x, y + 5, z }, Blocks::Oak_Leaves());
-                SetBlock({ x, y + 5, z + 1 }, Blocks::Oak_Leaves());
-                SetBlock({ x + 1, y + 5, z }, Blocks::Oak_Leaves());
+                SetBlock({x - 1, y + 5, z}, Blocks::Oak_Leaves());
+                SetBlock({x, y + 5, z - 1}, Blocks::Oak_Leaves());
+                SetBlock({x, y + 5, z}, Blocks::Oak_Leaves());
+                SetBlock({x, y + 5, z + 1}, Blocks::Oak_Leaves());
+                SetBlock({x + 1, y + 5, z}, Blocks::Oak_Leaves());
 
-                SetBlock({ x - 1, y + 6, z }, Blocks::Oak_Leaves());
-                SetBlock({ x, y + 6, z - 1 }, Blocks::Oak_Leaves());
-                SetBlock({ x, y + 6, z }, Blocks::Oak_Leaves());
-                SetBlock({ x, y + 6, z + 1 }, Blocks::Oak_Leaves());
-                SetBlock({ x + 1, y + 6, z }, Blocks::Oak_Leaves());
+                SetBlock({x - 1, y + 6, z}, Blocks::Oak_Leaves());
+                SetBlock({x, y + 6, z - 1}, Blocks::Oak_Leaves());
+                SetBlock({x, y + 6, z}, Blocks::Oak_Leaves());
+                SetBlock({x, y + 6, z + 1}, Blocks::Oak_Leaves());
+                SetBlock({x + 1, y + 6, z}, Blocks::Oak_Leaves());
             }
         }
     }
@@ -197,7 +197,7 @@ void Chunk::GenerateFlowers()
             }
 
             // Check to not generate a floating tree
-            if (GetBlock({ x, y - 1, z }).ID == ID::Air)
+            if (GetBlock({x, y - 1, z}).ID == ID::Air)
             {
                 continue;
             }
@@ -208,24 +208,24 @@ void Chunk::GenerateFlowers()
 
             if (noise1 > 0.75f && noise2 > 0.1f)
             {
-                if (GetBlock({ x, y + 1, z }).ID == ID::Air)
+                if (GetBlock({x, y + 1, z}).ID == ID::Air)
                 {
                     if (noise3 < 0.25f)
                     {
-                        SetBlock({ x, y + 1, z }, Blocks::Red_Flower());
+                        SetBlock({x, y + 1, z}, Blocks::Red_Flower());
                         continue;
                     }
                     if (noise3 < 0.5f)
                     {
-                        SetBlock({ x, y + 1, z }, Blocks::Yellow_Flower());
+                        SetBlock({x, y + 1, z}, Blocks::Yellow_Flower());
                         continue;
                     }
                     if (noise3 < 0.75f)
                     {
-                        SetBlock({ x, y + 1, z }, Blocks::Red_Mushroom());
+                        SetBlock({x, y + 1, z}, Blocks::Red_Mushroom());
                         continue;
                     }
-                    SetBlock({ x, y + 1, z }, Blocks::Brown_Mushroom());
+                    SetBlock({x, y + 1, z}, Blocks::Brown_Mushroom());
                     continue;
                 }
             }
@@ -242,22 +242,22 @@ void Chunk::GenerateBedrock()
         {
             noise = ChunkGenerator::GetFastNoise(x, z);
 
-            SetBlock({ x, 0, z }, Blocks::Bedrock());
+            SetBlock({x, 0, z}, Blocks::Bedrock());
 
             if (noise > 0.20f)
-                SetBlock({ x, 1, z }, Blocks::Bedrock());
+                SetBlock({x, 1, z}, Blocks::Bedrock());
             else
                 continue;
             if (noise > 0.40f)
-                SetBlock({ x, 2, z }, Blocks::Bedrock());
+                SetBlock({x, 2, z}, Blocks::Bedrock());
             else
                 continue;
             if (noise > 0.60f)
-                SetBlock({ x, 3, z }, Blocks::Bedrock());
+                SetBlock({x, 3, z}, Blocks::Bedrock());
             else
                 continue;
             if (noise > 0.80f)
-                SetBlock({ x, 4, z }, Blocks::Bedrock());
+                SetBlock({x, 4, z}, Blocks::Bedrock());
         }
     }
 }
@@ -274,7 +274,7 @@ void Chunk::GenerateWater()
             {
                 for (unsigned int i = y + 1; i < WATER_HEIGHT + 1; i++)
                 {
-                    SetBlock({ x, i, z }, Blocks::Water());
+                    SetBlock({x, i, z}, Blocks::Water());
                 }
             }
         }
@@ -293,16 +293,16 @@ void Chunk::GenerateSand()
             noise = ChunkGenerator::GetBiomeNoise(x, z);
             if (y < WATER_HEIGHT + 4)
             {
-                SetBlock({ x, y, z }, Blocks::Sand());
-                SetBlock({ x, y - 1, z }, Blocks::Sand());
-                SetBlock({ x, y - 2, z }, Blocks::Sand());
+                SetBlock({x, y, z}, Blocks::Sand());
+                SetBlock({x, y - 1, z}, Blocks::Sand());
+                SetBlock({x, y - 2, z}, Blocks::Sand());
             }
 
             if (y == WATER_HEIGHT + 4 && noise > 0.5f)
             {
-                SetBlock({ x, y, z }, Blocks::Sand());
-                SetBlock({ x, y - 1, z }, Blocks::Sand());
-                SetBlock({ x, y - 2, z }, Blocks::Sand());
+                SetBlock({x, y, z}, Blocks::Sand());
+                SetBlock({x, y - 1, z}, Blocks::Sand());
+                SetBlock({x, y - 2, z}, Blocks::Sand());
             }
         }
     }
@@ -324,7 +324,7 @@ void Chunk::GenerateMesh()
         {
             for (int z = 0; z < CHUNK_WIDTH; z++)
             {
-                currentBlock = GetBlock({ x, y, z });
+                currentBlock = GetBlock({x, y, z});
 
                 // If the block is air, add no geometry
                 if (currentBlock.ID == ID::Air)
@@ -338,42 +338,42 @@ void Chunk::GenerateMesh()
                 // Getting block IDs of surrounding blocks
                 if (x == 0)
                 {
-                    pxBlock = GetBlock({ x + 1, y, z });
-                    nxBlock = m_World->GetBlock({ worldx - 1, y, worldz });
+                    pxBlock = GetBlock({x + 1, y, z});
+                    nxBlock = m_World->GetBlock({worldx - 1, y, worldz});
                 }
                 else
                 {
                     if (x == CHUNK_WIDTH - 1)
                     {
-                        pxBlock = m_World->GetBlock({ worldx + 1, y, worldz });
-                        nxBlock = GetBlock({ x - 1, y, z });
+                        pxBlock = m_World->GetBlock({worldx + 1, y, worldz});
+                        nxBlock = GetBlock({x - 1, y, z});
                     }
                     else
                     {
-                        pxBlock = GetBlock({ x + 1, y, z });
-                        nxBlock = GetBlock({ x - 1, y, z });
+                        pxBlock = GetBlock({x + 1, y, z});
+                        nxBlock = GetBlock({x - 1, y, z});
                     }
                 }
 
-                pyBlock = GetBlock({ x, y + 1, z });
-                nyBlock = GetBlock({ x, y - 1, z });
+                pyBlock = GetBlock({x, y + 1, z});
+                nyBlock = GetBlock({x, y - 1, z});
 
                 if (z == 0)
                 {
-                    pzBlock = GetBlock({ x, y, z + 1 });
-                    nzBlock = m_World->GetBlock({ worldx, y, worldz - 1 });
+                    pzBlock = GetBlock({x, y, z + 1});
+                    nzBlock = m_World->GetBlock({worldx, y, worldz - 1});
                 }
                 else
                 {
                     if (z == CHUNK_WIDTH - 1)
                     {
-                        pzBlock = m_World->GetBlock({ worldx, y, worldz + 1 });
-                        nzBlock = GetBlock({ x, y, z - 1 });
+                        pzBlock = m_World->GetBlock({worldx, y, worldz + 1});
+                        nzBlock = GetBlock({x, y, z - 1});
                     }
                     else
                     {
-                        pzBlock = GetBlock({ x, y, z + 1 });
-                        nzBlock = GetBlock({ x, y, z - 1 });
+                        pzBlock = GetBlock({x, y, z + 1});
+                        nzBlock = GetBlock({x, y, z - 1});
                     }
                 }
 
@@ -407,33 +407,33 @@ void Chunk::GenerateMesh()
 
                     if (py)
                     {
-                        Block::RenderWaterBlock(currentBlock, { x, y, z }, { px, nx, py, ny, pz, nz }, &m_Geometry);
+                        Block::RenderWaterBlock(currentBlock, {x, y, z}, {px, nx, py, ny, pz, nz}, &m_Geometry);
                     }
                     else
                     {
-                        Block::RenderCubeBlock(currentBlock, { x, y, z }, { px, nx, py, ny, pz, nz }, &m_Geometry);
+                        Block::RenderCubeBlock(currentBlock, {x, y, z}, {px, nx, py, ny, pz, nz}, &m_Geometry);
                     }
                     continue;
                 }
 
                 if (currentBlock.Shape == Block::Shapes::Cube)
                 {
-                    Block::RenderCubeBlock(currentBlock, { x, y, z }, { px, nx, py, ny, pz, nz }, &m_Geometry);
+                    Block::RenderCubeBlock(currentBlock, {x, y, z}, {px, nx, py, ny, pz, nz}, &m_Geometry);
                     continue;
                 }
                 if (currentBlock.Shape == Block::Shapes::Cross)
                 {
-                    Block::RenderFlowerBlock(currentBlock, { x, y, z }, &m_Geometry);
+                    Block::RenderFlowerBlock(currentBlock, {x, y, z}, &m_Geometry);
                     continue;
                 }
                 if (currentBlock.Shape == Block::Shapes::Torch)
                 {
-                    Block::RenderTorchBlock(currentBlock, { x, y, z }, &m_Geometry);
+                    Block::RenderTorchBlock(currentBlock, {x, y, z}, &m_Geometry);
                     continue;
                 }
                 if (currentBlock.Shape == Block::Shapes::Half)
                 {
-                    Block::RenderSlabBlock(currentBlock, { x, y, z }, { px, nx, py, ny, pz, nz }, &m_Geometry);
+                    Block::RenderSlabBlock(currentBlock, {x, y, z}, {px, nx, py, ny, pz, nz}, &m_Geometry);
                     continue;
                 }
             }
