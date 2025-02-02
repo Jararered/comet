@@ -5,10 +5,12 @@
 
 #include <glm/mat4x4.hpp>
 
+#include <vector>
+
 class Mesh
 {
 public:
-    Mesh() = default;   
+    Mesh() = default;
     Mesh(std::vector<Vertex>* vertices, std::vector<unsigned int>* indices, Shader* shader);
 
     void Initialize();
@@ -27,8 +29,7 @@ private:
     unsigned int m_VBO = 0;
     unsigned int m_IBO = 0;
 
-    glm::mat4 m_ModelMatrix = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-                               0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+    glm::mat4 m_ModelMatrix = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     bool m_OnGPU = false;
 
 public:
