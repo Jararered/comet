@@ -1,8 +1,8 @@
 #include "Shader.h"
 
-#include <string>
 #include <fstream>
 #include <iostream>
+#include <string>
 
 void Shader::Bind()
 {
@@ -17,6 +17,9 @@ void Shader::Unbind()
 void Shader::Create(const char* vertFile, const char* fragFile)
 {
     m_ID = glCreateProgram();
+
+    // Write to console which files are being compiled
+    std::cout << "Shader::Create(): Compiling " << vertFile << " and " << fragFile << "\n";
 
     unsigned int vertexID;
     unsigned int fragmentID;
@@ -63,7 +66,6 @@ void Shader::Create(const char* vertFile, const char* fragFile)
     glAttachShader(m_ID, fragmentID);
     glLinkProgram(m_ID);
 
-
     glGetProgramiv(m_ID, GL_LINK_STATUS, &successlink);
     if (!successlink)
     {
@@ -80,9 +82,15 @@ void Shader::Create(const char* vertFile, const char* fragFile)
     }
 }
 
-void Shader::Delete() { glDeleteProgram(m_ID); }
+void Shader::Delete()
+{
+    glDeleteProgram(m_ID);
+}
 
-unsigned int Shader::GetID() { return m_ID; }
+unsigned int Shader::GetID()
+{
+    return m_ID;
+}
 
 int Shader::GetUniformLocation(const std::string& name)
 {
