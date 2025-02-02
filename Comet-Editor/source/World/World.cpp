@@ -8,9 +8,9 @@
 
 #include <filesystem>
 #include <memory>
+#include <print>
 
-World::World(std::string folderName, long seed)
-    :m_FolderName(folderName), m_Seed(seed)
+World::World(std::string folderName, long seed) : m_FolderName(folderName), m_Seed(seed)
 {
     std::filesystem::create_directory(folderName);
 
@@ -18,12 +18,20 @@ World::World(std::string folderName, long seed)
     Blocks::Initialize();
     EntityManager::Initialize();
 
+    // Get current working directory
+    std::filesystem::path path = std::filesystem::current_path();
+
+    // Get the absolute path of the shader files
+    std::string vertexShaderPath = path.string() + "/Resources/Shaders/PositionTextureNormal.vert";
+    std::string fragmentShaderPath = path.string() + "/Resources/Shaders/PositionTextureNormal.frag";
+
     // Creating shader and texture
     Shader blockShader;
-    blockShader.Create("Shaders/PositionTextureNormal.vert", "Shaders/PositionTextureNormal.frag");
+    blockShader.Create(vertexShaderPath.c_str(), fragmentShaderPath.c_str());
 
     Texture texture;
-    texture.Create("Textures/terrain.png");
+    std::string texturePath = path.string() + "/Resources/Textures/terrain.png";
+    texture.Create(texturePath.c_str());
 
     TextureMap::Configure(texture.Width(), texture.Height(), 16);
 
@@ -61,14 +69,14 @@ void World::Update()
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
-    std::cout << "Exiting world thread...\n";
+    std::println("Exiting world thread...");
 }
 
 void World::Finalize()
 {
     m_Running = false;
 
-    std::cout << "Saving currently loaded chunks...\n";
+    std::println("Saving currently loaded chunks...");
 
     for (auto& chunk : m_ChunkDataMap)
     {
@@ -105,7 +113,7 @@ void World::SetBlock(glm::ivec3 worldCoord, Block blockToSet)
 
     if (auto entry = m_ChunkDataMap.find(index); entry != m_ChunkDataMap.end())
     {
-        entry->second->SetBlock({ chunkCoord.x, chunkCoord.y, chunkCoord.z }, blockToSet);
+        entry->second->SetBlock({chunkCoord.x, chunkCoord.y, chunkCoord.z}, blockToSet);
         entry->second->GetChunkProperties().Modified = true;
         entry->second->GenerateMesh();
 
@@ -114,23 +122,23 @@ void World::SetBlock(glm::ivec3 worldCoord, Block blockToSet)
         // Updating neighboring meshes in the world
         if (chunkCoord.x == 0)
         {
-            m_ChunkDataMap.at({ index.x - 1, index.y, index.z })->GenerateMesh();
-            Renderer::UpdateMeshInQueue({ index.x - 1, index.y, index.z });
+            m_ChunkDataMap.at({index.x - 1, index.y, index.z})->GenerateMesh();
+            Renderer::UpdateMeshInQueue({index.x - 1, index.y, index.z});
         }
         if (chunkCoord.x == 15)
         {
-            m_ChunkDataMap.at({ index.x + 1, index.y, index.z })->GenerateMesh();
-            Renderer::UpdateMeshInQueue({ index.x + 1, index.y, index.z });
+            m_ChunkDataMap.at({index.x + 1, index.y, index.z})->GenerateMesh();
+            Renderer::UpdateMeshInQueue({index.x + 1, index.y, index.z});
         }
         if (chunkCoord.z == 0)
         {
-            m_ChunkDataMap.at({ index.x, index.y, index.z - 1 })->GenerateMesh();
-            Renderer::UpdateMeshInQueue({ index.x, index.y, index.z - 1 });
+            m_ChunkDataMap.at({index.x, index.y, index.z - 1})->GenerateMesh();
+            Renderer::UpdateMeshInQueue({index.x, index.y, index.z - 1});
         }
         if (chunkCoord.z == 15)
         {
-            m_ChunkDataMap.at({ index.x, index.y, index.z + 1 })->GenerateMesh();
-            Renderer::UpdateMeshInQueue({ index.x, index.y, index.z + 1 });
+            m_ChunkDataMap.at({index.x, index.y, index.z + 1})->GenerateMesh();
+            Renderer::UpdateMeshInQueue({index.x, index.y, index.z + 1});
         }
     }
 }
@@ -185,7 +193,7 @@ void World::ProcessRequestedChunks(glm::ivec3 centerChunkIndex)
     {
         for (int z = lowerz; z < upperz; z++)
         {
-            index = { x, 0, z };
+            index = {x, 0, z};
             chunksGenerated.insert(index);
             if (m_ChunkDataMap.find(index) == m_ChunkDataMap.end())
             {
@@ -208,7 +216,7 @@ void World::ProcessRequestedChunks(glm::ivec3 centerChunkIndex)
     {
         for (int z = lowerz + 1; z < upperz - 1; z++)
         {
-            index = { x, 0, z };
+            index = {x, 0, z};
             chunksRendered.insert(index);
             if (m_ChunkRenderMap.find(index) == m_ChunkRenderMap.end())
             {

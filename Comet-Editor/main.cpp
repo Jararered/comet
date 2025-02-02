@@ -9,8 +9,14 @@
 
 #include "Entities/Player.h"
 
+#include <filesystem>
+
 int main(int argc, char const* argv[])
 {
+    // Output the current working directory using modern c++
+    std::filesystem::path path = std::filesystem::current_path();
+    std::cout << "Current working directory: " << path << std::endl;
+
     Engine* engine = new Engine();
 
     // Starting world thread and configuring
@@ -31,12 +37,11 @@ int main(int argc, char const* argv[])
     LayerManager::AddLayer(settings);
     LayerManager::AddLayer(crosshair);
 
-
     // Starting main engine thread
     engine->Initialize();
 
     // Ending threads
     world->Finalize();
-    
+
     return 0;
 }

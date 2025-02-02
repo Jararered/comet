@@ -1,9 +1,9 @@
 #pragma once
 
+#include <Engine.h>
 #include <Renderer/Renderer.h>
 #include <Renderer/Shader.h>
 #include <Renderer/Texture.h>
-#include <Engine.h>
 
 #include "BlockLibrary.h"
 #include "Chunk.h"
@@ -11,6 +11,7 @@
 #include "WorldConfig.h"
 
 #include <memory>
+#include <thread>
 
 class Player;
 

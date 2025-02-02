@@ -1,8 +1,8 @@
 #version 330
 
-layout (location = 0) in vec3 a_Position;
-layout (location = 1) in vec2 a_TextureCoordinates;
-layout (location = 2) in vec3 a_Normal;
+layout(location = 0) in vec3 a_Position;
+layout(location = 1) in vec2 a_TextureCoordinates;
+layout(location = 2) in vec3 a_Normal;
 
 uniform ivec3 u_Index;
 uniform mat4 u_ProjMatrix;

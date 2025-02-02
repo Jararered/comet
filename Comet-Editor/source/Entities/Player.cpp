@@ -2,16 +2,15 @@
 
 #include <Entities/Entity.h>
 #include <Input/Input.h>
-#include <physics/Constants.h>
+#include <Physics/Constants.h>
 
 #include <cmath>
 
 using namespace Comet;
 
-Player::Player(World* world)
-    : m_World(world)
+Player::Player(World* world) : m_World(world)
 {
-    SetPosition({ 0.0f, 50.0f, 0.0f });
+    SetPosition({0.0f, 50.0f, 0.0f});
     Camera::SetPosition(m_Position);
 }
 
@@ -113,8 +112,8 @@ void Player::ProcessMovement(float dt)
         // Basic movement processing
         // Used so when walking forward vertical movement doesn't occur.
         float movementSpeed = m_MovementSpeed;
-        glm::vec3 direction = { 0.0f, 0.0f, 0.0f };
-        glm::vec3 cameraFowardXZ = { m_ForwardVector.x, 0.0f, m_ForwardVector.z };
+        glm::vec3 direction = {0.0f, 0.0f, 0.0f};
+        glm::vec3 cameraFowardXZ = {m_ForwardVector.x, 0.0f, m_ForwardVector.z};
 
         // Speed increase
         if (Input::IsKeyPressed(KEY_LEFT_CONTROL))
@@ -181,9 +180,5 @@ void Player::UpdateCamera()
 
 void Player::UpdateBoundingBox()
 {
-    m_BoundingBox = {
-        m_Position.x + (0.5f * m_Width), m_Position.x - (0.5f * m_Width),
-        m_Position.y + 0.25f, m_Position.y - m_Height,
-        m_Position.z + (0.5f * m_Width), m_Position.z - (0.5f * m_Width)
-    };
+    m_BoundingBox = {m_Position.x + (0.5f * m_Width), m_Position.x - (0.5f * m_Width), m_Position.y + 0.25f, m_Position.y - m_Height, m_Position.z + (0.5f * m_Width), m_Position.z - (0.5f * m_Width)};
 }
