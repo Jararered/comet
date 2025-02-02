@@ -8,7 +8,7 @@
 class Shader
 {
 public:
-    void Create(const char* vertFile, const char* fragFile);
+    void Create(const std::string& vertFile, const std::string& fragFile);
     void Delete();
     void Bind();
     void Unbind();

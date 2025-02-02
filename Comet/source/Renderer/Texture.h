@@ -2,10 +2,12 @@
 
 #include <glad/gl.h>
 
+#include <string>
+
 class Texture
 {
 public:
-    void Create(const char* filepath);
+    void Create(const std::string& filepath);
     void Delete();
     void Bind();
     void Unbind();

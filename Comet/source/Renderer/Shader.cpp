@@ -14,7 +14,7 @@ void Shader::Unbind()
     glUseProgram(0);
 }
 
-void Shader::Create(const char* vertFile, const char* fragFile)
+void Shader::Create(const std::string& vertFile, const std::string& fragFile)
 {
     m_ID = glCreateProgram();
 
