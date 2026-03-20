@@ -3,7 +3,9 @@
 #include <Entities/Entity.h>
 #include <Input/Input.h>
 #include <Physics/Constants.h>
+#include <Physics/VoxelCollision.h>
 
+#include <algorithm>
 #include <cmath>
 
 using namespace Comet;
@@ -11,7 +13,9 @@ using namespace Comet;
 Player::Player(World* world) : m_World(world)
 {
     SetPosition({0.0f, 50.0f, 0.0f});
-    Camera::SetPosition(m_Position);
+    m_CollisionHeight = m_Height;
+    m_CollisionHeadClearance = m_HeadClearance;
+    Camera::SetPosition(ViewPosition());
 }
 
 Player::~Player()
@@ -25,7 +29,18 @@ void Player::Update()
 
 void Player::FrameUpdate(float dt)
 {
-    Entity::FrameUpdate(dt);
+    const float frameDt = std::clamp(dt, 0.0001f, 0.25f);
+
+    const bool flyKeyDown = Input::IsKeyPressed(KEY_F);
+    if (flyKeyDown && !m_FlyToggleKeyWasDown)
+        m_Flying = !m_Flying;
+    m_FlyToggleKeyWasDown = flyKeyDown;
+
+    m_Gravity = m_Flying ? glm::vec3{0.0f, 0.0f, 0.0f} : Constants::Gravity;
+
+    const bool crouchHeld = !m_Flying && Input::IsKeyPressed(KEY_LEFT_SHIFT);
+    m_CollisionHeight = m_Height - (crouchHeld ? m_CrouchLowerAmount : 0.0f);
+    m_CollisionHeadClearance = std::max(0.05f, m_HeadClearance - (crouchHeld ? m_CrouchLowerAmount : 0.0f));
 
     if (Input::IsLeftClick() && !m_BreakingBlock)
         Player::BreakBlock();
@@ -37,10 +52,13 @@ void Player::FrameUpdate(float dt)
     if (!Input::IsRightClick())
         m_PlacingBlock = false;
 
-    // Update movement
-    ProcessMovement(dt);
+    ProcessMovement(frameDt);
 
-    // Update camera movement
+    Entity::FrameUpdate(frameDt);
+
+    if (!m_Flying)
+        ProcessCollision();
+
     ProcessRotation();
     UpdateCamera();
 }
@@ -56,8 +74,8 @@ void Player::PlaceBlock()
     m_PlacingBlock = true;
     float step = 1.0f / 16.0f;
     glm::vec3 direction = m_Direction;
-    glm::vec3 position = m_Position;
-    glm::vec3 positionLast = m_Position;
+    glm::vec3 position = ViewPosition();
+    glm::vec3 positionLast = ViewPosition();
 
     bool first = true;
 
@@ -86,7 +104,7 @@ void Player::BreakBlock()
     m_BreakingBlock = true;
     float step = 1.0f / 16.0f;
     glm::vec3 direction = m_Direction;
-    glm::vec3 position = m_Position;
+    glm::vec3 position = ViewPosition();
 
     while (glm::length(direction) < 5.0f)
     {
@@ -101,48 +119,74 @@ void Player::BreakBlock()
 
 void Player::ProcessMovement(float dt)
 {
-    // Checks for first frame or if a lag spike occurs
-    if (dt < 0.0001f || dt > 0.25f)
-    {
-        return;
-    }
+    float movementSpeed = m_MovementSpeed;
+    if (Input::IsKeyPressed(KEY_LEFT_CONTROL))
+        movementSpeed *= m_Flying ? 10.0f : 2.0f;
 
     if (m_Flying)
     {
-        // Basic movement processing
-        // Used so when walking forward vertical movement doesn't occur.
-        float movementSpeed = m_MovementSpeed;
         glm::vec3 direction = {0.0f, 0.0f, 0.0f};
-        glm::vec3 cameraFowardXZ = {m_ForwardVector.x, 0.0f, m_ForwardVector.z};
+        glm::vec3 cameraForwardXZ = {m_ForwardVector.x, 0.0f, m_ForwardVector.z};
+        if (glm::length(cameraForwardXZ) > 1e-5f)
+            cameraForwardXZ = glm::normalize(cameraForwardXZ);
 
-        // Speed increase
-        if (Input::IsKeyPressed(KEY_LEFT_CONTROL))
-            movementSpeed *= 10;
-
-        // WASD movement
         if (Input::IsKeyPressed(KEY_W))
-            direction += cameraFowardXZ;
+            direction += cameraForwardXZ;
         if (Input::IsKeyPressed(KEY_S))
-            direction -= cameraFowardXZ;
+            direction -= cameraForwardXZ;
         if (Input::IsKeyPressed(KEY_A))
             direction -= m_RightVector;
         if (Input::IsKeyPressed(KEY_D))
             direction += m_RightVector;
 
-        // Fixes diagonal directed movement to not be faster than along an axis.
-        // Only happens when holding two buttons that are off axis from each other.
-        if (direction.x != 0.0f || direction.y != 0.0f)
+        if (direction.x != 0.0f || direction.z != 0.0f)
             direction = glm::normalize(direction);
 
-        // Still perform up/down movements after normalization.
-        // Don't care about limiting speed along verticals.
         if (Input::IsKeyPressed(KEY_LEFT_SHIFT))
             direction -= Camera::POSITIVE_Y;
-
         if (Input::IsKeyPressed(KEY_SPACE))
             direction += Camera::POSITIVE_Y;
 
         ApplyMovement(direction * movementSpeed * dt);
+        m_JumpKeyWasDown = Input::IsKeyPressed(KEY_SPACE);
+    }
+    else
+    {
+        glm::vec3 forwardXZ = m_ForwardVector;
+        forwardXZ.y = 0.0f;
+        if (glm::length(forwardXZ) > 1e-5f)
+            forwardXZ = glm::normalize(forwardXZ);
+
+        glm::vec3 rightXZ = glm::cross(forwardXZ, Camera::POSITIVE_Y);
+        if (glm::length(rightXZ) > 1e-5f)
+            rightXZ = glm::normalize(rightXZ);
+
+        glm::vec3 direction = {0.0f, 0.0f, 0.0f};
+        if (Input::IsKeyPressed(KEY_W))
+            direction += forwardXZ;
+        if (Input::IsKeyPressed(KEY_S))
+            direction -= forwardXZ;
+        if (Input::IsKeyPressed(KEY_A))
+            direction -= rightXZ;
+        if (Input::IsKeyPressed(KEY_D))
+            direction += rightXZ;
+
+        if (direction.x != 0.0f || direction.z != 0.0f)
+            direction = glm::normalize(direction);
+
+        ApplyMovement(direction * movementSpeed * dt);
+
+        const bool jumpKey = Input::IsKeyPressed(KEY_SPACE);
+        const bool grounded = Comet::Physics::IsGrounded(
+            m_Position,
+            m_Width,
+            m_CollisionHeight,
+            m_CollisionHeadClearance,
+            [this](const glm::ivec3& cell) { return m_World->GetBlock(cell).IsSolid; });
+        // Verlet: implicit velocity is (pos - last) / dt. Boost upward by jumpSpeed m/s this frame.
+        if (grounded && jumpKey && !m_JumpKeyWasDown)
+            m_LastPosition.y -= m_JumpSpeed * dt;
+        m_JumpKeyWasDown = jumpKey;
     }
 }
 
@@ -172,13 +216,41 @@ void Player::ProcessRotation()
     m_RightVector = glm::cross(m_ForwardVector, Camera::POSITIVE_Y);
 }
 
+glm::vec3 Player::ViewPosition() const
+{
+    const bool crouchHeld = !m_Flying && Input::IsKeyPressed(KEY_LEFT_SHIFT);
+    if (!crouchHeld)
+        return m_Position;
+    return m_Position + glm::vec3(0.0f, -m_CrouchLowerAmount, 0.0f);
+}
+
 void Player::UpdateCamera()
 {
-    Camera::SetPosition(m_Position);
+    Camera::SetPosition(ViewPosition());
     Camera::SetForwardVector(m_ForwardVector);
 }
 
 void Player::UpdateBoundingBox()
 {
-    m_BoundingBox = {m_Position.x + (0.5f * m_Width), m_Position.x - (0.5f * m_Width), m_Position.y + 0.25f, m_Position.y - m_Height, m_Position.z + (0.5f * m_Width), m_Position.z - (0.5f * m_Width)};
+    m_BoundingBox = Comet::Physics::PlayerBoundingBox(m_Position, m_Width, m_CollisionHeight, m_CollisionHeadClearance);
+}
+
+void Player::ProcessCollision()
+{
+    Comet::Physics::ResolveVoxelCollisions(
+        m_Position,
+        m_LastPosition,
+        m_Width,
+        m_CollisionHeight,
+        m_CollisionHeadClearance,
+        [this](const glm::ivec3& cell) { return m_World->GetBlock(cell).IsSolid; });
+
+    UpdateBoundingBox();
+
+    m_Standing = Comet::Physics::IsGrounded(
+        m_Position,
+        m_Width,
+        m_CollisionHeight,
+        m_CollisionHeadClearance,
+        [this](const glm::ivec3& cell) { return m_World->GetBlock(cell).IsSolid; });
 }

@@ -30,9 +30,8 @@ public:
 
     void ProcessCollision();
     void UpdateBoundingBox();
-    void CheckXCollision();
-    void CheckYCollision();
-    void CheckZCollision();
+
+    glm::vec3 ViewPosition() const;
 
     void GetRequestedChunks();
 
@@ -43,7 +42,7 @@ private:
 
     // Player States
     bool m_InWater = false;
-    bool m_Flying = true;
+    bool m_Flying = false;
     bool m_Standing = false;
     bool m_BreakingBlock = false;
     bool m_PlacingBlock = false;
@@ -66,10 +65,18 @@ private:
     double oldOffset = 0.0;
     double newOffset = 0.0;
 
+    bool m_FlyToggleKeyWasDown = false;
+    bool m_JumpKeyWasDown = false;
+
     // Collision parameters
     Collision m_BoundingBox;
     float m_Height = 1.5f;
     float m_Width = 0.75f;
+    float m_HeadClearance = 0.25f;
+    float m_CrouchLowerAmount = 0.2f;
+    float m_CollisionHeight = 1.5f;
+    float m_CollisionHeadClearance = 0.25f;
+    float m_JumpSpeed = 7.0f; // upward m/s impulse for Verlet (pos - lastPos) / dt
 
     float m_MovementSpeed = 4.317f; // m/s
     float m_RotationSpeed = 1.5f;

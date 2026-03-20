@@ -39,6 +39,8 @@ void Engine::Update()
 {
     while (!m_Window->ShouldClose())
     {
+        Input::PollEvents();
+
         double physicsStartTime = Clock::Time();
         EntityManager::FrameUpdate(Clock::Time());
 
@@ -51,9 +53,6 @@ void Engine::Update()
         double renderTimeStart = Clock::Time();
 
         m_Window->Update();
-
-        // Poll events for next frame
-        Input::PollEvents();
     }
 }
 
