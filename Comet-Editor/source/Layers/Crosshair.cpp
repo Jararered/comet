@@ -1,19 +1,16 @@
 #include "Crosshair.h"
 
-#include <filesystem>
+#include "ResourcePaths.h"
 
 Crosshair::Crosshair()
 {
-    // Get current working directory
-    std::filesystem::path path = std::filesystem::current_path();
+    const std::filesystem::path res = EditorResourcesRoot();
 
-    // Get the absolute path of the shader files
-    std::string vertexShaderPath = path.string() + "/Resources/Shaders/PositionTexture.vert";
-    std::string fragmentShaderPath = path.string() + "/Resources/Shaders/PositionTexture.frag";
+    std::string vertexShaderPath = (res / "Shaders" / "PositionTexture.vert").string();
+    std::string fragmentShaderPath = (res / "Shaders" / "PositionTexture.frag").string();
     m_Shader.Create(vertexShaderPath, fragmentShaderPath);
 
-    // Get the absolute path of the texture file
-    std::string texturePath = path.string() + "/Resources/Textures/crosshair.png";
+    std::string texturePath = (res / "Textures" / "crosshair.png").string();
     m_Texture.Create(texturePath);
 
     // Create the indices for the crosshair mesh

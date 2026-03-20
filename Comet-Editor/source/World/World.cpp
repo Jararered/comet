@@ -1,5 +1,6 @@
 #include "World.h"
 
+#include "ResourcePaths.h"
 #include "BlockLibrary.h"
 #include "Chunk.h"
 #include "ChunkGenerator.h"
@@ -18,19 +19,17 @@ World::World(std::string folderName, long seed) : m_FolderName(folderName), m_Se
     Blocks::Initialize();
     EntityManager::Initialize();
 
-    // Get current working directory
-    std::filesystem::path path = std::filesystem::current_path();
+    const std::filesystem::path res = EditorResourcesRoot();
 
-    // Get the absolute path of the shader files
-    std::string vertexShaderPath = path.string() + "/Resources/Shaders/PositionTextureNormal.vert";
-    std::string fragmentShaderPath = path.string() + "/Resources/Shaders/PositionTextureNormal.frag";
+    std::string vertexShaderPath = (res / "Shaders" / "PositionTextureNormal.vert").string();
+    std::string fragmentShaderPath = (res / "Shaders" / "PositionTextureNormal.frag").string();
 
     // Creating shader and texture
     Shader blockShader;
     blockShader.Create(vertexShaderPath.c_str(), fragmentShaderPath.c_str());
 
     Texture texture;
-    std::string texturePath = path.string() + "/Resources/Textures/terrain.png";
+    std::string texturePath = (res / "Textures" / "terrain.png").string();
     texture.Create(texturePath.c_str());
 
     TextureMap::Configure(texture.Width(), texture.Height(), 16);

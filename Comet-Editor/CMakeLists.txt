@@ -27,12 +27,19 @@ PRIVATE
     ${CPP_FILES}
 )
 
-# install(TARGETS Comet-Editor 
+add_custom_command(TARGET Comet-Editor POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_CURRENT_SOURCE_DIR}/Resources"
+        "$<TARGET_FILE_DIR:Comet-Editor>/Resources"
+    COMMENT "Copying Resources next to Comet-Editor executable"
+)
+
+# install(TARGETS Comet-Editor
 #     RUNTIME DESTINATION ${INSTALLDIR}/Comet-Editor
 # )
 
 # Copy the Resources directory to the build directory
 # This is necessary for the cmake debug build to work
-install(DIRECTORY Resources 
+install(DIRECTORY Resources
     DESTINATION ${CMAKE_SOURCE_DIR}/build/Comet-Editor
 )
