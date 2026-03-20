@@ -78,7 +78,9 @@ void Window::Center()
 
     glfwSetWindowPos(glfwGetCurrentContext(), monitorX + (videoMode->width - newWindowWidth) / 2, monitorY + (videoMode->height - newWindowHeight) / 2);
     glfwSetWindowSize(glfwGetCurrentContext(), newWindowWidth, newWindowHeight);
-    glViewport(0, 0, newWindowWidth, newWindowHeight);
+    int fbWidth = 0, fbHeight = 0;
+    glfwGetFramebufferSize(glfwGetCurrentContext(), &fbWidth, &fbHeight);
+    glViewport(0, 0, fbWidth, fbHeight);
 }
 
 bool Window::ShouldClose()
