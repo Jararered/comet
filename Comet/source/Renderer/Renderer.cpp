@@ -7,6 +7,115 @@
 
 RenderLock Renderer::QueueLock;
 
+namespace
+{
+constexpr int ChunkWidth = 16;
+constexpr int BatchWidthChunks = 2;
+constexpr int MaxBatchRebuildsPerFrame = 1;
+
+int FloorDiv(int value, int divisor)
+{
+    int quotient = value / divisor;
+    const int remainder = value % divisor;
+    if (remainder != 0 && ((remainder < 0) != (divisor < 0)))
+    {
+        quotient--;
+    }
+    return quotient;
+}
+
+glm::ivec3 BatchIndexForChunk(const glm::ivec3& chunkIndex)
+{
+    return {
+        FloorDiv(chunkIndex.x, BatchWidthChunks),
+        chunkIndex.y,
+        FloorDiv(chunkIndex.z, BatchWidthChunks)
+    };
+}
+
+glm::ivec3 BatchOriginChunk(const glm::ivec3& batchIndex)
+{
+    return {
+        batchIndex.x * BatchWidthChunks,
+        batchIndex.y,
+        batchIndex.z * BatchWidthChunks
+    };
+}
+
+void AppendChunkMeshToBatch(
+    const glm::ivec3& chunkIndex,
+    const glm::ivec3& batchIndex,
+    const GameMesh& chunkMesh,
+    std::vector<float>& vertices,
+    std::vector<float>& texcoords,
+    std::vector<float>& normals)
+{
+    const glm::ivec3 batchOrigin = BatchOriginChunk(batchIndex);
+    const glm::vec3 chunkOffset = {
+        static_cast<float>((chunkIndex.x - batchOrigin.x) * ChunkWidth),
+        0.0f,
+        static_cast<float>((chunkIndex.z - batchOrigin.z) * ChunkWidth)
+    };
+
+    const std::vector<unsigned int>& indices = chunkMesh.GetIndices();
+    vertices.reserve(vertices.size() + indices.size() * 3);
+    texcoords.reserve(texcoords.size() + indices.size() * 2);
+    normals.reserve(normals.size() + indices.size() * 3);
+
+    for (const unsigned int index : indices)
+    {
+        const Vertex& vertex = chunkMesh.GetVertices().at(index);
+        const glm::vec3 position = vertex.Position() + chunkOffset;
+        const glm::vec2 textureCoordinate = vertex.TextureCoordinate();
+        const glm::vec3 normal = vertex.Normal();
+
+        vertices.push_back(position.x);
+        vertices.push_back(position.y);
+        vertices.push_back(position.z);
+
+        texcoords.push_back(textureCoordinate.x);
+        texcoords.push_back(textureCoordinate.y);
+
+        normals.push_back(normal.x);
+        normals.push_back(normal.y);
+        normals.push_back(normal.z);
+    }
+}
+
+void RebuildBatchMesh(
+    const glm::ivec3& batchIndex,
+    const std::unordered_map<glm::ivec3, GameMesh>& chunkMeshes,
+    std::unordered_map<glm::ivec3, GameMesh>& batchMeshes)
+{
+    std::vector<float> vertices;
+    std::vector<float> texcoords;
+    std::vector<float> normals;
+
+    for (const auto& [chunkIndex, chunkMesh] : chunkMeshes)
+    {
+        if (BatchIndexForChunk(chunkIndex) == batchIndex)
+        {
+            AppendChunkMeshToBatch(chunkIndex, batchIndex, chunkMesh, vertices, texcoords, normals);
+        }
+    }
+
+    if (auto entry = batchMeshes.find(batchIndex); entry != batchMeshes.end())
+    {
+        entry->second.Finalize();
+        batchMeshes.erase(entry);
+    }
+
+    if (vertices.empty())
+    {
+        return;
+    }
+
+    GameMesh batchMesh(std::move(vertices), std::move(texcoords), std::move(normals));
+    batchMeshes.insert_or_assign(batchIndex, batchMesh);
+    batchMeshes.at(batchIndex).Initialize();
+}
+}
+
 void Renderer::Initialize()
 {
     Get();
@@ -35,6 +144,16 @@ void Renderer::Finalize()
         mesh.Finalize();
     }
     renderer.m_WaterMeshMap.clear();
+    for (auto& [index, mesh] : renderer.m_BatchedMeshMap)
+    {
+        mesh.Finalize();
+    }
+    renderer.m_BatchedMeshMap.clear();
+    for (auto& [index, mesh] : renderer.m_BatchedWaterMeshMap)
+    {
+        mesh.Finalize();
+    }
+    renderer.m_BatchedWaterMeshMap.clear();
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui::DestroyContext();
@@ -80,16 +199,16 @@ void Renderer::DrawMeshQueue()
             }
 
             Matrix transform = MatrixTranslate(
-                static_cast<float>(index.x) * 16.0f,
+                static_cast<float>(index.x) * static_cast<float>(ChunkWidth * BatchWidthChunks),
                 0.0f,
-                static_cast<float>(index.z) * 16.0f
+                static_cast<float>(index.z) * static_cast<float>(ChunkWidth * BatchWidthChunks)
             );
 
             DrawMesh(mesh.GetRaylibMesh(), Get().m_BlockMaterial, transform);
             drawCallCount++;
         };
 
-        for (auto& [index, mesh] : Get().m_MeshMap)
+        for (auto& [index, mesh] : Get().m_BatchedMeshMap)
         {
             drawChunkMesh(index, mesh);
         }
@@ -97,7 +216,7 @@ void Renderer::DrawMeshQueue()
         rlDrawRenderBatchActive();
         rlDisableDepthMask();
         BeginBlendMode(BLEND_ALPHA);
-        for (auto& [index, mesh] : Get().m_WaterMeshMap)
+        for (auto& [index, mesh] : Get().m_BatchedWaterMeshMap)
         {
             drawChunkMesh(index, mesh);
         }
@@ -191,7 +310,7 @@ void Renderer::ProcessMeshQueues()
     for (const auto& [index, mesh] : Get().m_MeshesToAdd)
     {
         Get().m_MeshMap.insert_or_assign(index, mesh);
-        Get().m_MeshMap.at(index).Initialize();
+        Get().m_BatchesToUpdate.insert(BatchIndexForChunk(index));
     }
     Get().m_MeshesToAdd.clear();
     for (const auto& [index, mesh] : Get().m_WaterMeshesToAdd)
@@ -200,14 +319,14 @@ void Renderer::ProcessMeshQueues()
         {
             if (auto entry = Get().m_WaterMeshMap.find(index); entry != Get().m_WaterMeshMap.end())
             {
-                entry->second.Finalize();
                 Get().m_WaterMeshMap.erase(entry);
+                Get().m_BatchesToUpdate.insert(BatchIndexForChunk(index));
             }
             continue;
         }
 
         Get().m_WaterMeshMap.insert_or_assign(index, mesh);
-        Get().m_WaterMeshMap.at(index).Initialize();
+        Get().m_BatchesToUpdate.insert(BatchIndexForChunk(index));
     }
     Get().m_WaterMeshesToAdd.clear();
     QueueLock.AddQueue.unlock();
@@ -217,11 +336,11 @@ void Renderer::ProcessMeshQueues()
     {
         if (auto entry = Get().m_MeshMap.find(index); entry != Get().m_MeshMap.end())
         {
-            entry->second.UpdateGeometry();
+            Get().m_BatchesToUpdate.insert(BatchIndexForChunk(index));
         }
         if (auto entry = Get().m_WaterMeshMap.find(index); entry != Get().m_WaterMeshMap.end())
         {
-            entry->second.UpdateGeometry();
+            Get().m_BatchesToUpdate.insert(BatchIndexForChunk(index));
         }
     }
     Get().m_MeshesToUpdate.clear();
@@ -232,17 +351,27 @@ void Renderer::ProcessMeshQueues()
     {
         if (auto entry = Get().m_MeshMap.find(index); entry != Get().m_MeshMap.end())
         {
-            entry->second.Finalize();
             Get().m_MeshMap.erase(index);
+            Get().m_BatchesToUpdate.insert(BatchIndexForChunk(index));
         }
         if (auto entry = Get().m_WaterMeshMap.find(index); entry != Get().m_WaterMeshMap.end())
         {
-            entry->second.Finalize();
             Get().m_WaterMeshMap.erase(index);
+            Get().m_BatchesToUpdate.insert(BatchIndexForChunk(index));
         }
     }
     Get().m_MeshesToDelete.clear();
     QueueLock.DeleteQueue.unlock();
+
+    int rebuiltBatchCount = 0;
+    for (auto batchIt = Get().m_BatchesToUpdate.begin(); batchIt != Get().m_BatchesToUpdate.end() && rebuiltBatchCount < MaxBatchRebuildsPerFrame;)
+    {
+        const glm::ivec3 batchIndex = *batchIt;
+        RebuildBatchMesh(batchIndex, Get().m_MeshMap, Get().m_BatchedMeshMap);
+        RebuildBatchMesh(batchIndex, Get().m_WaterMeshMap, Get().m_BatchedWaterMeshMap);
+        batchIt = Get().m_BatchesToUpdate.erase(batchIt);
+        rebuiltBatchCount++;
+    }
 }
 
 void Renderer::Update()

@@ -10,6 +10,8 @@
 #include <glm/gtx/hash.hpp>
 
 #include <mutex>
+#include <unordered_map>
+#include <unordered_set>
 
 #include <raylib.h>
 
@@ -61,11 +63,14 @@ private:
 
     std::unordered_map<glm::ivec3, GameMesh> m_MeshMap;
     std::unordered_map<glm::ivec3, GameMesh> m_WaterMeshMap;
+    std::unordered_map<glm::ivec3, GameMesh> m_BatchedMeshMap;
+    std::unordered_map<glm::ivec3, GameMesh> m_BatchedWaterMeshMap;
 
     std::unordered_map<glm::ivec3, GameMesh> m_MeshesToAdd;
     std::unordered_map<glm::ivec3, GameMesh> m_WaterMeshesToAdd;
     std::unordered_set<glm::ivec3> m_MeshesToUpdate;
     std::unordered_set<glm::ivec3> m_MeshesToDelete;
+    std::unordered_set<glm::ivec3> m_BatchesToUpdate;
 
     ::Material m_BlockMaterial = {0};
 

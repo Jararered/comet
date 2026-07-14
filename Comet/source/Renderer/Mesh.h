@@ -14,6 +14,7 @@ class GameMesh
 public:
     GameMesh() = default;
     GameMesh(std::vector<Vertex>* vertices, std::vector<unsigned int>* indices, GameShader* shader);
+    GameMesh(std::vector<float> vertices, std::vector<float> texcoords, std::vector<float> normals);
 
     void Initialize();
     void Update();
@@ -25,6 +26,9 @@ public:
 private:
     std::vector<Vertex> m_Vertices;
     std::vector<unsigned int> m_Indices;
+    std::vector<float> m_ExpandedVertices;
+    std::vector<float> m_ExpandedTexcoords;
+    std::vector<float> m_ExpandedNormals;
     GameShader* p_Shader = nullptr;
 
     ::Mesh m_RaylibMesh = {0};
@@ -34,7 +38,10 @@ private:
 
 public:
     GameShader* GetShader() const { return p_Shader; }
+    const std::vector<Vertex>& GetVertices() const { return m_Vertices; }
     const std::vector<unsigned int>& GetIndices() const { return m_Indices; }
+    const std::vector<float>& GetExpandedVertices() const { return m_ExpandedVertices; }
+    bool HasExpandedGeometry() const { return !m_ExpandedVertices.empty(); }
     glm::mat4 GetModelMatrix() const { return m_ModelMatrix; }
     ::Mesh& GetRaylibMesh() { return m_RaylibMesh; }
 };

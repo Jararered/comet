@@ -118,27 +118,27 @@ void World::SetBlock(glm::ivec3 worldCoord, Block blockToSet)
         entry->second->GetChunkProperties().Modified = true;
         entry->second->GenerateMesh();
 
-        Renderer::UpdateMeshInQueue(index);
+        GenerateMesh(index);
 
         if (chunkCoord.x == 0)
         {
             m_ChunkDataMap.at({index.x - 1, index.y, index.z})->GenerateMesh();
-            Renderer::UpdateMeshInQueue({index.x - 1, index.y, index.z});
+            GenerateMesh({index.x - 1, index.y, index.z});
         }
         if (chunkCoord.x == 15)
         {
             m_ChunkDataMap.at({index.x + 1, index.y, index.z})->GenerateMesh();
-            Renderer::UpdateMeshInQueue({index.x + 1, index.y, index.z});
+            GenerateMesh({index.x + 1, index.y, index.z});
         }
         if (chunkCoord.z == 0)
         {
             m_ChunkDataMap.at({index.x, index.y, index.z - 1})->GenerateMesh();
-            Renderer::UpdateMeshInQueue({index.x, index.y, index.z - 1});
+            GenerateMesh({index.x, index.y, index.z - 1});
         }
         if (chunkCoord.z == 15)
         {
             m_ChunkDataMap.at({index.x, index.y, index.z + 1})->GenerateMesh();
-            Renderer::UpdateMeshInQueue({index.x, index.y, index.z + 1});
+            GenerateMesh({index.x, index.y, index.z + 1});
         }
     }
 }
