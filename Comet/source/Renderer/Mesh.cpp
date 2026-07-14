@@ -4,6 +4,25 @@
 
 namespace
 {
+void ReleaseRaylibCpuMeshData(::Mesh& mesh)
+{
+    if (mesh.vertices)
+    {
+        RL_FREE(mesh.vertices);
+        mesh.vertices = nullptr;
+    }
+    if (mesh.texcoords)
+    {
+        RL_FREE(mesh.texcoords);
+        mesh.texcoords = nullptr;
+    }
+    if (mesh.normals)
+    {
+        RL_FREE(mesh.normals);
+        mesh.normals = nullptr;
+    }
+}
+
 void PopulateRaylibMesh(::Mesh& mesh, const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices)
 {
     const size_t vertexCount = indices.size();
@@ -20,17 +39,20 @@ void PopulateRaylibMesh(::Mesh& mesh, const std::vector<Vertex>& vertices, const
     for (size_t i = 0; i < vertexCount; i++)
     {
         const Vertex& vertex = vertices[indices[i]];
+        const glm::vec3 position = vertex.Position();
+        const glm::vec2 textureCoordinate = vertex.TextureCoordinate();
+        const glm::vec3 normal = vertex.Normal();
 
-        mesh.vertices[i * 3 + 0] = vertex.Position.x;
-        mesh.vertices[i * 3 + 1] = vertex.Position.y;
-        mesh.vertices[i * 3 + 2] = vertex.Position.z;
+        mesh.vertices[i * 3 + 0] = position.x;
+        mesh.vertices[i * 3 + 1] = position.y;
+        mesh.vertices[i * 3 + 2] = position.z;
 
-        mesh.texcoords[i * 2 + 0] = vertex.TextureCoordinate.x;
-        mesh.texcoords[i * 2 + 1] = vertex.TextureCoordinate.y;
+        mesh.texcoords[i * 2 + 0] = textureCoordinate.x;
+        mesh.texcoords[i * 2 + 1] = textureCoordinate.y;
 
-        mesh.normals[i * 3 + 0] = vertex.Normal.x;
-        mesh.normals[i * 3 + 1] = vertex.Normal.y;
-        mesh.normals[i * 3 + 2] = vertex.Normal.z;
+        mesh.normals[i * 3 + 0] = normal.x;
+        mesh.normals[i * 3 + 1] = normal.y;
+        mesh.normals[i * 3 + 2] = normal.z;
     }
 }
 }
@@ -52,6 +74,7 @@ void GameMesh::Initialize()
 {
     PopulateRaylibMesh(m_RaylibMesh, m_Vertices, m_Indices);
     UploadMesh(&m_RaylibMesh, false);
+    ReleaseRaylibCpuMeshData(m_RaylibMesh);
     m_OnGPU = true;
 }
 
@@ -68,6 +91,7 @@ void GameMesh::UpdateGeometry()
 
     PopulateRaylibMesh(m_RaylibMesh, m_Vertices, m_Indices);
     UploadMesh(&m_RaylibMesh, false);
+    ReleaseRaylibCpuMeshData(m_RaylibMesh);
     m_OnGPU = true;
 }
 
