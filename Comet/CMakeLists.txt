@@ -26,7 +26,14 @@ PUBLIC
 )
 
 file(GLOB_RECURSE CPP_FILES source/*.cpp)
-file(GLOB_RECURSE IMGUI_CPP_FILES ${CMAKE_SOURCE_DIR}/libraries/imgui/source/*.cpp)
+
+set(IMGUI_CPP_FILES
+    ${CMAKE_SOURCE_DIR}/libraries/imgui/source/imgui.cpp
+    ${CMAKE_SOURCE_DIR}/libraries/imgui/source/imgui_draw.cpp
+    ${CMAKE_SOURCE_DIR}/libraries/imgui/source/imgui_impl_opengl3.cpp
+    ${CMAKE_SOURCE_DIR}/libraries/imgui/source/imgui_tables.cpp
+    ${CMAKE_SOURCE_DIR}/libraries/imgui/source/imgui_widgets.cpp
+)
 
 target_sources(Comet
 PRIVATE
