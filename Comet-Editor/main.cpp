@@ -26,7 +26,7 @@ int main(int argc, char const* argv[])
     // Create player entity and add it to the entity handler
     // Entity handler is now on the world thread
     Player* player = new Player(world);
-    player->SetRenderDistance(8);
+    player->SetRenderDistance(15);
     world->SetMainPlayer(player);
     EntityManager::AddToUpdater(player);
     EntityManager::AddToFrameUpdater(player);

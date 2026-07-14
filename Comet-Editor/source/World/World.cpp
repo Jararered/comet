@@ -182,17 +182,23 @@ void World::ProcessRequestedChunks(glm::ivec3 centerChunkIndex)
     std::unordered_set<glm::ivec3> chunksRendered;
     int chunksToRenderAhead = 1;
     int renderDistance = m_MainPlayer->GetRenderDistance();
+    int generateRadius = renderDistance + chunksToRenderAhead;
 
-    int lowerx = -chunksToRenderAhead + centerChunkIndex.x - renderDistance;
-    int lowerz = -chunksToRenderAhead + centerChunkIndex.z - renderDistance;
-    int upperx = 1 + chunksToRenderAhead + centerChunkIndex.x + renderDistance;
-    int upperz = 1 + chunksToRenderAhead + centerChunkIndex.z + renderDistance;
+    int lowerx = centerChunkIndex.x - generateRadius;
+    int lowerz = centerChunkIndex.z - generateRadius;
+    int upperx = 1 + centerChunkIndex.x + generateRadius;
+    int upperz = 1 + centerChunkIndex.z + generateRadius;
 
     auto chunkDistanceSquared = [centerChunkIndex](const glm::ivec3& chunkIndex)
     {
         const int dx = chunkIndex.x - centerChunkIndex.x;
         const int dz = chunkIndex.z - centerChunkIndex.z;
         return dx * dx + dz * dz;
+    };
+
+    auto isChunkWithinRadius = [&chunkDistanceSquared](const glm::ivec3& chunkIndex, int radius)
+    {
+        return chunkDistanceSquared(chunkIndex) <= radius * radius;
     };
 
     auto sortClosestFirst = [&chunkDistanceSquared](std::vector<glm::ivec3>& chunks)
@@ -218,6 +224,11 @@ void World::ProcessRequestedChunks(glm::ivec3 centerChunkIndex)
         for (int z = lowerz; z < upperz; z++)
         {
             index = {x, 0, z};
+            if (!isChunkWithinRadius(index, generateRadius))
+            {
+                continue;
+            }
+
             chunksGenerated.insert(index);
             if (m_ChunkDataMap.find(index) == m_ChunkDataMap.end())
             {
@@ -240,6 +251,11 @@ void World::ProcessRequestedChunks(glm::ivec3 centerChunkIndex)
         for (int z = lowerz + 1; z < upperz - 1; z++)
         {
             index = {x, 0, z};
+            if (!isChunkWithinRadius(index, renderDistance))
+            {
+                continue;
+            }
+
             chunksRendered.insert(index);
             if (m_ChunkRenderMap.find(index) == m_ChunkRenderMap.end())
             {
