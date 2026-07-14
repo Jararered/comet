@@ -1,10 +1,10 @@
 #pragma once
 
-#include <glad/gl.h>
+#include <raylib.h>
 
 #include <string>
 
-class Texture
+class GameTexture
 {
 public:
     void Create(const std::string& filepath);
@@ -13,14 +13,12 @@ public:
     void Unbind();
 
 private:
-    int m_Width;
-    int m_Height;
-    int m_ChannelCount;
-    unsigned int m_ID;
+    ::Texture2D m_Texture = {0};
+    int m_Width = 0;
+    int m_Height = 0;
 
 public:
     int Width() const { return m_Width; }
     int Height() const { return m_Height; }
-    int ChannelCount() const { return m_ChannelCount; }
-    unsigned int ID() const { return m_ID; }
+    ::Texture2D GetTexture() const { return m_Texture; }
 };

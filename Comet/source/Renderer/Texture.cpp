@@ -1,49 +1,37 @@
 #include "Texture.h"
 
-#include <stb_image.h>
-
 #include <iostream>
 
-void Texture::Bind()
+void GameTexture::Bind()
 {
-    glBindTexture(GL_TEXTURE_2D, m_ID);
 }
 
-void Texture::Unbind()
+void GameTexture::Unbind()
 {
-    glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void Texture::Create(const std::string& filepath)
+void GameTexture::Create(const std::string& filepath)
 {
-    // Texture Setup
-    // stbi_set_flip_vertically_on_load(true);
-    unsigned char* data = stbi_load(filepath.c_str(), &m_Width, &m_Height, &m_ChannelCount, 0);
-    if (!data)
+    Image image = LoadImage(filepath.c_str());
+    if (image.data == nullptr)
     {
-        std::cout << "Texture::Create(): Could not load image file from " << filepath << "\n";
+        std::cout << "GameTexture::Create(): Could not load image file from " << filepath << "\n";
         return;
     }
 
-    glGenTextures(1, &m_ID);
-    glBindTexture(GL_TEXTURE_2D, m_ID);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_Width, m_Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
-    stbi_image_free(data);
+    m_Texture = LoadTextureFromImage(image);
+    UnloadImage(image);
 
-    // Repeat parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    SetTextureFilter(m_Texture, TEXTURE_FILTER_POINT);
+    SetTextureWrap(m_Texture, TEXTURE_WRAP_CLAMP);
 
-    // Disables upscaling
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    m_Width = m_Texture.width;
+    m_Height = m_Texture.height;
 }
 
-void Texture::Delete()
+void GameTexture::Delete()
 {
+    UnloadTexture(m_Texture);
     m_Width = 0;
     m_Height = 0;
-    m_ChannelCount = 0;
-    glDeleteTextures(1, &m_ID);
 }

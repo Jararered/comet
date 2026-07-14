@@ -1,20 +1,19 @@
 #include "Timer.h"
 
-#include <glfw/glfw3.h>
+#include <raylib.h>
 
 #include <iostream>
 
-Timer::Timer() : m_StartTime(glfwGetTime()), m_ScopeName("")
+Timer::Timer() : m_StartTime(GetTime()), m_ScopeName("")
 {
 }
 
-Timer::Timer(const std::string& scope) : m_StartTime(glfwGetTime()), m_ScopeName(scope)
+Timer::Timer(const std::string& scope) : m_StartTime(GetTime()), m_ScopeName(scope)
 {
-    // weird formatting workaround
     m_ScopeName.append(" ");
 }
 
 Timer::~Timer()
 {
-    std::cout << m_ScopeName << "took " << glfwGetTime() - m_StartTime << " seconds.\n";
+    std::cout << m_ScopeName << "took " << GetTime() - m_StartTime << " seconds.\n";
 }

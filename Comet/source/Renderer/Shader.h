@@ -1,11 +1,11 @@
 #pragma once
 
-#include <glad/gl.h>
+#include <raylib.h>
 
 #include <string>
 #include <unordered_map>
 
-class Shader
+class GameShader
 {
 public:
     void Create(const std::string& vertFile, const std::string& fragFile);
@@ -13,10 +13,10 @@ public:
     void Bind();
     void Unbind();
 
-    unsigned int GetID();
+    ::Shader GetID() const { return m_Shader; }
     int GetUniformLocation(const std::string& name);
 
 private:
-    unsigned int m_ID;
+    ::Shader m_Shader = {0};
     std::unordered_map<std::string, int> m_UniformMap;
 };

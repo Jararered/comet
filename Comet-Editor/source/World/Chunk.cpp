@@ -33,6 +33,8 @@ void Chunk::Allocate()
 
     m_Geometry.Vertices.reserve(10000);
     m_Geometry.Indices.reserve(10000);
+    m_WaterGeometry.Vertices.reserve(1000);
+    m_WaterGeometry.Indices.reserve(1000);
 }
 
 void Chunk::LoadFromDisk(const std::string& filename)
@@ -313,6 +315,9 @@ void Chunk::GenerateMesh()
     m_Geometry.Vertices.clear();
     m_Geometry.Indices.clear();
     m_Geometry.Offset = 0;
+    m_WaterGeometry.Vertices.clear();
+    m_WaterGeometry.Indices.clear();
+    m_WaterGeometry.Offset = 0;
 
     Block currentBlock, pxBlock, nxBlock, pyBlock, nyBlock, pzBlock, nzBlock;
     bool px = false, nx = false, py = false, ny = false, pz = false, nz = false;
@@ -407,11 +412,11 @@ void Chunk::GenerateMesh()
 
                     if (py)
                     {
-                        Block::RenderWaterBlock(currentBlock, {x, y, z}, {px, nx, py, ny, pz, nz}, &m_Geometry);
+                        Block::RenderWaterBlock(currentBlock, {x, y, z}, {px, nx, py, ny, pz, nz}, &m_WaterGeometry);
                     }
                     else
                     {
-                        Block::RenderCubeBlock(currentBlock, {x, y, z}, {px, nx, py, ny, pz, nz}, &m_Geometry);
+                        Block::RenderCubeBlock(currentBlock, {x, y, z}, {px, nx, py, ny, pz, nz}, &m_WaterGeometry);
                     }
                     continue;
                 }

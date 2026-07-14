@@ -5,11 +5,8 @@ add_executable(Comet-Editor)
 target_include_directories(Comet-Editor
 PRIVATE
     source
-    ${CMAKE_SOURCE_DIR}/libraries/glad/include
-    ${CMAKE_SOURCE_DIR}/libraries/glfw/include
     ${CMAKE_SOURCE_DIR}/libraries/glm/include
     ${CMAKE_SOURCE_DIR}/libraries/imgui/include
-    ${CMAKE_SOURCE_DIR}/libraries/stb_image/include
     ${CMAKE_SOURCE_DIR}/libraries/FastNoiseLite/include
     ${CMAKE_SOURCE_DIR}/libraries/cereal/include
 )
@@ -34,12 +31,6 @@ add_custom_command(TARGET Comet-Editor POST_BUILD
     COMMENT "Copying Resources next to Comet-Editor executable"
 )
 
-# install(TARGETS Comet-Editor
-#     RUNTIME DESTINATION ${INSTALLDIR}/Comet-Editor
-# )
-
-# Copy the Resources directory to the build directory
-# This is necessary for the cmake debug build to work
 install(DIRECTORY Resources
     DESTINATION ${CMAKE_SOURCE_DIR}/build/Comet-Editor
 )

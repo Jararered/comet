@@ -32,7 +32,7 @@ int main(int argc, char const* argv[])
     EntityManager::AddToFrameUpdater(player);
 
     // Create the debugging menu
-    Settings* settings = new Settings;
+    Settings* settings = new Settings(world);
     Crosshair* crosshair = new Crosshair;
     LayerManager::AddLayer(settings);
     LayerManager::AddLayer(crosshair);

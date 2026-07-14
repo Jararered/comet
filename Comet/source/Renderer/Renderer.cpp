@@ -1,10 +1,9 @@
 #include "Renderer.h"
 
 #include <imgui.h>
-#include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
-
-#include <glfw/glfw3.h>
+#include <raymath.h>
+#include <rlgl.h>
 
 RenderLock Renderer::QueueLock;
 
@@ -12,83 +11,133 @@ void Renderer::Initialize()
 {
     Get();
 
-    glEnable(GL_DEPTH_TEST);
-    glCullFace(GL_BACK);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
 
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
-    ImGui_ImplGlfw_InitForOpenGL(glfwGetCurrentContext(), true);
     ImGui_ImplOpenGL3_Init("#version 330");
+}
 
-    Get().m_BackgroundColor = glm::vec3(135.0f / 255.0f, 206.0f / 255.0f, 250.0f / 255.0f);
+void Renderer::Finalize()
+{
+    auto& renderer = Get();
+
+    for (auto& [index, mesh] : renderer.m_MeshMap)
+    {
+        mesh.Finalize();
+    }
+    renderer.m_MeshMap.clear();
+    for (auto& [index, mesh] : renderer.m_WaterMeshMap)
+    {
+        mesh.Finalize();
+    }
+    renderer.m_WaterMeshMap.clear();
+
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui::DestroyContext();
 }
 
 void Renderer::NewFrame()
 {
-    // Clearing the color and depth buffers
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // Background color
-    glClearColor(Get().m_BackgroundColor.x, Get().m_BackgroundColor.y, Get().m_BackgroundColor.z, 0.0f);
-}
-
-void Renderer::SwapBuffers()
-{
-    glfwSwapBuffers(glfwGetCurrentContext());
+    BeginDrawing();
+    ClearBackground(Color{
+        static_cast<unsigned char>(Get().m_BackgroundColor.x * 255),
+        static_cast<unsigned char>(Get().m_BackgroundColor.y * 255),
+        static_cast<unsigned char>(Get().m_BackgroundColor.z * 255),
+        255
+    });
 }
 
 void Renderer::DrawMeshQueue()
 {
     size_t drawCallCount = 0;
-
-    uint16_t shaderID;
-    auto& renderer = Get();
-
     ProcessMeshQueues();
 
-    // Binding the texture map
-    glBindTexture(GL_TEXTURE_2D, 1);
+    Comet::ViewCamera::Update();
+    ::Camera3D raylibCam = Comet::ViewCamera::GetRaylibCamera();
+    BeginMode3D(raylibCam);
+    rlDisableBackfaceCulling();
 
-    // Solid Geometry Loop
-    glEnable(GL_CULL_FACE);
-    glDisable(GL_BLEND);
-
-    for (auto& [index, mesh] : Get().m_MeshMap)
+    if (Get().m_BlockMaterial.shader.id > 0)
     {
-        shaderID = mesh.GetShader()->GetID();
+        auto drawChunkMesh = [&drawCallCount](const glm::ivec3& index, GameMesh& mesh)
+        {
+            mesh.Update();
 
-        mesh.Update();
+            ::Shader rShader = Get().m_BlockMaterial.shader;
+            int locOverlay = GetShaderLocation(rShader, "u_OverlayColor");
+            if (locOverlay >= 0)
+            {
+                SetShaderValue(rShader, locOverlay, &Get().m_OverlayColor, SHADER_UNIFORM_VEC3);
+            }
 
-        // Binding the next mesh in queue
-        mesh.Bind();
+            Matrix transform = MatrixTranslate(
+                static_cast<float>(index.x) * 16.0f,
+                0.0f,
+                static_cast<float>(index.z) * 16.0f
+            );
 
-        // Uniforms
-        glUniform3iv(glGetUniformLocation(shaderID, "u_Index"), 1, &index[0]);
-        glUniform3fv(glGetUniformLocation(shaderID, "u_OverlayColor"), 1, &OverlayColor()[0]);
-        glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_ModelMatrix"), 1, GL_FALSE, &mesh.GetModelMatrix()[0][0]);
-        glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_ViewMatrix"), 1, GL_FALSE, &Camera::ViewMatrix()[0][0]);
-        glUniformMatrix4fv(glGetUniformLocation(shaderID, "u_ProjMatrix"), 1, GL_FALSE, &Camera::ProjMatrix()[0][0]);
-        glUniform1i(glGetUniformLocation(shaderID, "u_Texture"), 0);
+            DrawMesh(mesh.GetRaylibMesh(), Get().m_BlockMaterial, transform);
+            drawCallCount++;
+        };
 
-        // Drawing mesh
-        glDrawElements(GL_TRIANGLES, mesh.GetIndices()->size(), GL_UNSIGNED_INT, (void*)0);
-        drawCallCount++;
+        for (auto& [index, mesh] : Get().m_MeshMap)
+        {
+            drawChunkMesh(index, mesh);
+        }
+
+        rlDrawRenderBatchActive();
+        rlDisableDepthMask();
+        BeginBlendMode(BLEND_ALPHA);
+        for (auto& [index, mesh] : Get().m_WaterMeshMap)
+        {
+            drawChunkMesh(index, mesh);
+        }
+        EndBlendMode();
+        rlEnableDepthMask();
     }
+
+    EndMode3D();
 
     SetDrawCallsPerFrame(drawCallCount);
 }
 
 void Renderer::DrawInterfaceQueue()
 {
+    ImGuiIO& io = ImGui::GetIO();
+    io.DisplaySize = ImVec2(static_cast<float>(GetScreenWidth()), static_cast<float>(GetScreenHeight()));
+    io.DeltaTime = GetFrameTime();
+
+    io.MousePos = ImVec2(static_cast<float>(GetMouseX()), static_cast<float>(GetMouseY()));
+    io.MouseDown[0] = IsMouseButtonDown(MOUSE_BUTTON_LEFT);
+    io.MouseDown[1] = IsMouseButtonDown(MOUSE_BUTTON_RIGHT);
+    io.MouseDown[2] = IsMouseButtonDown(MOUSE_BUTTON_MIDDLE);
+
+    Vector2 wheelMove = GetMouseWheelMoveV();
+    io.MouseWheel = wheelMove.y;
+    io.MouseWheelH = wheelMove.x;
+
+    for (int key = 0; key < 512; key++)
+    {
+        io.KeysDown[key] = IsKeyDown(key);
+    }
+
+    io.KeyCtrl = IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL);
+    io.KeyShift = IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT);
+    io.KeyAlt = IsKeyDown(KEY_LEFT_ALT) || IsKeyDown(KEY_RIGHT_ALT);
+    io.KeySuper = IsKeyDown(KEY_LEFT_SUPER) || IsKeyDown(KEY_RIGHT_SUPER);
+
+    int key = GetCharPressed();
+    while (key > 0)
+    {
+        io.AddInputCharacter(static_cast<unsigned int>(key));
+        key = GetCharPressed();
+    }
+
     ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
     LayerManager::Draw();
@@ -96,19 +145,19 @@ void Renderer::DrawInterfaceQueue()
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-    if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-    {
-        GLFWwindow* backup_current_context = glfwGetCurrentContext();
-        ImGui::UpdatePlatformWindows();
-        ImGui::RenderPlatformWindowsDefault();
-        glfwMakeContextCurrent(backup_current_context);
-    }
 }
 
-void Renderer::AddMeshToQueue(glm::ivec3 index, const Mesh& mesh)
+void Renderer::AddMeshToQueue(glm::ivec3 index, const GameMesh& mesh)
 {
     QueueLock.AddQueue.lock();
     Get().m_MeshesToAdd.insert_or_assign(index, mesh);
+    QueueLock.AddQueue.unlock();
+}
+
+void Renderer::AddWaterMeshToQueue(glm::ivec3 index, const GameMesh& mesh)
+{
+    QueueLock.AddQueue.lock();
+    Get().m_WaterMeshesToAdd.insert_or_assign(index, mesh);
     QueueLock.AddQueue.unlock();
 }
 
@@ -128,7 +177,6 @@ void Renderer::DeleteMeshFromQueue(glm::ivec3 index)
 
 void Renderer::ProcessMeshQueues()
 {
-    // Adding meshes to the queue
     QueueLock.AddQueue.lock();
     for (const auto& [index, mesh] : Get().m_MeshesToAdd)
     {
@@ -136,18 +184,39 @@ void Renderer::ProcessMeshQueues()
         Get().m_MeshMap.at(index).Initialize();
     }
     Get().m_MeshesToAdd.clear();
+    for (const auto& [index, mesh] : Get().m_WaterMeshesToAdd)
+    {
+        if (mesh.GetIndices().empty())
+        {
+            if (auto entry = Get().m_WaterMeshMap.find(index); entry != Get().m_WaterMeshMap.end())
+            {
+                entry->second.Finalize();
+                Get().m_WaterMeshMap.erase(entry);
+            }
+            continue;
+        }
+
+        Get().m_WaterMeshMap.insert_or_assign(index, mesh);
+        Get().m_WaterMeshMap.at(index).Initialize();
+    }
+    Get().m_WaterMeshesToAdd.clear();
     QueueLock.AddQueue.unlock();
 
-    // Updating meshes in the queue
     QueueLock.UpdateQueue.lock();
     for (const auto& index : Get().m_MeshesToUpdate)
     {
-        Get().m_MeshMap.at(index).UpdateGeometry();
+        if (auto entry = Get().m_MeshMap.find(index); entry != Get().m_MeshMap.end())
+        {
+            entry->second.UpdateGeometry();
+        }
+        if (auto entry = Get().m_WaterMeshMap.find(index); entry != Get().m_WaterMeshMap.end())
+        {
+            entry->second.UpdateGeometry();
+        }
     }
     Get().m_MeshesToUpdate.clear();
     QueueLock.UpdateQueue.unlock();
 
-    // Deleting meshes in the queue
     QueueLock.DeleteQueue.lock();
     for (const auto& index : Get().m_MeshesToDelete)
     {
@@ -155,6 +224,11 @@ void Renderer::ProcessMeshQueues()
         {
             entry->second.Finalize();
             Get().m_MeshMap.erase(index);
+        }
+        if (auto entry = Get().m_WaterMeshMap.find(index); entry != Get().m_WaterMeshMap.end())
+        {
+            entry->second.Finalize();
+            Get().m_WaterMeshMap.erase(index);
         }
     }
     Get().m_MeshesToDelete.clear();
@@ -164,9 +238,8 @@ void Renderer::ProcessMeshQueues()
 void Renderer::Update()
 {
     NewFrame();
-
     DrawMeshQueue();
+    rlDrawRenderBatchActive();
     DrawInterfaceQueue();
-
-    SwapBuffers();
+    EndDrawing();
 }

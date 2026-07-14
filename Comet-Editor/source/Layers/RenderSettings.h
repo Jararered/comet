@@ -17,5 +17,5 @@ public:
     void Draw() override;
 
 private:
-    World* m_World;
+    World* m_World = nullptr;
 };

@@ -3,15 +3,17 @@
 #include "Shader.h"
 #include "Vertex.h"
 
+#include <raylib.h>
+
 #include <glm/mat4x4.hpp>
 
 #include <vector>
 
-class Mesh
+class GameMesh
 {
 public:
-    Mesh() = default;
-    Mesh(std::vector<Vertex>* vertices, std::vector<unsigned int>* indices, Shader* shader);
+    GameMesh() = default;
+    GameMesh(std::vector<Vertex>* vertices, std::vector<unsigned int>* indices, GameShader* shader);
 
     void Initialize();
     void Update();
@@ -21,19 +23,18 @@ public:
     void Unbind();
 
 private:
-    std::vector<Vertex>* p_Vertices;
-    std::vector<unsigned int>* p_Indices;
-    Shader* p_Shader = nullptr;
+    std::vector<Vertex> m_Vertices;
+    std::vector<unsigned int> m_Indices;
+    GameShader* p_Shader = nullptr;
 
-    unsigned int m_VAO = 0;
-    unsigned int m_VBO = 0;
-    unsigned int m_IBO = 0;
-
-    glm::mat4 m_ModelMatrix = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+    ::Mesh m_RaylibMesh = {0};
     bool m_OnGPU = false;
 
+    glm::mat4 m_ModelMatrix = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+
 public:
-    Shader* GetShader() const { return p_Shader; }
-    std::vector<unsigned int>* GetIndices() const { return p_Indices; }
+    GameShader* GetShader() const { return p_Shader; }
+    const std::vector<unsigned int>& GetIndices() const { return m_Indices; }
     glm::mat4 GetModelMatrix() const { return m_ModelMatrix; }
+    ::Mesh& GetRaylibMesh() { return m_RaylibMesh; }
 };
