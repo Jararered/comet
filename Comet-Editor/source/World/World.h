@@ -12,6 +12,7 @@
 
 #include <memory>
 #include <thread>
+#include <vector>
 
 class Player;
 
@@ -49,9 +50,9 @@ private:
     std::unordered_map<glm::ivec3, std::shared_ptr<Chunk>> m_ChunkRenderMap;
 
     std::unordered_set<glm::ivec3> m_ChunksToDelete;
-    std::unordered_set<glm::ivec3> m_ChunksToGenerate;
+    std::vector<glm::ivec3> m_ChunksToGenerate;
 
-    std::unordered_set<glm::ivec3> m_ChunksToRender;
+    std::vector<glm::ivec3> m_ChunksToRender;
     std::unordered_set<glm::ivec3> m_ChunksToUnrender;
 
     std::string m_FolderName;

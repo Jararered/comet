@@ -7,6 +7,7 @@
 
 #include "Entities/Player.h"
 
+#include <algorithm>
 #include <filesystem>
 #include <memory>
 #include <print>
@@ -187,6 +188,31 @@ void World::ProcessRequestedChunks(glm::ivec3 centerChunkIndex)
     int upperx = 1 + chunksToRenderAhead + centerChunkIndex.x + renderDistance;
     int upperz = 1 + chunksToRenderAhead + centerChunkIndex.z + renderDistance;
 
+    auto chunkDistanceSquared = [centerChunkIndex](const glm::ivec3& chunkIndex)
+    {
+        const int dx = chunkIndex.x - centerChunkIndex.x;
+        const int dz = chunkIndex.z - centerChunkIndex.z;
+        return dx * dx + dz * dz;
+    };
+
+    auto sortClosestFirst = [&chunkDistanceSquared](std::vector<glm::ivec3>& chunks)
+    {
+        std::sort(chunks.begin(), chunks.end(),
+            [&chunkDistanceSquared](const glm::ivec3& lhs, const glm::ivec3& rhs)
+            {
+                const int lhsDistance = chunkDistanceSquared(lhs);
+                const int rhsDistance = chunkDistanceSquared(rhs);
+                if (lhsDistance != rhsDistance)
+                    return lhsDistance < rhsDistance;
+                if (lhs.x != rhs.x)
+                    return lhs.x < rhs.x;
+                return lhs.z < rhs.z;
+            });
+    };
+
+    m_ChunksToGenerate.clear();
+    m_ChunksToRender.clear();
+
     for (int x = lowerx; x < upperx; x++)
     {
         for (int z = lowerz; z < upperz; z++)
@@ -195,10 +221,11 @@ void World::ProcessRequestedChunks(glm::ivec3 centerChunkIndex)
             chunksGenerated.insert(index);
             if (m_ChunkDataMap.find(index) == m_ChunkDataMap.end())
             {
-                m_ChunksToGenerate.insert(index);
+                m_ChunksToGenerate.push_back(index);
             }
         }
     }
+    sortClosestFirst(m_ChunksToGenerate);
 
     for (const auto& [index, chunk] : m_ChunkDataMap)
     {
@@ -216,10 +243,11 @@ void World::ProcessRequestedChunks(glm::ivec3 centerChunkIndex)
             chunksRendered.insert(index);
             if (m_ChunkRenderMap.find(index) == m_ChunkRenderMap.end())
             {
-                m_ChunksToRender.insert(index);
+                m_ChunksToRender.push_back(index);
             }
         }
     }
+    sortClosestFirst(m_ChunksToRender);
 
     for (const auto& [index, chunk] : m_ChunkRenderMap)
     {
@@ -243,7 +271,7 @@ void World::Generate()
     for (const auto& index : m_ChunksToRender)
     {
         if (m_ChunkDataMap.find(index) == m_ChunkDataMap.end())
-            return;
+            continue;
 
         std::shared_ptr<Chunk> chunk = m_ChunkDataMap.at(index);
         chunk->GenerateMesh();
