@@ -29,7 +29,6 @@ struct Chunk
     Chunk(World* world, glm::ivec3 id);
     ~Chunk();
 
-    // For use by world manager
     void Allocate();
     void Generate();
     void SaveToDisk();
@@ -65,16 +64,17 @@ struct Chunk
     float GetHeight(int x, int z) { return m_HeightData.at(CHUNK_WIDTH * x + z); }
 
     Geometry* GetGeometry() { return &m_Geometry; }
+    Geometry* GetWaterGeometry() { return &m_WaterGeometry; }
 
 private:
     ChunkProperties m_ChunkProperties;
 
     std::array<Block, CHUNK_SIZE> m_BlockData;
 
-    // only used during generation, not needed when saving chunk
     std::array<int, CHUNK_WIDTH * CHUNK_WIDTH> m_HeightData;
 
     Geometry m_Geometry;
+    Geometry m_WaterGeometry;
 
     World* m_World;
 

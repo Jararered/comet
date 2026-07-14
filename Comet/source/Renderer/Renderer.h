@@ -5,12 +5,13 @@
 #include "Mesh.h"
 #include "Shader.h"
 
-#include "Camera.h"
-#include "Window.h"
+#include "ViewCamera.h"
 
 #include <glm/gtx/hash.hpp>
 
 #include <mutex>
+
+#include <raylib.h>
 
 struct RenderLock
 {
@@ -31,23 +32,21 @@ public:
     static RenderLock QueueLock;
 
     static void Initialize();
+    static void Finalize();
     static void Update();
 
     static void NewFrame();
-    static void SwapBuffers();
-
     static void DrawMeshQueue();
     static void DrawInterfaceQueue();
 
-    // These functions can be called from other threads when adding to the
-    // rendering queue that runs on the main thread. For this reason,
-    // Each of these functions locks and unlocks their respective map/set
-    // before modifying them at all. ProcessMeshQueues() reads from these
-    // map/set queues and then clears them, requiring a plain mutex for R/W.
-    static void AddMeshToQueue(glm::ivec3 index, const Mesh& mesh);
+    static void AddMeshToQueue(glm::ivec3 index, const GameMesh& mesh);
+    static void AddWaterMeshToQueue(glm::ivec3 index, const GameMesh& mesh);
     static void UpdateMeshInQueue(glm::ivec3 index);
     static void DeleteMeshFromQueue(glm::ivec3 index);
     static void ProcessMeshQueues();
+
+    static void SetBlockMaterial(const ::Material& mat) { Get().m_BlockMaterial = mat; }
+    static ::Material GetBlockMaterial() { return Get().m_BlockMaterial; }
 
 private:
     Renderer() {}
@@ -57,14 +56,17 @@ private:
     unsigned int m_DrawCallsPerFrame = 0;
 
     glm::vec3 m_OverlayColor = {0.0f, 0.0f, 0.0f};
-    glm::vec3 m_BackgroundColor = {0.0f, 0.0f, 0.0f};
+    glm::vec3 m_BackgroundColor = {0.529f, 0.808f, 0.980f};
 
-    std::unordered_map<glm::ivec3, Mesh> m_MeshMap;
+    std::unordered_map<glm::ivec3, GameMesh> m_MeshMap;
+    std::unordered_map<glm::ivec3, GameMesh> m_WaterMeshMap;
 
-    // Queues for safe mesh management
-    std::unordered_map<glm::ivec3, Mesh> m_MeshesToAdd;
+    std::unordered_map<glm::ivec3, GameMesh> m_MeshesToAdd;
+    std::unordered_map<glm::ivec3, GameMesh> m_WaterMeshesToAdd;
     std::unordered_set<glm::ivec3> m_MeshesToUpdate;
     std::unordered_set<glm::ivec3> m_MeshesToDelete;
+
+    ::Material m_BlockMaterial = {0};
 
 public:
     static glm::vec3 OverlayColor() { return Get().m_OverlayColor; }

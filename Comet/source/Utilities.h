@@ -1,5 +1,7 @@
 #pragma once
 
+#include <raylib.h>
+
 namespace Comet
 {
     namespace Clock
@@ -7,11 +9,11 @@ namespace Comet
         static double Dt = 0.0;
         static void Reset()
         {
-            Dt = glfwGetTime();
+            Dt = GetTime();
         }
         static double Time()
         {
-            return glfwGetTime() - Dt;
+            return GetTime() - Dt;
         }
     };
 };

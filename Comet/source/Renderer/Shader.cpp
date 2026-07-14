@@ -1,112 +1,65 @@
 #include "Shader.h"
 
-#include <fstream>
 #include <iostream>
-#include <string>
 
-void Shader::Bind()
+void GameShader::Bind()
 {
-    glUseProgram(m_ID);
+    BeginShaderMode(m_Shader);
 }
 
-void Shader::Unbind()
+void GameShader::Unbind()
 {
-    glUseProgram(0);
+    EndShaderMode();
 }
 
-void Shader::Create(const std::string& vertFile, const std::string& fragFile)
+void GameShader::Create(const std::string& vertFile, const std::string& fragFile)
 {
-    m_ID = glCreateProgram();
+    std::cout << "GameShader::Create(): Compiling " << vertFile << " and " << fragFile << "\n";
 
-    // Write to console which files are being compiled
-    std::cout << "Shader::Create(): Compiling " << vertFile << " and " << fragFile << "\n";
+    m_Shader = LoadShader(vertFile.c_str(), fragFile.c_str());
 
-    unsigned int vertexID;
-    unsigned int fragmentID;
-    int successvert;
-    int successfrag;
-    int successlink;
-    char glShaderInfoLog[512];
-
-    // Vertex Shader
+    if (!IsShaderValid(m_Shader))
     {
-        std::ifstream file(vertFile);
-        std::string contents((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-        const char* contentsChar = contents.c_str();
-        vertexID = glCreateShader(GL_VERTEX_SHADER);
-        glShaderSource(vertexID, 1, &contentsChar, NULL);
-        glCompileShader(vertexID);
+        std::cout << "GameShader::Create(): Failed to load shader.\n";
+    }
+    else
+    {
+        std::cout << "GameShader::Create(): Successfully compiled shader.\n";
     }
 
-    glGetShaderiv(vertexID, GL_COMPILE_STATUS, &successvert);
-    if (!successvert)
-    {
-        glGetShaderInfoLog(vertexID, 512, NULL, glShaderInfoLog);
-        std::cout << "Shader::Create(): Error compiling vertex shader:\n" << glShaderInfoLog << "\n";
-    }
+    m_Shader.locs[SHADER_LOC_VERTEX_POSITION] = GetShaderLocationAttrib(m_Shader, "vertexPosition");
+    m_Shader.locs[SHADER_LOC_VERTEX_TEXCOORD01] = GetShaderLocationAttrib(m_Shader, "vertexTexCoord");
+    m_Shader.locs[SHADER_LOC_VERTEX_NORMAL] = GetShaderLocationAttrib(m_Shader, "vertexNormal");
+    m_Shader.locs[SHADER_LOC_MATRIX_MVP] = GetShaderLocation(m_Shader, "mvp");
+    m_Shader.locs[SHADER_LOC_MAP_DIFFUSE] = GetShaderLocation(m_Shader, "texture0");
 
-    // Fragment Shader
-    {
-        std::ifstream file(fragFile);
-        std::string contents((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-        const char* contentsChar = contents.c_str();
-        fragmentID = glCreateShader(GL_FRAGMENT_SHADER);
-        glShaderSource(fragmentID, 1, &contentsChar, NULL);
-        glCompileShader(fragmentID);
-    }
-
-    glGetShaderiv(fragmentID, GL_COMPILE_STATUS, &successfrag);
-    if (!successfrag)
-    {
-        glGetShaderInfoLog(fragmentID, 512, NULL, glShaderInfoLog);
-        std::cout << "Shader::Create(): Error compiling fragment shader:\n" << glShaderInfoLog << "\n";
-    }
-
-    glAttachShader(m_ID, vertexID);
-    glAttachShader(m_ID, fragmentID);
-    glLinkProgram(m_ID);
-
-    glGetProgramiv(m_ID, GL_LINK_STATUS, &successlink);
-    if (!successlink)
-    {
-        glGetProgramInfoLog(m_ID, 512, NULL, glShaderInfoLog);
-        std::cout << "Shader::Create(): Error linking vertex and fragment shaders:\n" << glShaderInfoLog << "\n";
-    }
-
-    glDeleteShader(vertexID);
-    glDeleteShader(fragmentID);
-
-    if (successvert && successfrag && successlink)
-    {
-        std::cout << "Shader::Create(): Successfully compiled shader: " << m_ID << "\n";
-    }
+    std::cout << "GameShader::Create(): locations"
+              << " position=" << m_Shader.locs[SHADER_LOC_VERTEX_POSITION]
+              << " texcoord=" << m_Shader.locs[SHADER_LOC_VERTEX_TEXCOORD01]
+              << " normal=" << m_Shader.locs[SHADER_LOC_VERTEX_NORMAL]
+              << " mvp=" << m_Shader.locs[SHADER_LOC_MATRIX_MVP]
+              << " texture=" << m_Shader.locs[SHADER_LOC_MAP_DIFFUSE] << "\n";
 }
 
-void Shader::Delete()
+void GameShader::Delete()
 {
-    glDeleteProgram(m_ID);
+    UnloadShader(m_Shader);
 }
 
-unsigned int Shader::GetID()
-{
-    return m_ID;
-}
-
-int Shader::GetUniformLocation(const std::string& name)
+int GameShader::GetUniformLocation(const std::string& name)
 {
     if (m_UniformMap.find(name) != m_UniformMap.end())
     {
         return m_UniformMap[name];
     }
 
-    int location = glGetUniformLocation(m_ID, name.c_str());
+    int location = GetShaderLocation(m_Shader, name.c_str());
 
     if (location == -1)
     {
-        std::cout << "Shader::GetUniformLocation(): Uniform " << name << " not found. Ignoring...\n";
+        std::cout << "GameShader::GetUniformLocation(): Uniform " << name << " not found. Ignoring...\n";
     }
 
     m_UniformMap[name] = location;
-
     return location;
 }

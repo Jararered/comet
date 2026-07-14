@@ -15,7 +15,7 @@ Player::Player(World* world) : m_World(world)
     SetPosition({0.0f, 50.0f, 0.0f});
     m_CollisionHeight = m_Height;
     m_CollisionHeadClearance = m_HeadClearance;
-    Camera::SetPosition(ViewPosition());
+    ViewCamera::SetPosition(ViewPosition());
 }
 
 Player::~Player()
@@ -52,6 +52,9 @@ void Player::FrameUpdate(float dt)
     if (!Input::IsRightClick())
         m_PlacingBlock = false;
 
+    ProcessRotation();
+    UpdateCamera();
+
     ProcessMovement(frameDt);
 
     Entity::FrameUpdate(frameDt);
@@ -59,7 +62,6 @@ void Player::FrameUpdate(float dt)
     if (!m_Flying)
         ProcessCollision();
 
-    ProcessRotation();
     UpdateCamera();
 }
 void Player::GetRequestedChunks()
@@ -84,8 +86,6 @@ void Player::PlaceBlock()
         direction += glm::normalize(direction) * step;
         if (m_World->GetBlock(round(position + direction)).ID != 0)
         {
-            // If there is a block on the first check, player is either
-            // inside of a block or way too close.
             if (first)
             {
                 return;
@@ -125,6 +125,13 @@ void Player::ProcessMovement(float dt)
 
     if (m_Flying)
     {
+        const float wheelMove = Input::GetMouseWheelMove();
+        if (wheelMove != 0.0f)
+        {
+            m_FlySpeedMultiplier = std::clamp(m_FlySpeedMultiplier + wheelMove * 0.25f, 0.25f, 20.0f);
+        }
+        movementSpeed *= m_FlySpeedMultiplier;
+
         glm::vec3 direction = {0.0f, 0.0f, 0.0f};
         glm::vec3 cameraForwardXZ = {m_ForwardVector.x, 0.0f, m_ForwardVector.z};
         if (glm::length(cameraForwardXZ) > 1e-5f)
@@ -143,9 +150,9 @@ void Player::ProcessMovement(float dt)
             direction = glm::normalize(direction);
 
         if (Input::IsKeyPressed(KEY_LEFT_SHIFT))
-            direction -= Camera::POSITIVE_Y;
+            direction -= ViewCamera::POSITIVE_Y;
         if (Input::IsKeyPressed(KEY_SPACE))
-            direction += Camera::POSITIVE_Y;
+            direction += ViewCamera::POSITIVE_Y;
 
         ApplyMovement(direction * movementSpeed * dt);
         m_JumpKeyWasDown = Input::IsKeyPressed(KEY_SPACE);
@@ -157,7 +164,7 @@ void Player::ProcessMovement(float dt)
         if (glm::length(forwardXZ) > 1e-5f)
             forwardXZ = glm::normalize(forwardXZ);
 
-        glm::vec3 rightXZ = glm::cross(forwardXZ, Camera::POSITIVE_Y);
+        glm::vec3 rightXZ = glm::cross(forwardXZ, ViewCamera::POSITIVE_Y);
         if (glm::length(rightXZ) > 1e-5f)
             rightXZ = glm::normalize(rightXZ);
 
@@ -183,7 +190,6 @@ void Player::ProcessMovement(float dt)
             m_CollisionHeight,
             m_CollisionHeadClearance,
             [this](const glm::ivec3& cell) { return m_World->GetBlock(cell).IsSolid; });
-        // Verlet: implicit velocity is (pos - last) / dt. Boost upward by jumpSpeed m/s this frame.
         if (grounded && jumpKey && !m_JumpKeyWasDown)
             m_LastPosition.y -= m_JumpSpeed * dt;
         m_JumpKeyWasDown = jumpKey;
@@ -196,13 +202,11 @@ void Player::ProcessRotation()
     m_Yaw += (mouseMovement.x * m_RotationSpeed) / 300.0;
     m_Pitch += (mouseMovement.y * m_RotationSpeed) / 300.0;
 
-    // Keep yaw angle from getting to imprecise
     if (m_Yaw > glm::radians(360.0f))
         m_Yaw -= glm::radians(360.0f);
     if (m_Yaw < glm::radians(-360.0f))
         m_Yaw += glm::radians(360.0f);
 
-    // Keep pitch angle from going too far over
     if (m_Pitch > glm::radians(89.0f))
         m_Pitch = glm::radians(89.0f);
     if (m_Pitch < glm::radians(-89.0f))
@@ -213,7 +217,7 @@ void Player::ProcessRotation()
     m_Direction.z = glm::sin(m_Yaw) * glm::cos(m_Pitch);
 
     m_ForwardVector = glm::normalize(m_Direction);
-    m_RightVector = glm::cross(m_ForwardVector, Camera::POSITIVE_Y);
+    m_RightVector = glm::normalize(glm::cross(m_ForwardVector, ViewCamera::POSITIVE_Y));
 }
 
 glm::vec3 Player::ViewPosition() const
@@ -226,8 +230,8 @@ glm::vec3 Player::ViewPosition() const
 
 void Player::UpdateCamera()
 {
-    Camera::SetPosition(ViewPosition());
-    Camera::SetForwardVector(m_ForwardVector);
+    ViewCamera::SetPosition(ViewPosition());
+    ViewCamera::SetForwardVector(m_ForwardVector);
 }
 
 void Player::UpdateBoundingBox()

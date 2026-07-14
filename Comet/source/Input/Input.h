@@ -1,93 +1,99 @@
 #pragma once
 
-#include "KeyboardKeyCodes.h"
-#include "MouseButtonCodes.h"
-
-#include <glfw/glfw3.h>
+#include <raylib.h>
 #include <glm/vec2.hpp>
 
 namespace Input
 {
-    // Keyboard related functions
+    inline static bool s_IgnoreNextMouseDelta = false;
+    inline static bool s_MouseCenterInitialized = false;
+
     inline static bool IsKeyPressed(int keycode)
     {
-        int state = glfwGetKey(glfwGetCurrentContext(), keycode);
-        return state == GLFW_PRESS;
+        return ::IsKeyDown(keycode);
     }
 
-    // Mouse button related functions
     inline static bool IsMouseButtonPressed(int mouseButtonCode)
     {
-        int state = glfwGetMouseButton(glfwGetCurrentContext(), mouseButtonCode);
-        return state == GLFW_PRESS;
+        return ::IsMouseButtonDown(mouseButtonCode);
     }
 
     inline static bool IsLeftClick()
     {
-        int state = glfwGetMouseButton(glfwGetCurrentContext(), MOUSE_BUTTON_LEFT);
-        return state == GLFW_PRESS;
+        return ::IsMouseButtonDown(MOUSE_BUTTON_LEFT);
     }
 
     inline static bool IsRightClick()
     {
-        int state = glfwGetMouseButton(glfwGetCurrentContext(), MOUSE_BUTTON_RIGHT);
-        return state == GLFW_PRESS;
+        return ::IsMouseButtonDown(MOUSE_BUTTON_RIGHT);
     }
 
-    // Mouse position functions
+    inline static float GetMouseWheelMove()
+    {
+        return ::GetMouseWheelMove();
+    }
+
     static glm::vec2 GetMousePosition()
     {
-        double xpos, ypos;
-        glfwGetCursorPos(glfwGetCurrentContext(), &xpos, &ypos);
-        return {static_cast<float>(xpos), static_cast<float>(-ypos)};
+        Vector2 pos = ::GetMousePosition();
+        return {pos.x, -pos.y};
     }
 
-    // Mouse handling functions
     static bool IsMouseCaptured()
     {
-        int option = glfwGetInputMode(glfwGetCurrentContext(), GLFW_CURSOR);
-        return option == GLFW_CURSOR_DISABLED;
+        return ::IsCursorHidden();
     }
 
     static glm::vec2 GetMouseMovement()
     {
         if (IsMouseCaptured())
         {
-            glm::vec2 mousepos = GetMousePosition();
-            glfwSetCursorPos(glfwGetCurrentContext(), 0.0, 0.0);
-            return mousepos;
+            const int centerX = GetScreenWidth() / 2;
+            const int centerY = GetScreenHeight() / 2;
+            Vector2 position = ::GetMousePosition();
+
+            if (!s_MouseCenterInitialized)
+            {
+                ::SetMousePosition(centerX, centerY);
+                s_MouseCenterInitialized = true;
+                s_IgnoreNextMouseDelta = false;
+                return {0.0f, 0.0f};
+            }
+
+            glm::vec2 delta = {
+                position.x - static_cast<float>(centerX),
+                static_cast<float>(centerY) - position.y
+            };
+
+            ::SetMousePosition(centerX, centerY);
+
+            if (s_IgnoreNextMouseDelta)
+            {
+                s_IgnoreNextMouseDelta = false;
+                return {0.0f, 0.0f};
+            }
+            return delta;
         }
         return {0.0f, 0.0f};
     }
 
     static void CaptureCursor()
     {
-        if (glfwRawMouseMotionSupported())
-        {
-            glfwSetInputMode(glfwGetCurrentContext(), GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
-        }
-        glfwSetInputMode(glfwGetCurrentContext(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
-        // Need to center cursor before cursor position callback is run
-        // Prevents a possibly large xpos/ypos when entering the window
-        glfwSetCursorPos(glfwGetCurrentContext(), 0.0, 0.0);
+        ::DisableCursor();
+        s_IgnoreNextMouseDelta = true;
+        s_MouseCenterInitialized = false;
     }
 
     static void ReleaseCursor()
     {
-        // Place cursor in the center of the window once released
-        glm::ivec2 size;
-        glfwGetWindowSize(glfwGetCurrentContext(), &size.x, &size.y);
-        glfwSetInputMode(glfwGetCurrentContext(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-        glfwSetCursorPos(glfwGetCurrentContext(), static_cast<double>(size.x / 2), static_cast<double>(size.y / 2));
+        ::EnableCursor();
+        ::SetMousePosition(GetScreenWidth() / 2, GetScreenHeight() / 2);
+        s_MouseCenterInitialized = false;
     }
 
-    // Updates the current state of all inputs
     static void PollEvents()
     {
-        glfwPollEvents();
-
-        if (IsKeyPressed(KEY_ESCAPE))
+        if (::IsKeyPressed(KEY_ESCAPE) && IsMouseCaptured())
         {
             Input::ReleaseCursor();
         }

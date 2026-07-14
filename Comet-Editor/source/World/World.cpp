@@ -24,18 +24,19 @@ World::World(std::string folderName, long seed) : m_FolderName(folderName), m_Se
     std::string vertexShaderPath = (res / "Shaders" / "PositionTextureNormal.vert").string();
     std::string fragmentShaderPath = (res / "Shaders" / "PositionTextureNormal.frag").string();
 
-    // Creating shader and texture
-    Shader blockShader;
-    blockShader.Create(vertexShaderPath.c_str(), fragmentShaderPath.c_str());
+    m_Shader.Create(vertexShaderPath.c_str(), fragmentShaderPath.c_str());
 
-    Texture texture;
     std::string texturePath = (res / "Textures" / "terrain.png").string();
-    texture.Create(texturePath.c_str());
+    m_Texture.Create(texturePath.c_str());
 
-    TextureMap::Configure(texture.Width(), texture.Height(), 16);
+    TextureMap::Configure(m_Texture.Width(), m_Texture.Height(), 16);
+
+    ::Material mat = LoadMaterialDefault();
+    mat.shader = m_Shader.GetID();
+    SetMaterialTexture(&mat, MATERIAL_MAP_DIFFUSE, m_Texture.GetTexture());
+    Renderer::SetBlockMaterial(mat);
 
     SetSeed(seed);
-    SetShader(blockShader);
 
     m_ChunkDataMap.clear();
     m_ChunkRenderMap.clear();
@@ -118,7 +119,6 @@ void World::SetBlock(glm::ivec3 worldCoord, Block blockToSet)
 
         Renderer::UpdateMeshInQueue(index);
 
-        // Updating neighboring meshes in the world
         if (chunkCoord.x == 0)
         {
             m_ChunkDataMap.at({index.x - 1, index.y, index.z})->GenerateMesh();
@@ -187,7 +187,6 @@ void World::ProcessRequestedChunks(glm::ivec3 centerChunkIndex)
     int upperx = 1 + chunksToRenderAhead + centerChunkIndex.x + renderDistance;
     int upperz = 1 + chunksToRenderAhead + centerChunkIndex.z + renderDistance;
 
-    // Add chunks to generation
     for (int x = lowerx; x < upperx; x++)
     {
         for (int z = lowerz; z < upperz; z++)
@@ -201,7 +200,6 @@ void World::ProcessRequestedChunks(glm::ivec3 centerChunkIndex)
         }
     }
 
-    // Removes chunk data
     for (const auto& [index, chunk] : m_ChunkDataMap)
     {
         if (chunksGenerated.find(index) == chunksGenerated.end())
@@ -210,7 +208,6 @@ void World::ProcessRequestedChunks(glm::ivec3 centerChunkIndex)
         }
     }
 
-    // Add chunks to render
     for (int x = lowerx + 1; x < upperx - 1; x++)
     {
         for (int z = lowerz + 1; z < upperz - 1; z++)
@@ -224,7 +221,6 @@ void World::ProcessRequestedChunks(glm::ivec3 centerChunkIndex)
         }
     }
 
-    // Removes chunk geometry
     for (const auto& [index, chunk] : m_ChunkRenderMap)
     {
         if (chunksRendered.find(index) == chunksRendered.end())
@@ -236,20 +232,16 @@ void World::ProcessRequestedChunks(glm::ivec3 centerChunkIndex)
 
 void World::Generate()
 {
-    // Generates chunks
     for (const auto& index : m_ChunksToGenerate)
     {
-        // Generates chunk data
         m_ChunkDataMap[index] = std::make_shared<Chunk>(this, index);
         m_ChunkDataMap.at(index)->Allocate();
         m_ChunkDataMap.at(index)->Generate();
     }
     m_ChunksToGenerate.clear();
 
-    // Renders chunk
     for (const auto& index : m_ChunksToRender)
     {
-        // Generate Chunk Geometry
         if (m_ChunkDataMap.find(index) == m_ChunkDataMap.end())
             return;
 
@@ -261,18 +253,14 @@ void World::Generate()
     }
     m_ChunksToRender.clear();
 
-    // Deletes chunks
     for (const auto& index : m_ChunksToDelete)
     {
-        // Remove chunk from data
         m_ChunkDataMap.erase(index);
     }
     m_ChunksToDelete.clear();
 
-    // Unrenders chunk
     for (const auto& index : m_ChunksToUnrender)
     {
-        // remove mesh from renderer
         Renderer::DeleteMeshFromQueue(index);
 
         m_ChunkRenderMap.erase(index);
@@ -283,8 +271,10 @@ void World::Generate()
 void World::GenerateMesh(glm::ivec3 index)
 {
     std::shared_ptr<Chunk> chunk = m_ChunkDataMap.at(index);
-    Mesh mesh(&chunk->GetGeometry()->Vertices, &chunk->GetGeometry()->Indices, &m_Shader);
+    GameMesh mesh(&chunk->GetGeometry()->Vertices, &chunk->GetGeometry()->Indices, &m_Shader);
+    GameMesh waterMesh(&chunk->GetWaterGeometry()->Vertices, &chunk->GetWaterGeometry()->Indices, &m_Shader);
     Renderer::AddMeshToQueue(index, mesh);
+    Renderer::AddWaterMeshToQueue(index, waterMesh);
 }
 
 void World::SetMainPlayer(Player* player)

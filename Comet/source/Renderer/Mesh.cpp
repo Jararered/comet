@@ -1,87 +1,81 @@
 #include "Mesh.h"
 
-#include <glfw/glfw3.h>
 #include <glm/ext/matrix_transform.hpp>
 
-Mesh::Mesh(std::vector<Vertex>* vertices, std::vector<unsigned int>* indices, Shader* shader) : p_Vertices(vertices), p_Indices(indices), p_Shader(shader), m_OnGPU(false), m_ModelMatrix(1.0f)
+namespace
+{
+void PopulateRaylibMesh(::Mesh& mesh, const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices)
+{
+    const size_t vertexCount = indices.size();
+
+    mesh = {0};
+    mesh.vertexCount = static_cast<int>(vertexCount);
+    mesh.triangleCount = static_cast<int>(vertexCount / 3);
+
+    mesh.vertices = static_cast<float*>(RL_MALLOC(vertexCount * 3 * sizeof(float)));
+    mesh.texcoords = static_cast<float*>(RL_MALLOC(vertexCount * 2 * sizeof(float)));
+    mesh.normals = static_cast<float*>(RL_MALLOC(vertexCount * 3 * sizeof(float)));
+    mesh.indices = nullptr;
+
+    for (size_t i = 0; i < vertexCount; i++)
+    {
+        const Vertex& vertex = vertices[indices[i]];
+
+        mesh.vertices[i * 3 + 0] = vertex.Position.x;
+        mesh.vertices[i * 3 + 1] = vertex.Position.y;
+        mesh.vertices[i * 3 + 2] = vertex.Position.z;
+
+        mesh.texcoords[i * 2 + 0] = vertex.TextureCoordinate.x;
+        mesh.texcoords[i * 2 + 1] = vertex.TextureCoordinate.y;
+
+        mesh.normals[i * 3 + 0] = vertex.Normal.x;
+        mesh.normals[i * 3 + 1] = vertex.Normal.y;
+        mesh.normals[i * 3 + 2] = vertex.Normal.z;
+    }
+}
+}
+
+GameMesh::GameMesh(std::vector<Vertex>* vertices, std::vector<unsigned int>* indices, GameShader* shader)
+    : m_Vertices(vertices ? *vertices : std::vector<Vertex>{}), m_Indices(indices ? *indices : std::vector<unsigned int>{}), p_Shader(shader), m_OnGPU(false), m_ModelMatrix(1.0f)
 {
 }
 
-void Mesh::Bind()
+void GameMesh::Bind()
 {
-    glUseProgram(p_Shader->GetID());
-    glBindVertexArray(m_VAO);
 }
 
-void Mesh::Unbind()
+void GameMesh::Unbind()
 {
-    glUseProgram(0);
-    glBindVertexArray(0);
 }
 
-void Mesh::Initialize()
+void GameMesh::Initialize()
 {
-    // Generating buffers
-    glGenVertexArrays(1, &m_VAO);
-    glGenBuffers(1, &m_VBO);
-    glGenBuffers(1, &m_IBO);
-
-    // Binding
-    glBindVertexArray(m_VAO);
-
-    // Buffer geometry data
-    glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-    glBufferData(GL_ARRAY_BUFFER, 2 * p_Vertices->size() * sizeof(Vertex), (void*)0, GL_DYNAMIC_DRAW);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, p_Vertices->size() * sizeof(Vertex), p_Vertices->data());
-
-    // Buffer index data
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 2 * p_Indices->size() * sizeof(unsigned int), (void*)0, GL_DYNAMIC_DRAW);
-    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, p_Indices->size() * sizeof(unsigned int), p_Indices->data());
-
-    // Setting vertex attributes
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(offsetof(Vertex, Position)));
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(offsetof(Vertex, TextureCoordinate)));
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(offsetof(Vertex, Normal)));
-
-    // Unbinding everything
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
+    PopulateRaylibMesh(m_RaylibMesh, m_Vertices, m_Indices);
+    UploadMesh(&m_RaylibMesh, false);
     m_OnGPU = true;
 }
 
-void Mesh::Update()
+void GameMesh::Update()
 {
 }
 
-void Mesh::UpdateGeometry()
+void GameMesh::UpdateGeometry()
 {
-    // Binding
-    glBindVertexArray(m_VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IBO);
+    if (m_OnGPU)
+    {
+        UnloadMesh(m_RaylibMesh);
+    }
 
-    // Buffer geometry data
-    glBufferSubData(GL_ARRAY_BUFFER, 0, p_Vertices->size() * sizeof(Vertex), p_Vertices->data());
-    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, p_Indices->size() * sizeof(unsigned int), p_Indices->data());
-
-    // Unbinding everything
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    PopulateRaylibMesh(m_RaylibMesh, m_Vertices, m_Indices);
+    UploadMesh(&m_RaylibMesh, false);
+    m_OnGPU = true;
 }
 
-void Mesh::Finalize()
+void GameMesh::Finalize()
 {
-    // Deleting all buffers
-    glDeleteVertexArrays(1, &m_VAO);
-    glDeleteBuffers(1, &m_VBO);
-    glDeleteBuffers(1, &m_IBO);
-
-    m_OnGPU = false;
+    if (m_OnGPU)
+    {
+        UnloadMesh(m_RaylibMesh);
+        m_OnGPU = false;
+    }
 }

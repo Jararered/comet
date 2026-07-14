@@ -1,8 +1,6 @@
 #pragma once
 
-#include "Window.h"
-
-#include <memory>
+#include <raylib.h>
 
 class Engine
 {
@@ -15,5 +13,8 @@ public:
     void Finalize();
 
 private:
-    std::unique_ptr<Window> m_Window;
 };
+
+inline constexpr int WINDOW_WIDTH = 1280;
+inline constexpr int WINDOW_HEIGHT = 720;
+inline constexpr const char* WINDOW_TITLE = "Comet";

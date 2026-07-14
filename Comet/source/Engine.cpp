@@ -4,7 +4,7 @@
 
 #include "Input/Input.h"
 
-#include "Renderer/Camera.h"
+#include "Renderer/ViewCamera.h"
 #include "Renderer/Renderer.h"
 #include "Renderer/Shader.h"
 #include "Renderer/Texture.h"
@@ -17,17 +17,19 @@ using namespace Comet;
 
 Engine::Engine()
 {
-    m_Window = std::make_unique<Window>();
+    SetConfigFlags(FLAG_WINDOW_RESIZABLE);
+    InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE);
+    SetTargetFPS(0);
 
     Renderer::Initialize();
-    Camera::Initialize();
+    ViewCamera::Initialize();
     TextureMap::Initialize();
 }
 
 Engine::~Engine()
 {
-    // Finalizing systems with threads
-    glfwTerminate();
+    Renderer::Finalize();
+    CloseWindow();
 }
 
 void Engine::Initialize()
@@ -37,22 +39,17 @@ void Engine::Initialize()
 
 void Engine::Update()
 {
-    while (!m_Window->ShouldClose())
+    while (!WindowShouldClose())
     {
-        Input::PollEvents();
+        PollInputEvents();
 
-        double physicsStartTime = Clock::Time();
         EntityManager::FrameUpdate(Clock::Time());
 
-        // Reset clock after processing all Dt based events, mainly physics-related funtionality
         Clock::Reset();
 
-        // Update camera views for inputs
-        Camera::Update();
+        ViewCamera::Update();
 
-        double renderTimeStart = Clock::Time();
-
-        m_Window->Update();
+        Renderer::Update();
     }
 }
 

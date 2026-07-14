@@ -15,8 +15,7 @@ struct Entity
         m_LastPosition = newPosition;
     }
 
-    // Updated on the main thread
-    // GLFW calls are valid here
+    // Updated on the main thread where window/input calls are valid.
     virtual void FrameUpdate(float dt)
     {
         ApplyGravity();

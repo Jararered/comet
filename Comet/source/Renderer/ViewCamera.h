@@ -4,12 +4,17 @@
 #include <glm/trigonometric.hpp>
 #include <glm/vec3.hpp>
 
-class Camera
+#include <raylib.h>
+
+namespace Comet
+{
+
+class ViewCamera
 {
 public:
     inline static auto& Get()
     {
-        static Camera instance;
+        static ViewCamera instance;
         return instance;
     }
 
@@ -18,6 +23,8 @@ public:
     static void CalcViewMatrix();
     static void CalcProjMatrix();
 
+    static ::Camera3D GetRaylibCamera();
+
     /* World Variables */
     constexpr static glm::vec3 POSITIVE_X = {1.0f, 0.0f, 0.0f};
     constexpr static glm::vec3 POSITIVE_Y = {0.0f, 1.0f, 0.0f};
@@ -25,9 +32,9 @@ public:
     constexpr static glm::vec3 WORLD_ORIGIN = {0.0f, 0.0f, 0.0f};
 
 private:
-    Camera() {}
-    Camera(Camera const&);
-    void operator=(Camera const&) {}
+    ViewCamera() {}
+    ViewCamera(ViewCamera const&);
+    void operator=(ViewCamera const&) {}
 
     float m_FOV = glm::radians(100.0f);
     float m_Aspect = 16.0f / 9.0f;
@@ -66,3 +73,5 @@ public:
     static glm::vec3 ForwardVector() { return Get().m_ForwardVector; }
     static void SetForwardVector(const glm::vec3& ForwardVector) { Get().m_ForwardVector = ForwardVector; }
 };
+
+}
