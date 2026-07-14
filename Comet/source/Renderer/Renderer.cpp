@@ -2,6 +2,7 @@
 
 #include <imgui.h>
 #include <imgui_impl_opengl3.h>
+#include <array>
 #include <raymath.h>
 #include <rlgl.h>
 
@@ -12,6 +13,11 @@ namespace
 constexpr int ChunkWidth = 16;
 constexpr int BatchWidthChunks = 2;
 constexpr int MaxBatchRebuildsPerFrame = 1;
+
+struct Frustum
+{
+    std::array<glm::vec4, 6> Planes;
+};
 
 int FloorDiv(int value, int divisor)
 {
@@ -40,6 +46,82 @@ glm::ivec3 BatchOriginChunk(const glm::ivec3& batchIndex)
         batchIndex.y,
         batchIndex.z * BatchWidthChunks
     };
+}
+
+glm::vec4 MatrixRow(const glm::mat4& matrix, int row)
+{
+    return {
+        matrix[0][row],
+        matrix[1][row],
+        matrix[2][row],
+        matrix[3][row]
+    };
+}
+
+glm::vec4 NormalizePlane(const glm::vec4& plane)
+{
+    const float length = glm::length(glm::vec3(plane));
+    if (length <= 0.0f)
+    {
+        return plane;
+    }
+    return plane / length;
+}
+
+Frustum BuildCameraFrustum()
+{
+    const glm::mat4 viewProjection = Comet::ViewCamera::ProjMatrix() * Comet::ViewCamera::ViewMatrix();
+    const glm::vec4 row0 = MatrixRow(viewProjection, 0);
+    const glm::vec4 row1 = MatrixRow(viewProjection, 1);
+    const glm::vec4 row2 = MatrixRow(viewProjection, 2);
+    const glm::vec4 row3 = MatrixRow(viewProjection, 3);
+
+    return {{
+        NormalizePlane(row3 + row0),
+        NormalizePlane(row3 - row0),
+        NormalizePlane(row3 + row1),
+        NormalizePlane(row3 - row1),
+        NormalizePlane(row3 + row2),
+        NormalizePlane(row3 - row2)
+    }};
+}
+
+glm::vec3 BatchWorldOffset(const glm::ivec3& batchIndex)
+{
+    const float batchWidth = static_cast<float>(ChunkWidth * BatchWidthChunks);
+    return {
+        static_cast<float>(batchIndex.x) * batchWidth,
+        0.0f,
+        static_cast<float>(batchIndex.z) * batchWidth
+    };
+}
+
+bool IsMeshVisible(const Frustum& frustum, const glm::ivec3& batchIndex, const GameMesh& mesh)
+{
+    if (!mesh.HasBounds())
+    {
+        return false;
+    }
+
+    const glm::vec3 batchOffset = BatchWorldOffset(batchIndex);
+    const glm::vec3 min = mesh.BoundsMin() + batchOffset;
+    const glm::vec3 max = mesh.BoundsMax() + batchOffset;
+
+    for (const glm::vec4& plane : frustum.Planes)
+    {
+        const glm::vec3 positiveVertex = {
+            plane.x >= 0.0f ? max.x : min.x,
+            plane.y >= 0.0f ? max.y : min.y,
+            plane.z >= 0.0f ? max.z : min.z
+        };
+
+        if (glm::dot(glm::vec3(plane), positiveVertex) + plane.w < 0.0f)
+        {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 void AppendChunkMeshToBatch(
@@ -176,6 +258,7 @@ void Renderer::DrawMeshQueue()
     ProcessMeshQueues();
 
     Comet::ViewCamera::Update();
+    const Frustum cameraFrustum = BuildCameraFrustum();
     ::Camera3D raylibCam = Comet::ViewCamera::GetRaylibCamera();
     BeginMode3D(raylibCam);
     rlDisableBackfaceCulling();
@@ -187,8 +270,13 @@ void Renderer::DrawMeshQueue()
             rlEnableWireMode();
         }
 
-        auto drawChunkMesh = [&drawCallCount](const glm::ivec3& index, GameMesh& mesh)
+        auto drawChunkMesh = [&drawCallCount, &cameraFrustum](const glm::ivec3& index, GameMesh& mesh)
         {
+            if (!IsMeshVisible(cameraFrustum, index, mesh))
+            {
+                return;
+            }
+
             mesh.Update();
 
             ::Shader rShader = Get().m_BlockMaterial.shader;
@@ -199,9 +287,9 @@ void Renderer::DrawMeshQueue()
             }
 
             Matrix transform = MatrixTranslate(
-                static_cast<float>(index.x) * static_cast<float>(ChunkWidth * BatchWidthChunks),
-                0.0f,
-                static_cast<float>(index.z) * static_cast<float>(ChunkWidth * BatchWidthChunks)
+                BatchWorldOffset(index).x,
+                BatchWorldOffset(index).y,
+                BatchWorldOffset(index).z
             );
 
             DrawMesh(mesh.GetRaylibMesh(), Get().m_BlockMaterial, transform);

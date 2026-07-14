@@ -6,6 +6,7 @@
 #include <raylib.h>
 
 #include <glm/mat4x4.hpp>
+#include <glm/vec3.hpp>
 
 #include <vector>
 
@@ -24,6 +25,8 @@ public:
     void Unbind();
 
 private:
+    void UpdateBounds();
+
     std::vector<Vertex> m_Vertices;
     std::vector<unsigned int> m_Indices;
     std::vector<float> m_ExpandedVertices;
@@ -33,6 +36,9 @@ private:
 
     ::Mesh m_RaylibMesh = {0};
     bool m_OnGPU = false;
+    bool m_HasBounds = false;
+    glm::vec3 m_BoundsMin = {0.0f, 0.0f, 0.0f};
+    glm::vec3 m_BoundsMax = {0.0f, 0.0f, 0.0f};
 
     glm::mat4 m_ModelMatrix = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
 
@@ -42,6 +48,9 @@ public:
     const std::vector<unsigned int>& GetIndices() const { return m_Indices; }
     const std::vector<float>& GetExpandedVertices() const { return m_ExpandedVertices; }
     bool HasExpandedGeometry() const { return !m_ExpandedVertices.empty(); }
+    bool HasBounds() const { return m_HasBounds; }
+    glm::vec3 BoundsMin() const { return m_BoundsMin; }
+    glm::vec3 BoundsMax() const { return m_BoundsMax; }
     glm::mat4 GetModelMatrix() const { return m_ModelMatrix; }
     ::Mesh& GetRaylibMesh() { return m_RaylibMesh; }
 };

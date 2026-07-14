@@ -87,6 +87,44 @@ GameMesh::GameMesh(std::vector<float> vertices, std::vector<float> texcoords, st
 {
 }
 
+void GameMesh::UpdateBounds()
+{
+    m_HasBounds = false;
+    m_BoundsMin = {0.0f, 0.0f, 0.0f};
+    m_BoundsMax = {0.0f, 0.0f, 0.0f};
+
+    auto includePosition = [this](const glm::vec3& position)
+    {
+        if (!m_HasBounds)
+        {
+            m_BoundsMin = position;
+            m_BoundsMax = position;
+            m_HasBounds = true;
+            return;
+        }
+
+        m_BoundsMin = glm::min(m_BoundsMin, position);
+        m_BoundsMax = glm::max(m_BoundsMax, position);
+    };
+
+    if (HasExpandedGeometry())
+    {
+        for (size_t i = 0; i + 2 < m_ExpandedVertices.size(); i += 3)
+        {
+            includePosition({m_ExpandedVertices[i], m_ExpandedVertices[i + 1], m_ExpandedVertices[i + 2]});
+        }
+        return;
+    }
+
+    for (const unsigned int index : m_Indices)
+    {
+        if (index < m_Vertices.size())
+        {
+            includePosition(m_Vertices[index].Position());
+        }
+    }
+}
+
 void GameMesh::Bind()
 {
 }
@@ -97,6 +135,8 @@ void GameMesh::Unbind()
 
 void GameMesh::Initialize()
 {
+    UpdateBounds();
+
     if (HasExpandedGeometry())
     {
         PopulateRaylibMesh(m_RaylibMesh, m_ExpandedVertices, m_ExpandedTexcoords, m_ExpandedNormals);
@@ -120,6 +160,8 @@ void GameMesh::UpdateGeometry()
     {
         UnloadMesh(m_RaylibMesh);
     }
+
+    UpdateBounds();
 
     if (HasExpandedGeometry())
     {
