@@ -57,6 +57,7 @@ private:
 
     glm::vec3 m_OverlayColor = {0.0f, 0.0f, 0.0f};
     glm::vec3 m_BackgroundColor = {0.529f, 0.808f, 0.980f};
+    bool m_WireMeshEnabled = false;
 
     std::unordered_map<glm::ivec3, GameMesh> m_MeshMap;
     std::unordered_map<glm::ivec3, GameMesh> m_WaterMeshMap;
@@ -74,6 +75,9 @@ public:
 
     static glm::vec3 BackgroundColor() { return Get().m_BackgroundColor; }
     static void SetBackgroundColor(const glm::vec3& BackgroundColor) { Get().m_BackgroundColor = BackgroundColor; }
+
+    static bool WireMeshEnabled() { return Get().m_WireMeshEnabled; }
+    static void SetWireMeshEnabled(bool enabled) { Get().m_WireMeshEnabled = enabled; }
 
     static unsigned int DrawCallsPerFrame() { return Get().m_DrawCallsPerFrame; }
     static void SetDrawCallsPerFrame(unsigned int DrawCallsPerFrame) { Get().m_DrawCallsPerFrame = DrawCallsPerFrame; }

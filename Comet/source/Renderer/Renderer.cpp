@@ -63,6 +63,11 @@ void Renderer::DrawMeshQueue()
 
     if (Get().m_BlockMaterial.shader.id > 0)
     {
+        if (Get().m_WireMeshEnabled)
+        {
+            rlEnableWireMode();
+        }
+
         auto drawChunkMesh = [&drawCallCount](const glm::ivec3& index, GameMesh& mesh)
         {
             mesh.Update();
@@ -98,6 +103,11 @@ void Renderer::DrawMeshQueue()
         }
         EndBlendMode();
         rlEnableDepthMask();
+
+        if (Get().m_WireMeshEnabled)
+        {
+            rlDisableWireMode();
+        }
     }
 
     EndMode3D();

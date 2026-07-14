@@ -23,7 +23,7 @@ void GameTexture::Create(const std::string& filepath)
     UnloadImage(image);
 
     SetTextureFilter(m_Texture, TEXTURE_FILTER_POINT);
-    SetTextureWrap(m_Texture, TEXTURE_WRAP_CLAMP);
+    SetTextureWrap(m_Texture, TEXTURE_WRAP_REPEAT);
 
     m_Width = m_Texture.width;
     m_Height = m_Texture.height;

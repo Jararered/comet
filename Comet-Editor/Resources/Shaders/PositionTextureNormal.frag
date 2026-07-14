@@ -3,6 +3,7 @@
 in vec3 v_Position;
 in vec2 v_TextureCoordinates;
 in vec3 v_Normal;
+flat in vec2 v_TextureTile;
 
 uniform sampler2D texture0;
 uniform vec3 u_OverlayColor;
@@ -26,7 +27,16 @@ void main()
     vec4 result = vec4((ambient + diffuse) / 2.0, 1.0);
     vec4 transparency = vec4(1.0, 1.0, 1.0, 1.0);
 
-    vec4 textureColors = texture(texture0, v_TextureCoordinates);
+    vec2 textureCoordinates = v_TextureCoordinates;
+    if (v_TextureTile.x >= 0.0)
+    {
+        const vec2 tileSize = vec2(1.0 / 16.0, 1.0 / 16.0);
+        vec2 tileOrigin = v_TextureTile * tileSize;
+        vec2 tiledCoordinates = fract(v_TextureCoordinates);
+        textureCoordinates = tileOrigin + tiledCoordinates * tileSize;
+    }
+
+    vec4 textureColors = texture(texture0, textureCoordinates);
 
     if (textureColors.a == 0.0)
     {

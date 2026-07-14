@@ -13,6 +13,12 @@ void Settings::Draw()
         Input::CaptureCursor();
     }
 
+    bool wireMeshEnabled = Renderer::WireMeshEnabled();
+    if (ImGui::Checkbox("Wire Mesh", &wireMeshEnabled))
+    {
+        Renderer::SetWireMeshEnabled(wireMeshEnabled);
+    }
+
     ImGui::Text("Performance: %.1f FPS", ImGui::GetIO().Framerate);
     ImGui::Text("Draws/Frame: %d", Renderer::DrawCallsPerFrame());
     if (m_World != nullptr && m_World->GetMainPlayer() != nullptr)

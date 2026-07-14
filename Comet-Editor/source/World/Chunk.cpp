@@ -3,8 +3,93 @@
 #include "World.h"
 #include "WorldConfig.h"
 
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
+
+namespace
+{
+    struct GreedyFace
+    {
+        bool Visible = false;
+        unsigned char BlockID = ID::Air;
+    };
+
+    bool IsGreedyCubeBlock(const Block& block)
+    {
+        return block.ID != ID::Air && block.ID != ID::Water && block.Shape == Block::Shapes::Cube && !block.IsTransparent;
+    }
+
+    bool CanMergeFaces(const GreedyFace& a, const GreedyFace& b)
+    {
+        return a.Visible == b.Visible && a.BlockID == b.BlockID;
+    }
+
+    void AddGreedyQuad(Geometry* geometry, unsigned char blockID, int face, float minX, float minY, float minZ, float maxX, float maxY, float maxZ)
+    {
+        unsigned int& offset = geometry->Offset;
+        std::array<unsigned char, 6> blockTextures = Blocks::GetTextures(blockID);
+        const unsigned char texture = blockTextures[face];
+        const float tileWidth = (face == 0 || face == 1 || face == 2 || face == 3) ? maxZ - minZ : maxX - minX;
+        const float tileHeight = (face == 2 || face == 3) ? maxX - minX : maxY - minY;
+        const int atlasWidth = 16;
+        const float encodedTileX = static_cast<float>(texture % atlasWidth);
+        const float encodedTileY = static_cast<float>(texture / atlasWidth);
+        constexpr float greedyUvScale = 1024.0f;
+        auto encodeGreedyUv = [encodedTileX, encodedTileY](float u, float v) {
+            return glm::vec2{-(encodedTileX + 1.0f) - (u / greedyUvScale), -(encodedTileY + 1.0f) - (v / greedyUvScale)};
+        };
+
+        const glm::vec2 topLeft = encodeGreedyUv(0.0f, 0.0f);
+        const glm::vec2 topRight = encodeGreedyUv(tileWidth, 0.0f);
+        const glm::vec2 bottomLeft = encodeGreedyUv(0.0f, tileHeight);
+        const glm::vec2 bottomRight = encodeGreedyUv(tileWidth, tileHeight);
+
+        geometry->Indices.insert(geometry->Indices.end(), {0 + offset, 1 + offset, 2 + offset, 2 + offset, 3 + offset, 0 + offset});
+
+        switch (face)
+        {
+            case 0:
+                geometry->Vertices.emplace_back(glm::vec3{maxX, maxY, maxZ}, topRight, glm::vec3{1.0f, 0.0f, 0.0f});
+                geometry->Vertices.emplace_back(glm::vec3{maxX, minY, maxZ}, bottomRight, glm::vec3{1.0f, 0.0f, 0.0f});
+                geometry->Vertices.emplace_back(glm::vec3{maxX, minY, minZ}, bottomLeft, glm::vec3{1.0f, 0.0f, 0.0f});
+                geometry->Vertices.emplace_back(glm::vec3{maxX, maxY, minZ}, topLeft, glm::vec3{1.0f, 0.0f, 0.0f});
+                break;
+            case 1:
+                geometry->Vertices.emplace_back(glm::vec3{minX, maxY, maxZ}, topRight, glm::vec3{-1.0f, 0.0f, 0.0f});
+                geometry->Vertices.emplace_back(glm::vec3{minX, maxY, minZ}, topLeft, glm::vec3{-1.0f, 0.0f, 0.0f});
+                geometry->Vertices.emplace_back(glm::vec3{minX, minY, minZ}, bottomLeft, glm::vec3{-1.0f, 0.0f, 0.0f});
+                geometry->Vertices.emplace_back(glm::vec3{minX, minY, maxZ}, bottomRight, glm::vec3{-1.0f, 0.0f, 0.0f});
+                break;
+            case 2:
+                geometry->Vertices.emplace_back(glm::vec3{maxX, maxY, maxZ}, topLeft, glm::vec3{0.0f, 1.0f, 0.0f});
+                geometry->Vertices.emplace_back(glm::vec3{maxX, maxY, minZ}, topRight, glm::vec3{0.0f, 1.0f, 0.0f});
+                geometry->Vertices.emplace_back(glm::vec3{minX, maxY, minZ}, bottomRight, glm::vec3{0.0f, 1.0f, 0.0f});
+                geometry->Vertices.emplace_back(glm::vec3{minX, maxY, maxZ}, bottomLeft, glm::vec3{0.0f, 1.0f, 0.0f});
+                break;
+            case 3:
+                geometry->Vertices.emplace_back(glm::vec3{maxX, minY, maxZ}, topRight, glm::vec3{0.0f, -1.0f, 0.0f});
+                geometry->Vertices.emplace_back(glm::vec3{minX, minY, maxZ}, bottomRight, glm::vec3{0.0f, -1.0f, 0.0f});
+                geometry->Vertices.emplace_back(glm::vec3{minX, minY, minZ}, bottomLeft, glm::vec3{0.0f, -1.0f, 0.0f});
+                geometry->Vertices.emplace_back(glm::vec3{maxX, minY, minZ}, topLeft, glm::vec3{0.0f, -1.0f, 0.0f});
+                break;
+            case 4:
+                geometry->Vertices.emplace_back(glm::vec3{maxX, maxY, maxZ}, topRight, glm::vec3{0.0f, 0.0f, 1.0f});
+                geometry->Vertices.emplace_back(glm::vec3{minX, maxY, maxZ}, topLeft, glm::vec3{0.0f, 0.0f, 1.0f});
+                geometry->Vertices.emplace_back(glm::vec3{minX, minY, maxZ}, bottomLeft, glm::vec3{0.0f, 0.0f, 1.0f});
+                geometry->Vertices.emplace_back(glm::vec3{maxX, minY, maxZ}, bottomRight, glm::vec3{0.0f, 0.0f, 1.0f});
+                break;
+            case 5:
+                geometry->Vertices.emplace_back(glm::vec3{maxX, maxY, minZ}, topRight, glm::vec3{0.0f, 0.0f, -1.0f});
+                geometry->Vertices.emplace_back(glm::vec3{maxX, minY, minZ}, bottomRight, glm::vec3{0.0f, 0.0f, -1.0f});
+                geometry->Vertices.emplace_back(glm::vec3{minX, minY, minZ}, bottomLeft, glm::vec3{0.0f, 0.0f, -1.0f});
+                geometry->Vertices.emplace_back(glm::vec3{minX, maxY, minZ}, topLeft, glm::vec3{0.0f, 0.0f, -1.0f});
+                break;
+        }
+
+        offset += 4;
+    }
+}
 
 Chunk::Chunk(World* world, glm::ivec3 id) : m_World(world), m_Chunk(id)
 {
@@ -319,20 +404,217 @@ void Chunk::GenerateMesh()
     m_WaterGeometry.Indices.clear();
     m_WaterGeometry.Offset = 0;
 
-    Block currentBlock, pxBlock, nxBlock, pyBlock, nyBlock, pzBlock, nzBlock;
-    bool px = false, nx = false, py = false, ny = false, pz = false, nz = false;
-    int worldx = 0, worldz = 0;
-
+    int minBlockY = CHUNK_HEIGHT;
+    int maxBlockY = -1;
+    int minFallbackY = CHUNK_HEIGHT;
+    int maxFallbackY = -1;
     for (int x = 0; x < CHUNK_WIDTH; x++)
     {
         for (int y = 0; y < CHUNK_HEIGHT; y++)
         {
             for (int z = 0; z < CHUNK_WIDTH; z++)
             {
-                currentBlock = GetBlock({x, y, z});
+                const Block& block = m_BlockData[x * CHUNK_HEIGHT * CHUNK_WIDTH + y * CHUNK_WIDTH + z];
+                if (block.ID != ID::Air)
+                {
+                    minBlockY = std::min(minBlockY, y);
+                    maxBlockY = std::max(maxBlockY, y);
+
+                    if (!IsGreedyCubeBlock(block))
+                    {
+                        minFallbackY = std::min(minFallbackY, y);
+                        maxFallbackY = std::max(maxFallbackY, y);
+                    }
+                }
+            }
+        }
+    }
+
+    if (maxBlockY < minBlockY)
+    {
+        return;
+    }
+
+    auto getLocalBlock = [this](int x, int y, int z) -> Block {
+        if (x < 0 || x >= CHUNK_WIDTH || y < 0 || y >= CHUNK_HEIGHT || z < 0 || z >= CHUNK_WIDTH)
+        {
+            return Blocks::Air();
+        }
+
+        return m_BlockData[x * CHUNK_HEIGHT * CHUNK_WIDTH + y * CHUNK_WIDTH + z];
+    };
+
+    auto getNeighborBlock = [this, &getLocalBlock](int x, int y, int z) -> Block {
+        if (y < 0 || y >= CHUNK_HEIGHT)
+        {
+            return Blocks::Air();
+        }
+
+        if (x < 0 || x >= CHUNK_WIDTH || z < 0 || z >= CHUNK_WIDTH)
+        {
+            return m_World->GetBlock({x + m_Chunk.x * CHUNK_WIDTH, y, z + m_Chunk.z * CHUNK_WIDTH});
+        }
+
+        return getLocalBlock(x, y, z);
+    };
+
+    std::array<GreedyFace, CHUNK_WIDTH * CHUNK_HEIGHT> greedyMask;
+    std::array<bool, CHUNK_WIDTH * CHUNK_HEIGHT> greedyConsumed;
+    auto emitGreedyMask = [&greedyMask, &greedyConsumed](int width, int height, auto&& getFace, auto&& emitFace) {
+        for (int v = 0; v < height; v++)
+        {
+            for (int u = 0; u < width; u++)
+            {
+                greedyMask[v * width + u] = getFace(u, v);
+                greedyConsumed[v * width + u] = false;
+            }
+        }
+
+        for (int v = 0; v < height; v++)
+        {
+            for (int u = 0; u < width; u++)
+            {
+                const int index = v * width + u;
+                if (greedyConsumed[index] || !greedyMask[index].Visible)
+                {
+                    continue;
+                }
+
+                int quadWidth = 1;
+                while (u + quadWidth < width)
+                {
+                    const int nextIndex = v * width + u + quadWidth;
+                    if (greedyConsumed[nextIndex] || !CanMergeFaces(greedyMask[index], greedyMask[nextIndex]))
+                    {
+                        break;
+                    }
+                    quadWidth++;
+                }
+
+                int quadHeight = 1;
+                bool canGrow = true;
+                while (v + quadHeight < height && canGrow)
+                {
+                    for (int offset = 0; offset < quadWidth; offset++)
+                    {
+                        const int nextIndex = (v + quadHeight) * width + u + offset;
+                        if (greedyConsumed[nextIndex] || !CanMergeFaces(greedyMask[index], greedyMask[nextIndex]))
+                        {
+                            canGrow = false;
+                            break;
+                        }
+                    }
+
+                    if (canGrow)
+                    {
+                        quadHeight++;
+                    }
+                }
+
+                for (int y = 0; y < quadHeight; y++)
+                {
+                    for (int x = 0; x < quadWidth; x++)
+                    {
+                        greedyConsumed[(v + y) * width + u + x] = true;
+                    }
+                }
+
+                emitFace(u, v, quadWidth, quadHeight, greedyMask[index].BlockID);
+            }
+        }
+    };
+
+    auto buildFace = [&getLocalBlock, &getNeighborBlock](int x, int y, int z, int dx, int dy, int dz) {
+        GreedyFace face;
+        const Block block = getLocalBlock(x, y, z);
+        const Block neighbor = getNeighborBlock(x + dx, y + dy, z + dz);
+
+        if (IsGreedyCubeBlock(block) && neighbor.IsTransparent)
+        {
+            face.Visible = true;
+            face.BlockID = block.ID;
+        }
+
+        return face;
+    };
+
+    const int meshMinY = minBlockY;
+    const int meshMaxY = maxBlockY;
+    const int meshHeight = meshMaxY - meshMinY + 1;
+
+    for (int x = 0; x < CHUNK_WIDTH; x++)
+    {
+        emitGreedyMask(
+            CHUNK_WIDTH, meshHeight, [&](int z, int y) { return buildFace(x, meshMinY + y, z, 1, 0, 0); },
+            [&](int z, int y, int width, int height, unsigned char blockID) {
+                y += meshMinY;
+                AddGreedyQuad(&m_Geometry, blockID, 0, x - 0.5f, y - 0.5f, z - 0.5f, x + 0.5f, y + height - 0.5f, z + width - 0.5f);
+            });
+
+        emitGreedyMask(
+            CHUNK_WIDTH, meshHeight, [&](int z, int y) { return buildFace(x, meshMinY + y, z, -1, 0, 0); },
+            [&](int z, int y, int width, int height, unsigned char blockID) {
+                y += meshMinY;
+                AddGreedyQuad(&m_Geometry, blockID, 1, x - 0.5f, y - 0.5f, z - 0.5f, x + 0.5f, y + height - 0.5f, z + width - 0.5f);
+            });
+    }
+
+    for (int y = meshMinY; y <= meshMaxY; y++)
+    {
+        emitGreedyMask(
+            CHUNK_WIDTH, CHUNK_WIDTH, [&](int x, int z) { return buildFace(x, y, z, 0, 1, 0); },
+            [&](int x, int z, int width, int height, unsigned char blockID) {
+                AddGreedyQuad(&m_Geometry, blockID, 2, x - 0.5f, y - 0.5f, z - 0.5f, x + width - 0.5f, y + 0.5f, z + height - 0.5f);
+            });
+
+        emitGreedyMask(
+            CHUNK_WIDTH, CHUNK_WIDTH, [&](int x, int z) { return buildFace(x, y, z, 0, -1, 0); },
+            [&](int x, int z, int width, int height, unsigned char blockID) {
+                AddGreedyQuad(&m_Geometry, blockID, 3, x - 0.5f, y - 0.5f, z - 0.5f, x + width - 0.5f, y + 0.5f, z + height - 0.5f);
+            });
+    }
+
+    for (int z = 0; z < CHUNK_WIDTH; z++)
+    {
+        emitGreedyMask(
+            CHUNK_WIDTH, meshHeight, [&](int x, int y) { return buildFace(x, meshMinY + y, z, 0, 0, 1); },
+            [&](int x, int y, int width, int height, unsigned char blockID) {
+                y += meshMinY;
+                AddGreedyQuad(&m_Geometry, blockID, 4, x - 0.5f, y - 0.5f, z - 0.5f, x + width - 0.5f, y + height - 0.5f, z + 0.5f);
+            });
+
+        emitGreedyMask(
+            CHUNK_WIDTH, meshHeight, [&](int x, int y) { return buildFace(x, meshMinY + y, z, 0, 0, -1); },
+            [&](int x, int y, int width, int height, unsigned char blockID) {
+                y += meshMinY;
+                AddGreedyQuad(&m_Geometry, blockID, 5, x - 0.5f, y - 0.5f, z - 0.5f, x + width - 0.5f, y + height - 0.5f, z + 0.5f);
+            });
+    }
+
+    Block currentBlock, pxBlock, nxBlock, pyBlock, nyBlock, pzBlock, nzBlock;
+    bool px = false, nx = false, py = false, ny = false, pz = false, nz = false;
+    int worldx = 0, worldz = 0;
+
+    if (maxFallbackY < minFallbackY)
+    {
+        return;
+    }
+
+    for (int x = 0; x < CHUNK_WIDTH; x++)
+    {
+        for (int y = minFallbackY; y <= maxFallbackY; y++)
+        {
+            for (int z = 0; z < CHUNK_WIDTH; z++)
+            {
+                currentBlock = getLocalBlock(x, y, z);
 
                 // If the block is air, add no geometry
                 if (currentBlock.ID == ID::Air)
+                {
+                    continue;
+                }
+
+                if (IsGreedyCubeBlock(currentBlock))
                 {
                     continue;
                 }
@@ -343,7 +625,7 @@ void Chunk::GenerateMesh()
                 // Getting block IDs of surrounding blocks
                 if (x == 0)
                 {
-                    pxBlock = GetBlock({x + 1, y, z});
+                    pxBlock = getLocalBlock(x + 1, y, z);
                     nxBlock = m_World->GetBlock({worldx - 1, y, worldz});
                 }
                 else
@@ -351,21 +633,21 @@ void Chunk::GenerateMesh()
                     if (x == CHUNK_WIDTH - 1)
                     {
                         pxBlock = m_World->GetBlock({worldx + 1, y, worldz});
-                        nxBlock = GetBlock({x - 1, y, z});
+                        nxBlock = getLocalBlock(x - 1, y, z);
                     }
                     else
                     {
-                        pxBlock = GetBlock({x + 1, y, z});
-                        nxBlock = GetBlock({x - 1, y, z});
+                        pxBlock = getLocalBlock(x + 1, y, z);
+                        nxBlock = getLocalBlock(x - 1, y, z);
                     }
                 }
 
-                pyBlock = GetBlock({x, y + 1, z});
-                nyBlock = GetBlock({x, y - 1, z});
+                pyBlock = getLocalBlock(x, y + 1, z);
+                nyBlock = getLocalBlock(x, y - 1, z);
 
                 if (z == 0)
                 {
-                    pzBlock = GetBlock({x, y, z + 1});
+                    pzBlock = getLocalBlock(x, y, z + 1);
                     nzBlock = m_World->GetBlock({worldx, y, worldz - 1});
                 }
                 else
@@ -373,12 +655,12 @@ void Chunk::GenerateMesh()
                     if (z == CHUNK_WIDTH - 1)
                     {
                         pzBlock = m_World->GetBlock({worldx, y, worldz + 1});
-                        nzBlock = GetBlock({x, y, z - 1});
+                        nzBlock = getLocalBlock(x, y, z - 1);
                     }
                     else
                     {
-                        pzBlock = GetBlock({x, y, z + 1});
-                        nzBlock = GetBlock({x, y, z - 1});
+                        pzBlock = getLocalBlock(x, y, z + 1);
+                        nzBlock = getLocalBlock(x, y, z - 1);
                     }
                 }
 
