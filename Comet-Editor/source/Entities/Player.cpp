@@ -41,16 +41,6 @@ void Player::FrameUpdate(float dt)
     movementInput.Crouch = Input::IsKeyPressed(KEY_LEFT_SHIFT);
     movementInput.Sprint = Input::IsKeyPressed(KEY_LEFT_CONTROL);
 
-    if (Input::IsLeftClick() && !m_BreakingBlock)
-        Player::BreakBlock();
-    if (!Input::IsLeftClick())
-        m_BreakingBlock = false;
-
-    if (Input::IsRightClick() && !m_PlacingBlock)
-        Player::PlaceBlock();
-    if (!Input::IsRightClick())
-        m_PlacingBlock = false;
-
     {
         std::lock_guard lock(m_StateMutex);
 
@@ -73,6 +63,18 @@ void Player::FrameUpdate(float dt)
         ProcessRotation();
         UpdateCamera();
     }
+
+    UpdateTargetBlockOverlay();
+
+    if (Input::IsLeftClick() && !m_BreakingBlock)
+        Player::BreakBlock();
+    if (!Input::IsLeftClick())
+        m_BreakingBlock = false;
+
+    if (Input::IsRightClick() && !m_PlacingBlock)
+        Player::PlaceBlock();
+    if (!Input::IsRightClick())
+        m_PlacingBlock = false;
 }
 
 void Player::PhysicsUpdate(float dt)
@@ -107,40 +109,45 @@ void Player::GetRequestedChunks()
 void Player::PlaceBlock()
 {
     m_PlacingBlock = true;
-    float step = 1.0f / 16.0f;
-    glm::vec3 direction;
-    glm::vec3 position;
-    {
-        std::lock_guard lock(m_StateMutex);
-        direction = m_Direction;
-        position = ViewPosition();
-    }
-    glm::vec3 positionLast = position;
 
-    bool first = true;
+    const std::optional<BlockRaycastHit> hit = RaycastTargetBlock();
+    if (!hit)
+        return;
 
-    while (glm::length(direction) < 5.0f)
-    {
-        direction += glm::normalize(direction) * step;
-        if (m_World->GetBlock(round(position + direction)).ID != 0)
-        {
-            if (first)
-            {
-                return;
-            }
-
-            m_World->SetBlock(round(positionLast), Blocks::GetBlockFromID(m_SelectedBlock));
-            return;
-        }
-        positionLast = position + direction;
-        first = false;
-    }
+    m_World->SetBlock(hit->PreviousAirPosition, Blocks::GetBlockFromID(m_SelectedBlock));
 }
 
 void Player::BreakBlock()
 {
     m_BreakingBlock = true;
-    float step = 1.0f / 16.0f;
+
+    const std::optional<BlockRaycastHit> hit = RaycastTargetBlock();
+    if (!hit)
+        return;
+
+    m_World->SetBlock(hit->BlockPosition, Blocks::Air());
+}
+
+void Player::UpdateTargetBlockOverlay()
+{
+    const std::optional<BlockRaycastHit> hit = RaycastTargetBlock();
+    if (!hit)
+    {
+        m_HasLookingAtBlock = false;
+        m_World->ClearBlockOverlay();
+        return;
+    }
+
+    m_LookingAtBlock = hit->BlockPosition;
+    m_HasLookingAtBlock = true;
+    m_World->SetBlockOverlay(hit->BlockPosition);
+}
+
+std::optional<Player::BlockRaycastHit> Player::RaycastTargetBlock() const
+{
+    constexpr float step = 1.0f / 16.0f;
+    constexpr float maxReach = 5.0f;
+
     glm::vec3 direction;
     glm::vec3 position;
     {
@@ -149,15 +156,20 @@ void Player::BreakBlock()
         position = ViewPosition();
     }
 
-    while (glm::length(direction) < 5.0f)
+    const glm::vec3 normalizedDirection = glm::normalize(direction);
+    glm::ivec3 previousAirPosition = glm::round(position);
+
+    for (float distance = step; distance <= maxReach; distance += step)
     {
-        direction += glm::normalize(direction) * step;
-        if (m_World->GetBlock(round(position + direction)).ID != 0)
+        const glm::ivec3 blockPosition = glm::round(position + normalizedDirection * distance);
+        if (m_World->GetBlock(blockPosition).ID != 0)
         {
-            m_World->SetBlock(round(position + direction), Blocks::Air());
-            return;
+            return BlockRaycastHit{blockPosition, previousAirPosition};
         }
+        previousAirPosition = blockPosition;
     }
+
+    return std::nullopt;
 }
 
 void Player::ProcessMovement(float dt)

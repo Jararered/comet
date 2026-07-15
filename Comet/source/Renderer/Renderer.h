@@ -45,6 +45,8 @@ public:
 
     void SetBlockMaterial(const ::Material& mat);
     ::Material GetBlockMaterial() const { return m_BlockMaterial; }
+    void SetBlockOverlay(glm::ivec3 blockPosition);
+    void ClearBlockOverlay();
 
 private:
     RenderLock m_QueueLock;
@@ -54,19 +56,17 @@ private:
     glm::vec3 m_OverlayColor = {0.0f, 0.0f, 0.0f};
     glm::vec3 m_BackgroundColor = {0.529f, 0.808f, 0.980f};
     bool m_WireMeshEnabled = false;
+    bool m_BlockOverlayVisible = false;
+    glm::ivec3 m_BlockOverlayPosition = {0, 0, 0};
 
     std::unordered_map<glm::ivec3, GameMesh> m_MeshMap;
     std::unordered_map<glm::ivec3, GameMesh> m_WaterMeshMap;
-    std::unordered_map<glm::ivec3, GameMesh> m_BatchedMeshMap;
-    std::unordered_map<glm::ivec3, GameMesh> m_BatchedWaterMeshMap;
 
     std::unordered_map<glm::ivec3, GameMesh> m_MeshesToAdd;
     std::unordered_map<glm::ivec3, GameMesh> m_WaterMeshesToAdd;
     std::vector<glm::ivec3> m_MeshesToAddOrder;
     std::unordered_set<glm::ivec3> m_MeshesToUpdate;
     std::unordered_set<glm::ivec3> m_MeshesToDelete;
-    std::unordered_set<glm::ivec3> m_MeshBatchesToUpdate;
-    std::unordered_set<glm::ivec3> m_WaterBatchesToUpdate;
     int m_ChunkRenderFramesUntilNextAdd = 0;
 
     ::Material m_BlockMaterial = {0};

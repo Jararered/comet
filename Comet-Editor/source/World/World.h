@@ -37,6 +37,8 @@ public:
 
     Block GetBlock(glm::ivec3 worldPos);
     void SetBlock(glm::ivec3 worldPos, Block block);
+    void SetBlockOverlay(glm::ivec3 worldPos);
+    void ClearBlockOverlay();
     glm::ivec3 GetChunkCoord(glm::ivec3 worldPos);
     glm::ivec3 GetChunkIndex(glm::ivec3 worldPos);
 
@@ -55,6 +57,7 @@ private:
     std::vector<glm::ivec3> m_ChunksToGenerate;
 
     std::vector<glm::ivec3> m_ChunksToRender;
+    std::vector<glm::ivec3> m_ChunksToRerender;
     std::unordered_set<glm::ivec3> m_ChunksToUnrender;
 
     std::string m_FolderName;

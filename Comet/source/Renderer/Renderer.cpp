@@ -3,6 +3,7 @@
 #include <imgui.h>
 #include <imgui_impl_opengl3.h>
 #include <array>
+#include <cmath>
 #include <raymath.h>
 #include <rlgl.h>
 #include <utility>
@@ -11,43 +12,12 @@
 namespace
 {
 constexpr int ChunkWidth = 16;
-constexpr int BatchWidthChunks = 2;
-constexpr int MaxBatchRebuildsPerFrame = 1;
 constexpr int ChunkRenderAddFrameInterval = 60;
 
 struct Frustum
 {
     std::array<glm::vec4, 6> Planes;
 };
-
-int FloorDiv(int value, int divisor)
-{
-    int quotient = value / divisor;
-    const int remainder = value % divisor;
-    if (remainder != 0 && ((remainder < 0) != (divisor < 0)))
-    {
-        quotient--;
-    }
-    return quotient;
-}
-
-glm::ivec3 BatchIndexForChunk(const glm::ivec3& chunkIndex)
-{
-    return {
-        FloorDiv(chunkIndex.x, BatchWidthChunks),
-        chunkIndex.y,
-        FloorDiv(chunkIndex.z, BatchWidthChunks)
-    };
-}
-
-glm::ivec3 BatchOriginChunk(const glm::ivec3& batchIndex)
-{
-    return {
-        batchIndex.x * BatchWidthChunks,
-        batchIndex.y,
-        batchIndex.z * BatchWidthChunks
-    };
-}
 
 glm::vec4 MatrixRow(const glm::mat4& matrix, int row)
 {
@@ -87,26 +57,25 @@ Frustum BuildCameraFrustum(const Comet::ViewCamera& camera)
     }};
 }
 
-glm::vec3 BatchWorldOffset(const glm::ivec3& batchIndex)
+glm::vec3 ChunkWorldOffset(const glm::ivec3& chunkIndex)
 {
-    const float batchWidth = static_cast<float>(ChunkWidth * BatchWidthChunks);
     return {
-        static_cast<float>(batchIndex.x) * batchWidth,
+        static_cast<float>(chunkIndex.x * ChunkWidth),
         0.0f,
-        static_cast<float>(batchIndex.z) * batchWidth
+        static_cast<float>(chunkIndex.z * ChunkWidth)
     };
 }
 
-bool IsMeshVisible(const Frustum& frustum, const glm::ivec3& batchIndex, const GameMesh& mesh)
+bool IsMeshVisible(const Frustum& frustum, const glm::ivec3& chunkIndex, const GameMesh& mesh)
 {
     if (!mesh.HasBounds())
     {
         return false;
     }
 
-    const glm::vec3 batchOffset = BatchWorldOffset(batchIndex);
-    const glm::vec3 min = mesh.BoundsMin() + batchOffset;
-    const glm::vec3 max = mesh.BoundsMax() + batchOffset;
+    const glm::vec3 chunkOffset = ChunkWorldOffset(chunkIndex);
+    const glm::vec3 min = mesh.BoundsMin() + chunkOffset;
+    const glm::vec3 max = mesh.BoundsMax() + chunkOffset;
 
     for (const glm::vec4& plane : frustum.Planes)
     {
@@ -125,92 +94,21 @@ bool IsMeshVisible(const Frustum& frustum, const glm::ivec3& batchIndex, const G
     return true;
 }
 
-void AppendChunkMeshToBatch(
-    const glm::ivec3& chunkIndex,
-    const glm::ivec3& batchIndex,
-    const GameMesh& chunkMesh,
-    std::vector<float>& vertices,
-    std::vector<float>& texcoords,
-    std::vector<float>& normals)
+void ReplaceMesh(std::unordered_map<glm::ivec3, GameMesh>& meshes, const glm::ivec3& index, const GameMesh& mesh)
 {
-    const glm::ivec3 batchOrigin = BatchOriginChunk(batchIndex);
-    const glm::vec3 chunkOffset = {
-        static_cast<float>((chunkIndex.x - batchOrigin.x) * ChunkWidth),
-        0.0f,
-        static_cast<float>((chunkIndex.z - batchOrigin.z) * ChunkWidth)
-    };
-
-    const std::vector<unsigned int>& indices = chunkMesh.GetIndices();
-    vertices.reserve(vertices.size() + indices.size() * 3);
-    texcoords.reserve(texcoords.size() + indices.size() * 2);
-    normals.reserve(normals.size() + indices.size() * 3);
-
-    for (const unsigned int index : indices)
-    {
-        const Vertex& vertex = chunkMesh.GetVertices().at(index);
-        const glm::vec3 position = vertex.Position() + chunkOffset;
-        const glm::vec2 textureCoordinate = vertex.TextureCoordinate();
-        const glm::vec3 normal = vertex.Normal();
-
-        vertices.push_back(position.x);
-        vertices.push_back(position.y);
-        vertices.push_back(position.z);
-
-        texcoords.push_back(textureCoordinate.x);
-        texcoords.push_back(textureCoordinate.y);
-
-        normals.push_back(normal.x);
-        normals.push_back(normal.y);
-        normals.push_back(normal.z);
-    }
-}
-
-void RebuildBatchMesh(
-    const glm::ivec3& batchIndex,
-    const std::unordered_map<glm::ivec3, GameMesh>& chunkMeshes,
-    std::unordered_map<glm::ivec3, GameMesh>& batchMeshes)
-{
-    std::vector<float> vertices;
-    std::vector<float> texcoords;
-    std::vector<float> normals;
-
-    for (const auto& [chunkIndex, chunkMesh] : chunkMeshes)
-    {
-        if (BatchIndexForChunk(chunkIndex) == batchIndex)
-        {
-            AppendChunkMeshToBatch(chunkIndex, batchIndex, chunkMesh, vertices, texcoords, normals);
-        }
-    }
-
-    if (auto entry = batchMeshes.find(batchIndex); entry != batchMeshes.end())
+    if (auto entry = meshes.find(index); entry != meshes.end())
     {
         entry->second.Finalize();
-        batchMeshes.erase(entry);
+        meshes.erase(entry);
     }
 
-    if (vertices.empty())
+    if (mesh.GetIndices().empty() && !mesh.HasExpandedGeometry())
     {
         return;
     }
 
-    GameMesh batchMesh(std::move(vertices), std::move(texcoords), std::move(normals));
-    batchMeshes.insert_or_assign(batchIndex, batchMesh);
-    batchMeshes.at(batchIndex).Initialize();
-}
-
-void RebuildDirtyBatchMeshes(
-    std::unordered_set<glm::ivec3>& batchesToUpdate,
-    const std::unordered_map<glm::ivec3, GameMesh>& chunkMeshes,
-    std::unordered_map<glm::ivec3, GameMesh>& batchMeshes)
-{
-    int rebuiltBatchCount = 0;
-    for (auto batchIt = batchesToUpdate.begin(); batchIt != batchesToUpdate.end() && rebuiltBatchCount < MaxBatchRebuildsPerFrame;)
-    {
-        const glm::ivec3 batchIndex = *batchIt;
-        RebuildBatchMesh(batchIndex, chunkMeshes, batchMeshes);
-        batchIt = batchesToUpdate.erase(batchIt);
-        rebuiltBatchCount++;
-    }
+    meshes.insert_or_assign(index, mesh);
+    meshes.at(index).Initialize();
 }
 }
 
@@ -238,16 +136,6 @@ void Renderer::Finalize()
         mesh.Finalize();
     }
     m_WaterMeshMap.clear();
-    for (auto& [index, mesh] : m_BatchedMeshMap)
-    {
-        mesh.Finalize();
-    }
-    m_BatchedMeshMap.clear();
-    for (auto& [index, mesh] : m_BatchedWaterMeshMap)
-    {
-        mesh.Finalize();
-    }
-    m_BatchedWaterMeshMap.clear();
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui::DestroyContext();
@@ -262,6 +150,17 @@ void Renderer::SetBlockMaterial(const ::Material& mat)
     {
         m_OverlayColorLocation = GetShaderLocation(m_BlockMaterial.shader, "u_OverlayColor");
     }
+}
+
+void Renderer::SetBlockOverlay(glm::ivec3 blockPosition)
+{
+    m_BlockOverlayPosition = blockPosition;
+    m_BlockOverlayVisible = true;
+}
+
+void Renderer::ClearBlockOverlay()
+{
+    m_BlockOverlayVisible = false;
 }
 
 void Renderer::NewFrame()
@@ -299,39 +198,58 @@ void Renderer::DrawMeshQueue(Comet::ViewCamera& camera)
             SetShaderValue(rShader, m_OverlayColorLocation, &m_OverlayColor, SHADER_UNIFORM_VEC3);
         }
 
-        auto drawVisibleBatch = [this, &drawCallCount](const glm::ivec3& index, GameMesh& mesh)
+        auto drawVisibleChunk = [this, &drawCallCount](const glm::ivec3& index, GameMesh& mesh)
         {
             mesh.Update();
 
             Matrix transform = MatrixTranslate(
-                BatchWorldOffset(index).x,
-                BatchWorldOffset(index).y,
-                BatchWorldOffset(index).z
+                ChunkWorldOffset(index).x,
+                ChunkWorldOffset(index).y,
+                ChunkWorldOffset(index).z
             );
 
             DrawMesh(mesh.GetRaylibMesh(), m_BlockMaterial, transform);
             drawCallCount++;
         };
 
-        auto drawVisibleChunkMesh = [&cameraFrustum, &drawVisibleBatch](const glm::ivec3& index, GameMesh& mesh)
+        auto drawVisibleChunkMesh = [&cameraFrustum, &drawVisibleChunk](const glm::ivec3& index, GameMesh& mesh)
         {
             if (!IsMeshVisible(cameraFrustum, index, mesh))
             {
                 return false;
             }
 
-            drawVisibleBatch(index, mesh);
+            drawVisibleChunk(index, mesh);
             return true;
         };
 
-        for (auto& [index, mesh] : m_BatchedMeshMap)
+        for (auto& [index, mesh] : m_MeshMap)
         {
             drawVisibleChunkMesh(index, mesh);
         }
 
+        if (m_BlockOverlayVisible)
+        {
+            rlDrawRenderBatchActive();
+            BeginBlendMode(BLEND_ALPHA);
+            const float pulse = 0.5f + 0.5f * std::sin(static_cast<float>(GetTime()) * 5.0f);
+            const float fillSize = 1.015f + pulse * 0.025f;
+            const float wireSize = fillSize + 0.01f;
+            const unsigned char fillAlpha = static_cast<unsigned char>(36.0f + pulse * 24.0f);
+            const unsigned char wireAlpha = static_cast<unsigned char>(150.0f + pulse * 70.0f);
+            const Vector3 position = {
+                static_cast<float>(m_BlockOverlayPosition.x),
+                static_cast<float>(m_BlockOverlayPosition.y),
+                static_cast<float>(m_BlockOverlayPosition.z)
+            };
+            DrawCube(position, fillSize, fillSize, fillSize, Color{255, 255, 255, fillAlpha});
+            DrawCubeWires(position, wireSize, wireSize, wireSize, Color{255, 255, 255, wireAlpha});
+            EndBlendMode();
+        }
+
         std::vector<std::pair<glm::ivec3, GameMesh*>> visibleWaterBatches;
-        visibleWaterBatches.reserve(m_BatchedWaterMeshMap.size());
-        for (auto& [index, mesh] : m_BatchedWaterMeshMap)
+        visibleWaterBatches.reserve(m_WaterMeshMap.size());
+        for (auto& [index, mesh] : m_WaterMeshMap)
         {
             if (IsMeshVisible(cameraFrustum, index, mesh))
             {
@@ -346,7 +264,7 @@ void Renderer::DrawMeshQueue(Comet::ViewCamera& camera)
             BeginBlendMode(BLEND_ALPHA);
             for (auto& [index, mesh] : visibleWaterBatches)
             {
-                drawVisibleBatch(index, *mesh);
+                drawVisibleChunk(index, *mesh);
             }
             EndBlendMode();
             rlEnableDepthMask();
@@ -473,8 +391,7 @@ void Renderer::ProcessMeshQueues()
                     break;
                 }
 
-                m_MeshMap.insert_or_assign(index, meshEntry->second);
-                m_MeshBatchesToUpdate.insert(BatchIndexForChunk(index));
+                ReplaceMesh(m_MeshMap, index, meshEntry->second);
                 m_MeshesToAdd.erase(meshEntry);
                 m_MeshesToAddOrder.erase(m_MeshesToAddOrder.begin());
                 m_ChunkRenderFramesUntilNextAdd = ChunkRenderAddFrameInterval;
@@ -489,14 +406,13 @@ void Renderer::ProcessMeshQueues()
             {
                 if (auto entry = m_WaterMeshMap.find(index); entry != m_WaterMeshMap.end())
                 {
+                    entry->second.Finalize();
                     m_WaterMeshMap.erase(entry);
-                    m_WaterBatchesToUpdate.insert(BatchIndexForChunk(index));
                 }
             }
             else
             {
-                m_WaterMeshMap.insert_or_assign(index, waterMeshIt->second);
-                m_WaterBatchesToUpdate.insert(BatchIndexForChunk(index));
+                ReplaceMesh(m_WaterMeshMap, index, waterMeshIt->second);
             }
             waterMeshIt = m_WaterMeshesToAdd.erase(waterMeshIt);
         }
@@ -508,11 +424,11 @@ void Renderer::ProcessMeshQueues()
         {
             if (auto entry = m_MeshMap.find(index); entry != m_MeshMap.end())
             {
-                m_MeshBatchesToUpdate.insert(BatchIndexForChunk(index));
+                entry->second.UpdateGeometry();
             }
             if (auto entry = m_WaterMeshMap.find(index); entry != m_WaterMeshMap.end())
             {
-                m_WaterBatchesToUpdate.insert(BatchIndexForChunk(index));
+                entry->second.UpdateGeometry();
             }
         }
         m_MeshesToUpdate.clear();
@@ -524,20 +440,18 @@ void Renderer::ProcessMeshQueues()
         {
             if (auto entry = m_MeshMap.find(index); entry != m_MeshMap.end())
             {
-                m_MeshMap.erase(index);
-                m_MeshBatchesToUpdate.insert(BatchIndexForChunk(index));
+                entry->second.Finalize();
+                m_MeshMap.erase(entry);
             }
             if (auto entry = m_WaterMeshMap.find(index); entry != m_WaterMeshMap.end())
             {
-                m_WaterMeshMap.erase(index);
-                m_WaterBatchesToUpdate.insert(BatchIndexForChunk(index));
+                entry->second.Finalize();
+                m_WaterMeshMap.erase(entry);
             }
         }
         m_MeshesToDelete.clear();
     }
 
-    RebuildDirtyBatchMeshes(m_MeshBatchesToUpdate, m_MeshMap, m_BatchedMeshMap);
-    RebuildDirtyBatchMeshes(m_WaterBatchesToUpdate, m_WaterMeshMap, m_BatchedWaterMeshMap);
 }
 
 void Renderer::Update(LayerManager& layerManager, Comet::ViewCamera& camera)

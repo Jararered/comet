@@ -8,6 +8,7 @@
 #include "Entities/Player.h"
 
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <filesystem>
 #include <memory>
@@ -17,9 +18,18 @@ namespace
 {
 constexpr int MaxChunkGenerationsPerWorldTick = 1;
 constexpr int MaxChunkMeshBuildsPerWorldTick = 1;
+constexpr int MaxChunkRemeshesPerWorldTick = 1;
 constexpr int MaxChunkDeletesPerWorldTick = 4;
 constexpr int MaxChunkUnrendersPerWorldTick = 4;
 constexpr auto WorldUpdateInterval = std::chrono::milliseconds(25);
+
+void PushUnique(std::vector<glm::ivec3>& chunks, const glm::ivec3& chunk)
+{
+    if (std::find(chunks.begin(), chunks.end(), chunk) == chunks.end())
+    {
+        chunks.push_back(chunk);
+    }
+}
 }
 
 World::World(std::string folderName, long seed, EntityManager& entityManager, Renderer& renderer)
@@ -100,6 +110,7 @@ void World::Finalize()
     m_ChunksToDelete.clear();
     m_ChunksToGenerate.clear();
     m_ChunksToRender.clear();
+    m_ChunksToRerender.clear();
     m_ChunksToUnrender.clear();
 }
 
@@ -194,6 +205,16 @@ void World::SetBlock(glm::ivec3 worldCoord, Block blockToSet)
             regenerateChunk(chunkIndex);
         }
     }
+}
+
+void World::SetBlockOverlay(glm::ivec3 worldPos)
+{
+    m_Renderer.SetBlockOverlay(worldPos);
+}
+
+void World::ClearBlockOverlay()
+{
+    m_Renderer.ClearBlockOverlay();
 }
 
 glm::ivec3 World::GetChunkCoord(glm::ivec3 worldCoord)
@@ -367,7 +388,34 @@ void World::Generate()
         m_ChunkRenderMap.insert_or_assign(index, chunk);
 
         GenerateMesh(index);
+        const std::array<glm::ivec3, 4> neighbors = {
+            glm::ivec3{index.x - 1, index.y, index.z},
+            glm::ivec3{index.x + 1, index.y, index.z},
+            glm::ivec3{index.x, index.y, index.z - 1},
+            glm::ivec3{index.x, index.y, index.z + 1},
+        };
+        for (const glm::ivec3& neighbor : neighbors)
+        {
+            if (m_ChunkRenderMap.find(neighbor) != m_ChunkRenderMap.end())
+            {
+                PushUnique(m_ChunksToRerender, neighbor);
+            }
+        }
         chunkMeshesBuilt++;
+    }
+
+    int chunksRemeshed = 0;
+    while (!m_ChunksToRerender.empty() && chunksRemeshed < MaxChunkRemeshesPerWorldTick)
+    {
+        const glm::ivec3 index = m_ChunksToRerender.front();
+        m_ChunksToRerender.erase(m_ChunksToRerender.begin());
+
+        if (auto chunk = m_ChunkRenderMap.find(index); chunk != m_ChunkRenderMap.end())
+        {
+            chunk->second->GenerateMesh();
+            GenerateMesh(index, true);
+            chunksRemeshed++;
+        }
     }
 
     int chunksDeleted = 0;

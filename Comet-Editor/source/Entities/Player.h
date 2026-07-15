@@ -9,6 +9,8 @@
 #include "World/Chunk.h"
 #include "World/World.h"
 
+#include <optional>
+
 class Player : public Entity
 {
 public:
@@ -22,6 +24,7 @@ public:
 
     void PlaceBlock();
     void BreakBlock();
+    void UpdateTargetBlockOverlay();
 
     void ProcessMovement(float dt);
     void ProcessRotation();
@@ -51,6 +54,14 @@ private:
         bool Sprint = false;
     };
 
+    struct BlockRaycastHit
+    {
+        glm::ivec3 BlockPosition = {0, 0, 0};
+        glm::ivec3 PreviousAirPosition = {0, 0, 0};
+    };
+
+    std::optional<BlockRaycastHit> RaycastTargetBlock() const;
+
     World* m_World;
     Comet::ViewCamera* m_Camera = nullptr;
 
@@ -70,6 +81,7 @@ private:
     Block m_LastBlockInsideOf;
 
     glm::ivec3 m_LookingAtBlock;
+    bool m_HasLookingAtBlock = false;
     Geometry m_BlockOverlayGeometry;
     GameShader m_BlockOverlayShader;
     GameMesh m_BlockOverlayMesh;
@@ -88,7 +100,7 @@ private:
     float m_CrouchLowerAmount = 0.2f;
     float m_CollisionHeight = 1.5f;
     float m_CollisionHeadClearance = 0.25f;
-    float m_JumpSpeed = 6.5f;
+    float m_JumpSpeed = 8.0f;
 
     float m_MovementSpeed = 4.317f;
     float m_FlySpeedMultiplier = 1.0f;
