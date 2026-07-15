@@ -10,7 +10,9 @@
 #include "ChunkGenerator.h"
 #include "WorldConfig.h"
 
+#include <atomic>
 #include <memory>
+#include <mutex>
 #include <thread>
 #include <vector>
 
@@ -61,9 +63,9 @@ private:
     GameTexture m_Texture;
     long m_Seed = 0;
 
-    bool m_Running = false;
+    std::atomic_bool m_Running = false;
 
-    std::mutex m_Lock;
+    std::recursive_mutex m_Lock;
 
     std::thread m_Thread;
 

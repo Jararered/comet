@@ -84,6 +84,7 @@ void World::Finalize()
 
     std::println("Saving currently loaded chunks...");
 
+    std::lock_guard lock(m_Lock);
     m_ChunkRenderMap.clear();
     m_ChunkDataMap.clear();
     m_ChunksToDelete.clear();
@@ -94,6 +95,8 @@ void World::Finalize()
 
 Block World::GetBlock(glm::ivec3 worldCoord)
 {
+    std::lock_guard lock(m_Lock);
+
     glm::ivec3 index = GetChunkIndex(worldCoord);
     glm::ivec3 chunkCoord = GetChunkCoord(worldCoord);
 
@@ -109,41 +112,47 @@ Block World::GetBlock(glm::ivec3 worldCoord)
 
 void World::SetBlock(glm::ivec3 worldCoord, Block blockToSet)
 {
-    if (worldCoord.y > CHUNK_HEIGHT)
+    if (worldCoord.y < 0 || worldCoord.y >= CHUNK_HEIGHT)
     {
         return;
     }
 
+    std::lock_guard lock(m_Lock);
+
     glm::ivec3 index = GetChunkIndex(worldCoord);
     glm::ivec3 chunkCoord = GetChunkCoord(worldCoord);
+
+    auto regenerateChunk = [this](const glm::ivec3& chunkIndex)
+    {
+        if (auto chunk = m_ChunkDataMap.find(chunkIndex); chunk != m_ChunkDataMap.end())
+        {
+            chunk->second->GenerateMesh();
+            GenerateMesh(chunkIndex);
+        }
+    };
 
     if (auto entry = m_ChunkDataMap.find(index); entry != m_ChunkDataMap.end())
     {
         entry->second->SetBlock({chunkCoord.x, chunkCoord.y, chunkCoord.z}, blockToSet);
         entry->second->GetChunkProperties().Modified = true;
-        entry->second->GenerateMesh();
 
-        GenerateMesh(index);
+        regenerateChunk(index);
 
         if (chunkCoord.x == 0)
         {
-            m_ChunkDataMap.at({index.x - 1, index.y, index.z})->GenerateMesh();
-            GenerateMesh({index.x - 1, index.y, index.z});
+            regenerateChunk({index.x - 1, index.y, index.z});
         }
         if (chunkCoord.x == 15)
         {
-            m_ChunkDataMap.at({index.x + 1, index.y, index.z})->GenerateMesh();
-            GenerateMesh({index.x + 1, index.y, index.z});
+            regenerateChunk({index.x + 1, index.y, index.z});
         }
         if (chunkCoord.z == 0)
         {
-            m_ChunkDataMap.at({index.x, index.y, index.z - 1})->GenerateMesh();
-            GenerateMesh({index.x, index.y, index.z - 1});
+            regenerateChunk({index.x, index.y, index.z - 1});
         }
         if (chunkCoord.z == 15)
         {
-            m_ChunkDataMap.at({index.x, index.y, index.z + 1})->GenerateMesh();
-            GenerateMesh({index.x, index.y, index.z + 1});
+            regenerateChunk({index.x, index.y, index.z + 1});
         }
     }
 }
@@ -182,6 +191,8 @@ glm::ivec3 World::GetChunkIndex(glm::ivec3 worldCoord)
 
 void World::ProcessRequestedChunks(glm::ivec3 centerChunkIndex)
 {
+    std::lock_guard lock(m_Lock);
+
     glm::ivec3 index;
     std::unordered_set<glm::ivec3> chunksGenerated;
     std::unordered_set<glm::ivec3> chunksRendered;
@@ -281,6 +292,8 @@ void World::ProcessRequestedChunks(glm::ivec3 centerChunkIndex)
 
 void World::Generate()
 {
+    std::lock_guard lock(m_Lock);
+
     for (const auto& index : m_ChunksToGenerate)
     {
         m_ChunkDataMap[index] = std::make_shared<Chunk>(this, index);
@@ -319,6 +332,8 @@ void World::Generate()
 
 void World::GenerateMesh(glm::ivec3 index)
 {
+    std::lock_guard lock(m_Lock);
+
     std::shared_ptr<Chunk> chunk = m_ChunkDataMap.at(index);
     GameMesh mesh(&chunk->GetGeometry()->Vertices, &chunk->GetGeometry()->Indices, &m_Shader);
     GameMesh waterMesh(&chunk->GetWaterGeometry()->Vertices, &chunk->GetWaterGeometry()->Indices, &m_Shader);
