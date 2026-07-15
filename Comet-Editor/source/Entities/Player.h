@@ -18,6 +18,7 @@ public:
 
     void Update();
     void FrameUpdate(float dt);
+    void PhysicsUpdate(float dt);
 
     void PlaceBlock();
     void BreakBlock();
@@ -39,15 +40,27 @@ public:
     void SetRenderDistance(int distance) { m_RenderDistance = distance; }
 
 private:
+    struct MovementInput
+    {
+        bool Forward = false;
+        bool Backward = false;
+        bool Left = false;
+        bool Right = false;
+        bool Jump = false;
+        bool Crouch = false;
+        bool Sprint = false;
+    };
+
     World* m_World;
     Comet::ViewCamera* m_Camera = nullptr;
 
     bool m_InWater = false;
-    bool m_Flying = true;
+    bool m_Flying = false;
     bool m_Standing = false;
     bool m_BreakingBlock = false;
     bool m_PlacingBlock = false;
     bool m_ThirdPersonCamera = false;
+    bool m_Crouching = false;
     int m_RenderDistance = 16;
 
     glm::vec3 m_GravityVel = {0.0f, 0.0f, 0.0f};
@@ -66,6 +79,7 @@ private:
 
     bool m_FlyToggleKeyWasDown = false;
     bool m_JumpKeyWasDown = false;
+    MovementInput m_MovementInput;
 
     Collision m_BoundingBox;
     float m_Height = 1.5f;
@@ -74,7 +88,7 @@ private:
     float m_CrouchLowerAmount = 0.2f;
     float m_CollisionHeight = 1.5f;
     float m_CollisionHeadClearance = 0.25f;
-    float m_JumpSpeed = 7.0f;
+    float m_JumpSpeed = 6.5f;
 
     float m_MovementSpeed = 4.317f;
     float m_FlySpeedMultiplier = 1.0f;

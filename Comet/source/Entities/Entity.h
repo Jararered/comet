@@ -2,8 +2,12 @@
 
 #include <glm/vec3.hpp>
 
+#include <mutex>
+
 struct Entity
 {
+    mutable std::recursive_mutex m_StateMutex;
+
     glm::vec3 m_Position = {0.0f, 0.0f, 0.0f};
     glm::vec3 m_LastPosition = {0.0f, 0.0f, 0.0f};
     glm::vec3 m_Acceleration = {0.0f, 0.0f, 0.0f};
@@ -17,6 +21,10 @@ struct Entity
 
     // Updated on the main thread where window/input calls are valid.
     virtual void FrameUpdate(float dt)
+    {
+    }
+
+    virtual void PhysicsUpdate(float dt)
     {
         ApplyGravity();
         UpdatePosition(dt);

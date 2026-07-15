@@ -12,6 +12,7 @@
 #include <mutex>
 #include <unordered_map>
 #include <unordered_set>
+#include <vector>
 
 #include <raylib.h>
 
@@ -36,6 +37,7 @@ public:
     void DrawInterfaceQueue(LayerManager& layerManager);
 
     void AddMeshToQueue(glm::ivec3 index, const GameMesh& mesh);
+    void AddPriorityMeshToQueue(glm::ivec3 index, const GameMesh& mesh);
     void AddWaterMeshToQueue(glm::ivec3 index, const GameMesh& mesh);
     void UpdateMeshInQueue(glm::ivec3 index);
     void DeleteMeshFromQueue(glm::ivec3 index);
@@ -60,10 +62,12 @@ private:
 
     std::unordered_map<glm::ivec3, GameMesh> m_MeshesToAdd;
     std::unordered_map<glm::ivec3, GameMesh> m_WaterMeshesToAdd;
+    std::vector<glm::ivec3> m_MeshesToAddOrder;
     std::unordered_set<glm::ivec3> m_MeshesToUpdate;
     std::unordered_set<glm::ivec3> m_MeshesToDelete;
     std::unordered_set<glm::ivec3> m_MeshBatchesToUpdate;
     std::unordered_set<glm::ivec3> m_WaterBatchesToUpdate;
+    int m_ChunkRenderFramesUntilNextAdd = 0;
 
     ::Material m_BlockMaterial = {0};
     int m_OverlayColorLocation = -1;

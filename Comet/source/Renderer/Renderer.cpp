@@ -13,6 +13,7 @@ namespace
 constexpr int ChunkWidth = 16;
 constexpr int BatchWidthChunks = 2;
 constexpr int MaxBatchRebuildsPerFrame = 1;
+constexpr int ChunkRenderAddFrameInterval = 60;
 
 struct Frustum
 {
@@ -407,7 +408,20 @@ void Renderer::DrawInterfaceQueue(LayerManager& layerManager)
 void Renderer::AddMeshToQueue(glm::ivec3 index, const GameMesh& mesh)
 {
     std::lock_guard lock(m_QueueLock.AddQueue);
+    if (m_MeshesToAdd.find(index) == m_MeshesToAdd.end())
+    {
+        m_MeshesToAddOrder.push_back(index);
+    }
     m_MeshesToAdd.insert_or_assign(index, mesh);
+}
+
+void Renderer::AddPriorityMeshToQueue(glm::ivec3 index, const GameMesh& mesh)
+{
+    std::lock_guard lock(m_QueueLock.AddQueue);
+    std::erase(m_MeshesToAddOrder, index);
+    m_MeshesToAddOrder.insert(m_MeshesToAddOrder.begin(), index);
+    m_MeshesToAdd.insert_or_assign(index, mesh);
+    m_ChunkRenderFramesUntilNextAdd = 0;
 }
 
 void Renderer::AddWaterMeshToQueue(glm::ivec3 index, const GameMesh& mesh)
@@ -424,7 +438,10 @@ void Renderer::UpdateMeshInQueue(glm::ivec3 index)
 
 void Renderer::DeleteMeshFromQueue(glm::ivec3 index)
 {
-    std::lock_guard lock(m_QueueLock.DeleteQueue);
+    std::scoped_lock lock(m_QueueLock.AddQueue, m_QueueLock.DeleteQueue);
+    m_MeshesToAdd.erase(index);
+    m_WaterMeshesToAdd.erase(index);
+    std::erase(m_MeshesToAddOrder, index);
     m_MeshesToDelete.insert(index);
 }
 
@@ -432,28 +449,57 @@ void Renderer::ProcessMeshQueues()
 {
     {
         std::lock_guard lock(m_QueueLock.AddQueue);
-        for (const auto& [index, mesh] : m_MeshesToAdd)
+        bool canAddChunk = true;
+        if (m_ChunkRenderFramesUntilNextAdd > 0)
         {
-            m_MeshMap.insert_or_assign(index, mesh);
-            m_MeshBatchesToUpdate.insert(BatchIndexForChunk(index));
+            m_ChunkRenderFramesUntilNextAdd--;
+            canAddChunk = m_ChunkRenderFramesUntilNextAdd == 0;
         }
-        m_MeshesToAdd.clear();
-        for (const auto& [index, mesh] : m_WaterMeshesToAdd)
+
+        if (canAddChunk)
         {
-            if (mesh.GetIndices().empty())
+            while (!m_MeshesToAddOrder.empty())
+            {
+                const glm::ivec3 index = m_MeshesToAddOrder.front();
+                if (m_MeshesToAdd.find(index) == m_MeshesToAdd.end())
+                {
+                    m_MeshesToAddOrder.erase(m_MeshesToAddOrder.begin());
+                    continue;
+                }
+
+                const auto meshEntry = m_MeshesToAdd.find(index);
+                if (meshEntry == m_MeshesToAdd.end())
+                {
+                    break;
+                }
+
+                m_MeshMap.insert_or_assign(index, meshEntry->second);
+                m_MeshBatchesToUpdate.insert(BatchIndexForChunk(index));
+                m_MeshesToAdd.erase(meshEntry);
+                m_MeshesToAddOrder.erase(m_MeshesToAddOrder.begin());
+                m_ChunkRenderFramesUntilNextAdd = ChunkRenderAddFrameInterval;
+                break;
+            }
+        }
+
+        for (auto waterMeshIt = m_WaterMeshesToAdd.begin(); waterMeshIt != m_WaterMeshesToAdd.end();)
+        {
+            const glm::ivec3 index = waterMeshIt->first;
+            if (waterMeshIt->second.GetIndices().empty())
             {
                 if (auto entry = m_WaterMeshMap.find(index); entry != m_WaterMeshMap.end())
                 {
                     m_WaterMeshMap.erase(entry);
                     m_WaterBatchesToUpdate.insert(BatchIndexForChunk(index));
                 }
-                continue;
             }
-
-            m_WaterMeshMap.insert_or_assign(index, mesh);
-            m_WaterBatchesToUpdate.insert(BatchIndexForChunk(index));
+            else
+            {
+                m_WaterMeshMap.insert_or_assign(index, waterMeshIt->second);
+                m_WaterBatchesToUpdate.insert(BatchIndexForChunk(index));
+            }
+            waterMeshIt = m_WaterMeshesToAdd.erase(waterMeshIt);
         }
-        m_WaterMeshesToAdd.clear();
     }
 
     {

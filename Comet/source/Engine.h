@@ -4,7 +4,9 @@
 #include "Layer/LayerManager.h"
 #include "Renderer/Renderer.h"
 
+#include <atomic>
 #include <raylib.h>
+#include <thread>
 
 class Engine
 {
@@ -22,10 +24,16 @@ public:
     Comet::ViewCamera& Camera() { return m_Camera; }
 
 private:
+    void StartPhysics();
+    void StopPhysics();
+    void PhysicsLoop();
+
     EntityManager m_EntityManager;
     LayerManager m_LayerManager;
     Comet::ViewCamera m_Camera;
     Renderer m_Renderer;
+    std::atomic_bool m_PhysicsRunning = false;
+    std::thread m_PhysicsThread;
 };
 
 inline constexpr int WINDOW_WIDTH = 1280;

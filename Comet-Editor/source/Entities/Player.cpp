@@ -29,18 +29,17 @@ void Player::Update()
 
 void Player::FrameUpdate(float dt)
 {
-    const float frameDt = std::clamp(dt, 0.0001f, 0.25f);
-
     const bool flyKeyDown = Input::IsKeyPressed(KEY_F);
-    if (flyKeyDown && !m_FlyToggleKeyWasDown)
-        m_Flying = !m_Flying;
-    m_FlyToggleKeyWasDown = flyKeyDown;
-
-    m_Gravity = m_Flying ? glm::vec3{0.0f, 0.0f, 0.0f} : Constants::Gravity;
-
-    const bool crouchHeld = !m_Flying && Input::IsKeyPressed(KEY_LEFT_SHIFT);
-    m_CollisionHeight = m_Height - (crouchHeld ? m_CrouchLowerAmount : 0.0f);
-    m_CollisionHeadClearance = std::max(0.05f, m_HeadClearance - (crouchHeld ? m_CrouchLowerAmount : 0.0f));
+    const bool toggleFlying = flyKeyDown && !m_FlyToggleKeyWasDown;
+    const float wheelMove = Input::GetMouseWheelMove();
+    MovementInput movementInput;
+    movementInput.Forward = Input::IsKeyPressed(KEY_W);
+    movementInput.Backward = Input::IsKeyPressed(KEY_S);
+    movementInput.Left = Input::IsKeyPressed(KEY_A);
+    movementInput.Right = Input::IsKeyPressed(KEY_D);
+    movementInput.Jump = Input::IsKeyPressed(KEY_SPACE);
+    movementInput.Crouch = Input::IsKeyPressed(KEY_LEFT_SHIFT);
+    movementInput.Sprint = Input::IsKeyPressed(KEY_LEFT_CONTROL);
 
     if (Input::IsLeftClick() && !m_BreakingBlock)
         Player::BreakBlock();
@@ -52,21 +51,55 @@ void Player::FrameUpdate(float dt)
     if (!Input::IsRightClick())
         m_PlacingBlock = false;
 
-    ProcessRotation();
-    UpdateCamera();
+    {
+        std::lock_guard lock(m_StateMutex);
 
-    ProcessMovement(frameDt);
+        if (toggleFlying)
+        {
+            m_Flying = !m_Flying;
+            m_LastPosition = m_Position;
+            m_Acceleration = {0.0f, 0.0f, 0.0f};
+        }
+        m_FlyToggleKeyWasDown = flyKeyDown;
 
-    Entity::FrameUpdate(frameDt);
+        if (m_Flying && wheelMove != 0.0f)
+            m_FlySpeedMultiplier = std::clamp(m_FlySpeedMultiplier + wheelMove * 0.25f, 0.25f, 20.0f);
+
+        m_MovementInput = movementInput;
+        m_Crouching = !m_Flying && movementInput.Crouch;
+        m_CollisionHeight = m_Height - (m_Crouching ? m_CrouchLowerAmount : 0.0f);
+        m_CollisionHeadClearance = std::max(0.05f, m_HeadClearance - (m_Crouching ? m_CrouchLowerAmount : 0.0f));
+
+        ProcessRotation();
+        UpdateCamera();
+    }
+}
+
+void Player::PhysicsUpdate(float dt)
+{
+    const float physicsDt = std::clamp(dt, 0.0001f, 0.05f);
+
+    std::lock_guard lock(m_StateMutex);
+
+    m_Gravity = m_Flying ? glm::vec3{0.0f, 0.0f, 0.0f} : Constants::Gravity;
+
+    ProcessMovement(physicsDt);
+
+    Entity::PhysicsUpdate(physicsDt);
 
     if (!m_Flying)
         ProcessCollision();
-
-    UpdateCamera();
 }
 void Player::GetRequestedChunks()
 {
-    glm::ivec3 newChunkIndex = m_World->GetChunkIndex(m_Position);
+    glm::vec3 position;
+    {
+        std::lock_guard lock(m_StateMutex);
+        position = m_Position;
+    }
+
+    glm::ivec3 newChunkIndex = m_World->GetChunkIndex(position);
+    SetChunkIndex(newChunkIndex);
 
     m_World->ProcessRequestedChunks(newChunkIndex);
 }
@@ -75,9 +108,14 @@ void Player::PlaceBlock()
 {
     m_PlacingBlock = true;
     float step = 1.0f / 16.0f;
-    glm::vec3 direction = m_Direction;
-    glm::vec3 position = ViewPosition();
-    glm::vec3 positionLast = ViewPosition();
+    glm::vec3 direction;
+    glm::vec3 position;
+    {
+        std::lock_guard lock(m_StateMutex);
+        direction = m_Direction;
+        position = ViewPosition();
+    }
+    glm::vec3 positionLast = position;
 
     bool first = true;
 
@@ -103,8 +141,13 @@ void Player::BreakBlock()
 {
     m_BreakingBlock = true;
     float step = 1.0f / 16.0f;
-    glm::vec3 direction = m_Direction;
-    glm::vec3 position = ViewPosition();
+    glm::vec3 direction;
+    glm::vec3 position;
+    {
+        std::lock_guard lock(m_StateMutex);
+        direction = m_Direction;
+        position = ViewPosition();
+    }
 
     while (glm::length(direction) < 5.0f)
     {
@@ -120,16 +163,11 @@ void Player::BreakBlock()
 void Player::ProcessMovement(float dt)
 {
     float movementSpeed = m_MovementSpeed;
-    if (Input::IsKeyPressed(KEY_LEFT_CONTROL))
+    if (m_MovementInput.Sprint)
         movementSpeed *= m_Flying ? 10.0f : 2.0f;
 
     if (m_Flying)
     {
-        const float wheelMove = Input::GetMouseWheelMove();
-        if (wheelMove != 0.0f)
-        {
-            m_FlySpeedMultiplier = std::clamp(m_FlySpeedMultiplier + wheelMove * 0.25f, 0.25f, 20.0f);
-        }
         movementSpeed *= m_FlySpeedMultiplier;
 
         glm::vec3 direction = {0.0f, 0.0f, 0.0f};
@@ -137,25 +175,25 @@ void Player::ProcessMovement(float dt)
         if (glm::length(cameraForwardXZ) > 1e-5f)
             cameraForwardXZ = glm::normalize(cameraForwardXZ);
 
-        if (Input::IsKeyPressed(KEY_W))
+        if (m_MovementInput.Forward)
             direction += cameraForwardXZ;
-        if (Input::IsKeyPressed(KEY_S))
+        if (m_MovementInput.Backward)
             direction -= cameraForwardXZ;
-        if (Input::IsKeyPressed(KEY_A))
+        if (m_MovementInput.Left)
             direction -= m_RightVector;
-        if (Input::IsKeyPressed(KEY_D))
+        if (m_MovementInput.Right)
             direction += m_RightVector;
 
         if (direction.x != 0.0f || direction.z != 0.0f)
             direction = glm::normalize(direction);
 
-        if (Input::IsKeyPressed(KEY_LEFT_SHIFT))
+        if (m_MovementInput.Crouch)
             direction -= ViewCamera::POSITIVE_Y;
-        if (Input::IsKeyPressed(KEY_SPACE))
+        if (m_MovementInput.Jump)
             direction += ViewCamera::POSITIVE_Y;
 
         ApplyMovement(direction * movementSpeed * dt);
-        m_JumpKeyWasDown = Input::IsKeyPressed(KEY_SPACE);
+        m_JumpKeyWasDown = m_MovementInput.Jump;
     }
     else
     {
@@ -169,13 +207,13 @@ void Player::ProcessMovement(float dt)
             rightXZ = glm::normalize(rightXZ);
 
         glm::vec3 direction = {0.0f, 0.0f, 0.0f};
-        if (Input::IsKeyPressed(KEY_W))
+        if (m_MovementInput.Forward)
             direction += forwardXZ;
-        if (Input::IsKeyPressed(KEY_S))
+        if (m_MovementInput.Backward)
             direction -= forwardXZ;
-        if (Input::IsKeyPressed(KEY_A))
+        if (m_MovementInput.Left)
             direction -= rightXZ;
-        if (Input::IsKeyPressed(KEY_D))
+        if (m_MovementInput.Right)
             direction += rightXZ;
 
         if (direction.x != 0.0f || direction.z != 0.0f)
@@ -183,7 +221,7 @@ void Player::ProcessMovement(float dt)
 
         ApplyMovement(direction * movementSpeed * dt);
 
-        const bool jumpKey = Input::IsKeyPressed(KEY_SPACE);
+        const bool jumpKey = m_MovementInput.Jump;
         const bool grounded = Comet::Physics::IsGrounded(
             m_Position,
             m_Width,
@@ -222,8 +260,9 @@ void Player::ProcessRotation()
 
 glm::vec3 Player::ViewPosition() const
 {
-    const bool crouchHeld = !m_Flying && Input::IsKeyPressed(KEY_LEFT_SHIFT);
-    if (!crouchHeld)
+    std::lock_guard lock(m_StateMutex);
+
+    if (!m_Crouching)
         return m_Position;
     return m_Position + glm::vec3(0.0f, -m_CrouchLowerAmount, 0.0f);
 }

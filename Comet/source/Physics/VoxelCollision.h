@@ -49,6 +49,7 @@ void ResolveVoxelCollisions(
     for (int iter = 0; iter < maxIterations; ++iter)
     {
         const Collision player = PlayerBoundingBox(position, width, height, headClearance);
+        const Collision previousPlayer = PlayerBoundingBox(lastPosition, width, height, headClearance);
 
         const int minX = static_cast<int>(std::floor(player.NegativeX)) - blockMargin;
         const int maxX = static_cast<int>(std::floor(player.PositiveX)) + blockMargin;
@@ -91,18 +92,44 @@ void ResolveVoxelCollisions(
                         0.5f * (block.PositiveZ + block.NegativeZ),
                     };
 
-                    // Prefer vertical separation when depths tie so walking on top of blocks is stable.
-                    int axis = 1;
-                    float depth = overlapY;
-                    if (overlapX < depth)
+                    const bool enteredFromX = previousPlayer.PositiveX <= block.NegativeX || previousPlayer.NegativeX >= block.PositiveX;
+                    const bool enteredFromY = previousPlayer.PositiveY <= block.NegativeY || previousPlayer.NegativeY >= block.PositiveY;
+                    const bool enteredFromZ = previousPlayer.PositiveZ <= block.NegativeZ || previousPlayer.NegativeZ >= block.PositiveZ;
+
+                    int axis = -1;
+                    float depth = 0.0f;
+
+                    auto chooseShallowestEnteredAxis = [&](int candidateAxis, float candidateDepth)
                     {
-                        depth = overlapX;
-                        axis = 0;
-                    }
-                    if (overlapZ < depth)
+                        if (axis < 0 || candidateDepth < depth)
+                        {
+                            axis = candidateAxis;
+                            depth = candidateDepth;
+                        }
+                    };
+
+                    if (enteredFromX)
+                        chooseShallowestEnteredAxis(0, overlapX);
+                    if (enteredFromY)
+                        chooseShallowestEnteredAxis(1, overlapY);
+                    if (enteredFromZ)
+                        chooseShallowestEnteredAxis(2, overlapZ);
+
+                    if (axis < 0)
                     {
-                        depth = overlapZ;
-                        axis = 2;
+                        // Already-overlapping recovery path. Prefer vertical on ties so standing remains stable.
+                        axis = 1;
+                        depth = overlapY;
+                        if (overlapX < depth)
+                        {
+                            depth = overlapX;
+                            axis = 0;
+                        }
+                        if (overlapZ < depth)
+                        {
+                            depth = overlapZ;
+                            axis = 2;
+                        }
                     }
 
                     if (axis == 0)

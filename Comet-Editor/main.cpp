@@ -30,6 +30,7 @@ int main(int argc, char const* argv[])
     world.SetMainPlayer(&player);
     engine.Entities().AddToUpdater(&player);
     engine.Entities().AddToFrameUpdater(&player);
+    engine.Entities().AddToPhysicsUpdater(&player);
 
     // Create the debugging menu
     Settings settings(&world, &engine.GetRenderer(), &engine.Camera());
@@ -42,6 +43,7 @@ int main(int argc, char const* argv[])
 
     // Ending threads
     world.Finalize();
+    engine.Entities().RemoveFromPhysicsUpdater(&player);
     engine.Entities().RemoveFromFrameUpdater(&player);
     engine.Entities().RemoveFromUpdater(&player);
     engine.Layers().RemoveLayer(&crosshair);

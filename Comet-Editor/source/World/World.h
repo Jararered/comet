@@ -30,7 +30,7 @@ public:
     void Finalize();
 
     void Generate();
-    void GenerateMesh(glm::ivec3 index);
+    void GenerateMesh(glm::ivec3 index, bool prioritize = false);
 
     void SetMainPlayer(Player* player);
     Player* GetMainPlayer() const { return m_MainPlayer; }

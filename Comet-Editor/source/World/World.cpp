@@ -8,9 +8,19 @@
 #include "Entities/Player.h"
 
 #include <algorithm>
+#include <chrono>
 #include <filesystem>
 #include <memory>
 #include <print>
+
+namespace
+{
+constexpr int MaxChunkGenerationsPerWorldTick = 1;
+constexpr int MaxChunkMeshBuildsPerWorldTick = 1;
+constexpr int MaxChunkDeletesPerWorldTick = 4;
+constexpr int MaxChunkUnrendersPerWorldTick = 4;
+constexpr auto WorldUpdateInterval = std::chrono::milliseconds(25);
+}
 
 World::World(std::string folderName, long seed, EntityManager& entityManager, Renderer& renderer)
     : m_FolderName(folderName), m_Seed(seed), m_EntityManager(entityManager), m_Renderer(renderer)
@@ -67,7 +77,7 @@ void World::Update()
 
         Generate();
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(WorldUpdateInterval);
     }
 
     std::println("Exiting world thread...");
@@ -122,12 +132,23 @@ void World::SetBlock(glm::ivec3 worldCoord, Block blockToSet)
     glm::ivec3 index = GetChunkIndex(worldCoord);
     glm::ivec3 chunkCoord = GetChunkCoord(worldCoord);
 
+    auto chunkDistanceSquared = [this](const glm::ivec3& chunkIndex)
+    {
+        if (!m_MainPlayer)
+            return 0;
+
+        const glm::ivec3 playerChunk = m_MainPlayer->ChunkIndex();
+        const int dx = chunkIndex.x - playerChunk.x;
+        const int dz = chunkIndex.z - playerChunk.z;
+        return dx * dx + dz * dz;
+    };
+
     auto regenerateChunk = [this](const glm::ivec3& chunkIndex)
     {
         if (auto chunk = m_ChunkDataMap.find(chunkIndex); chunk != m_ChunkDataMap.end())
         {
             chunk->second->GenerateMesh();
-            GenerateMesh(chunkIndex);
+            GenerateMesh(chunkIndex, true);
         }
     };
 
@@ -136,23 +157,41 @@ void World::SetBlock(glm::ivec3 worldCoord, Block blockToSet)
         entry->second->SetBlock({chunkCoord.x, chunkCoord.y, chunkCoord.z}, blockToSet);
         entry->second->GetChunkProperties().Modified = true;
 
-        regenerateChunk(index);
+        std::vector<glm::ivec3> chunksToRegenerate;
+        chunksToRegenerate.push_back(index);
 
         if (chunkCoord.x == 0)
         {
-            regenerateChunk({index.x - 1, index.y, index.z});
+            chunksToRegenerate.push_back({index.x - 1, index.y, index.z});
         }
         if (chunkCoord.x == 15)
         {
-            regenerateChunk({index.x + 1, index.y, index.z});
+            chunksToRegenerate.push_back({index.x + 1, index.y, index.z});
         }
         if (chunkCoord.z == 0)
         {
-            regenerateChunk({index.x, index.y, index.z - 1});
+            chunksToRegenerate.push_back({index.x, index.y, index.z - 1});
         }
         if (chunkCoord.z == 15)
         {
-            regenerateChunk({index.x, index.y, index.z + 1});
+            chunksToRegenerate.push_back({index.x, index.y, index.z + 1});
+        }
+
+        std::sort(chunksToRegenerate.begin(), chunksToRegenerate.end(),
+            [&chunkDistanceSquared](const glm::ivec3& lhs, const glm::ivec3& rhs)
+            {
+                const int lhsDistance = chunkDistanceSquared(lhs);
+                const int rhsDistance = chunkDistanceSquared(rhs);
+                if (lhsDistance != rhsDistance)
+                    return lhsDistance < rhsDistance;
+                if (lhs.x != rhs.x)
+                    return lhs.x < rhs.x;
+                return lhs.z < rhs.z;
+            });
+
+        for (const glm::ivec3& chunkIndex : chunksToRegenerate)
+        {
+            regenerateChunk(chunkIndex);
         }
     }
 }
@@ -246,6 +285,7 @@ void World::ProcessRequestedChunks(glm::ivec3 centerChunkIndex)
             }
 
             chunksGenerated.insert(index);
+            m_ChunksToDelete.erase(index);
             if (m_ChunkDataMap.find(index) == m_ChunkDataMap.end())
             {
                 m_ChunksToGenerate.push_back(index);
@@ -273,6 +313,7 @@ void World::ProcessRequestedChunks(glm::ivec3 centerChunkIndex)
             }
 
             chunksRendered.insert(index);
+            m_ChunksToUnrender.erase(index);
             if (m_ChunkRenderMap.find(index) == m_ChunkRenderMap.end())
             {
                 m_ChunksToRender.push_back(index);
@@ -294,17 +335,31 @@ void World::Generate()
 {
     std::lock_guard lock(m_Lock);
 
-    for (const auto& index : m_ChunksToGenerate)
+    int chunksGenerated = 0;
+    while (!m_ChunksToGenerate.empty() && chunksGenerated < MaxChunkGenerationsPerWorldTick)
     {
+        const glm::ivec3 index = m_ChunksToGenerate.front();
+        m_ChunksToGenerate.erase(m_ChunksToGenerate.begin());
+
+        if (m_ChunkDataMap.find(index) != m_ChunkDataMap.end())
+            continue;
+
         m_ChunkDataMap[index] = std::make_shared<Chunk>(this, index);
         m_ChunkDataMap.at(index)->Allocate();
         m_ChunkDataMap.at(index)->Generate();
-    }
-    m_ChunksToGenerate.clear();
 
-    for (const auto& index : m_ChunksToRender)
+        chunksGenerated++;
+    }
+
+    int chunkMeshesBuilt = 0;
+    while (!m_ChunksToRender.empty() && chunkMeshesBuilt < MaxChunkMeshBuildsPerWorldTick)
     {
+        const glm::ivec3 index = m_ChunksToRender.front();
+        m_ChunksToRender.erase(m_ChunksToRender.begin());
+
         if (m_ChunkDataMap.find(index) == m_ChunkDataMap.end())
+            continue;
+        if (m_ChunkRenderMap.find(index) != m_ChunkRenderMap.end())
             continue;
 
         std::shared_ptr<Chunk> chunk = m_ChunkDataMap.at(index);
@@ -312,32 +367,41 @@ void World::Generate()
         m_ChunkRenderMap.insert_or_assign(index, chunk);
 
         GenerateMesh(index);
+        chunkMeshesBuilt++;
     }
-    m_ChunksToRender.clear();
 
-    for (const auto& index : m_ChunksToDelete)
+    int chunksDeleted = 0;
+    for (auto deleteIt = m_ChunksToDelete.begin(); deleteIt != m_ChunksToDelete.end() && chunksDeleted < MaxChunkDeletesPerWorldTick;)
     {
+        const glm::ivec3 index = *deleteIt;
         m_ChunkDataMap.erase(index);
+        deleteIt = m_ChunksToDelete.erase(deleteIt);
+        chunksDeleted++;
     }
-    m_ChunksToDelete.clear();
 
-    for (const auto& index : m_ChunksToUnrender)
+    int chunksUnrendered = 0;
+    for (auto unrenderIt = m_ChunksToUnrender.begin(); unrenderIt != m_ChunksToUnrender.end() && chunksUnrendered < MaxChunkUnrendersPerWorldTick;)
     {
+        const glm::ivec3 index = *unrenderIt;
         m_Renderer.DeleteMeshFromQueue(index);
 
         m_ChunkRenderMap.erase(index);
+        unrenderIt = m_ChunksToUnrender.erase(unrenderIt);
+        chunksUnrendered++;
     }
-    m_ChunksToUnrender.clear();
 }
 
-void World::GenerateMesh(glm::ivec3 index)
+void World::GenerateMesh(glm::ivec3 index, bool prioritize)
 {
     std::lock_guard lock(m_Lock);
 
     std::shared_ptr<Chunk> chunk = m_ChunkDataMap.at(index);
     GameMesh mesh(&chunk->GetGeometry()->Vertices, &chunk->GetGeometry()->Indices, &m_Shader);
     GameMesh waterMesh(&chunk->GetWaterGeometry()->Vertices, &chunk->GetWaterGeometry()->Indices, &m_Shader);
-    m_Renderer.AddMeshToQueue(index, mesh);
+    if (prioritize)
+        m_Renderer.AddPriorityMeshToQueue(index, mesh);
+    else
+        m_Renderer.AddMeshToQueue(index, mesh);
     m_Renderer.AddWaterMeshToQueue(index, waterMesh);
 }
 
