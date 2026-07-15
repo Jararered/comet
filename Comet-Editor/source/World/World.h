@@ -61,11 +61,11 @@ private:
     GameTexture m_Texture;
     long m_Seed = 0;
 
-    bool m_Running;
+    bool m_Running = false;
 
     std::mutex m_Lock;
 
     std::thread m_Thread;
 
-    Player* m_MainPlayer;
+    Player* m_MainPlayer = nullptr;
 };

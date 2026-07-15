@@ -77,14 +77,19 @@ void World::Finalize()
 {
     m_Running = false;
 
-    std::println("Saving currently loaded chunks...");
-
-    for (auto& chunk : m_ChunkDataMap)
+    if (m_Thread.joinable())
     {
-        chunk.second->~Chunk();
+        m_Thread.join();
     }
 
-    m_Thread.join();
+    std::println("Saving currently loaded chunks...");
+
+    m_ChunkRenderMap.clear();
+    m_ChunkDataMap.clear();
+    m_ChunksToDelete.clear();
+    m_ChunksToGenerate.clear();
+    m_ChunksToRender.clear();
+    m_ChunksToUnrender.clear();
 }
 
 Block World::GetBlock(glm::ivec3 worldCoord)

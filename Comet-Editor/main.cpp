@@ -17,31 +17,35 @@ int main(int argc, char const* argv[])
     std::filesystem::path path = std::filesystem::current_path();
     std::cout << "Current working directory: " << path << std::endl;
 
-    Engine* engine = new Engine();
+    Engine engine;
 
     // Starting world thread and configuring
-    World* world = new World("world", 34985);
-    world->Initialize();
+    World world("world", 34985);
+    world.Initialize();
 
     // Create player entity and add it to the entity handler
     // Entity handler is now on the world thread
-    Player* player = new Player(world);
-    player->SetRenderDistance(15);
-    world->SetMainPlayer(player);
-    EntityManager::AddToUpdater(player);
-    EntityManager::AddToFrameUpdater(player);
+    Player player(&world);
+    player.SetRenderDistance(15);
+    world.SetMainPlayer(&player);
+    EntityManager::AddToUpdater(&player);
+    EntityManager::AddToFrameUpdater(&player);
 
     // Create the debugging menu
-    Settings* settings = new Settings(world);
-    Crosshair* crosshair = new Crosshair;
-    LayerManager::AddLayer(settings);
-    LayerManager::AddLayer(crosshair);
+    Settings settings(&world);
+    Crosshair crosshair;
+    LayerManager::AddLayer(&settings);
+    LayerManager::AddLayer(&crosshair);
 
     // Starting main engine thread
-    engine->Initialize();
+    engine.Initialize();
 
     // Ending threads
-    world->Finalize();
+    world.Finalize();
+    EntityManager::RemoveFromFrameUpdater(&player);
+    EntityManager::RemoveFromUpdater(&player);
+    LayerManager::RemoveLayer(&crosshair);
+    LayerManager::RemoveLayer(&settings);
 
     return 0;
 }
