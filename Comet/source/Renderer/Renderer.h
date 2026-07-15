@@ -47,7 +47,7 @@ public:
     static void DeleteMeshFromQueue(glm::ivec3 index);
     static void ProcessMeshQueues();
 
-    static void SetBlockMaterial(const ::Material& mat) { Get().m_BlockMaterial = mat; }
+    static void SetBlockMaterial(const ::Material& mat);
     static ::Material GetBlockMaterial() { return Get().m_BlockMaterial; }
 
 private:
@@ -73,6 +73,7 @@ private:
     std::unordered_set<glm::ivec3> m_BatchesToUpdate;
 
     ::Material m_BlockMaterial = {0};
+    int m_OverlayColorLocation = -1;
 
 public:
     static glm::vec3 OverlayColor() { return Get().m_OverlayColor; }

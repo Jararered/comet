@@ -5,6 +5,8 @@
 #include <array>
 #include <raymath.h>
 #include <rlgl.h>
+#include <utility>
+#include <vector>
 
 RenderLock Renderer::QueueLock;
 
@@ -241,6 +243,18 @@ void Renderer::Finalize()
     ImGui::DestroyContext();
 }
 
+void Renderer::SetBlockMaterial(const ::Material& mat)
+{
+    auto& renderer = Get();
+    renderer.m_BlockMaterial = mat;
+    renderer.m_OverlayColorLocation = -1;
+
+    if (renderer.m_BlockMaterial.shader.id > 0)
+    {
+        renderer.m_OverlayColorLocation = GetShaderLocation(renderer.m_BlockMaterial.shader, "u_OverlayColor");
+    }
+}
+
 void Renderer::NewFrame()
 {
     BeginDrawing();
@@ -270,21 +284,15 @@ void Renderer::DrawMeshQueue()
             rlEnableWireMode();
         }
 
-        auto drawChunkMesh = [&drawCallCount, &cameraFrustum](const glm::ivec3& index, GameMesh& mesh)
+        ::Shader rShader = Get().m_BlockMaterial.shader;
+        if (Get().m_OverlayColorLocation >= 0)
         {
-            if (!IsMeshVisible(cameraFrustum, index, mesh))
-            {
-                return;
-            }
+            SetShaderValue(rShader, Get().m_OverlayColorLocation, &Get().m_OverlayColor, SHADER_UNIFORM_VEC3);
+        }
 
+        auto drawVisibleBatch = [&drawCallCount](const glm::ivec3& index, GameMesh& mesh)
+        {
             mesh.Update();
-
-            ::Shader rShader = Get().m_BlockMaterial.shader;
-            int locOverlay = GetShaderLocation(rShader, "u_OverlayColor");
-            if (locOverlay >= 0)
-            {
-                SetShaderValue(rShader, locOverlay, &Get().m_OverlayColor, SHADER_UNIFORM_VEC3);
-            }
 
             Matrix transform = MatrixTranslate(
                 BatchWorldOffset(index).x,
@@ -296,20 +304,44 @@ void Renderer::DrawMeshQueue()
             drawCallCount++;
         };
 
+        auto drawVisibleChunkMesh = [&cameraFrustum, &drawVisibleBatch](const glm::ivec3& index, GameMesh& mesh)
+        {
+            if (!IsMeshVisible(cameraFrustum, index, mesh))
+            {
+                return false;
+            }
+
+            drawVisibleBatch(index, mesh);
+            return true;
+        };
+
         for (auto& [index, mesh] : Get().m_BatchedMeshMap)
         {
-            drawChunkMesh(index, mesh);
+            drawVisibleChunkMesh(index, mesh);
         }
 
-        rlDrawRenderBatchActive();
-        rlDisableDepthMask();
-        BeginBlendMode(BLEND_ALPHA);
+        std::vector<std::pair<glm::ivec3, GameMesh*>> visibleWaterBatches;
+        visibleWaterBatches.reserve(Get().m_BatchedWaterMeshMap.size());
         for (auto& [index, mesh] : Get().m_BatchedWaterMeshMap)
         {
-            drawChunkMesh(index, mesh);
+            if (IsMeshVisible(cameraFrustum, index, mesh))
+            {
+                visibleWaterBatches.emplace_back(index, &mesh);
+            }
         }
-        EndBlendMode();
-        rlEnableDepthMask();
+
+        if (!visibleWaterBatches.empty())
+        {
+            rlDrawRenderBatchActive();
+            rlDisableDepthMask();
+            BeginBlendMode(BLEND_ALPHA);
+            for (auto& [index, mesh] : visibleWaterBatches)
+            {
+                drawVisibleBatch(index, *mesh);
+            }
+            EndBlendMode();
+            rlEnableDepthMask();
+        }
 
         if (Get().m_WireMeshEnabled)
         {
