@@ -3,12 +3,14 @@
 layout(location = 0) in vec3 vertexPosition;
 layout(location = 1) in vec2 vertexTexCoord;
 layout(location = 2) in vec3 vertexNormal;
+layout(location = 3) in vec4 vertexColor;
 
 uniform mat4 mvp;
 
 out vec3 v_Position;
 out vec2 v_TextureCoordinates;
 out vec3 v_Normal;
+out float v_AmbientOcclusion;
 flat out vec2 v_TextureTile;
 
 void main()
@@ -16,6 +18,7 @@ void main()
     gl_Position = mvp * vec4(vertexPosition, 1.0);
     v_Position = vertexPosition;
     v_Normal = vertexNormal;
+    v_AmbientOcclusion = vertexColor.r;
 
     v_TextureTile = vec2(-1.0, -1.0);
     v_TextureCoordinates = vertexTexCoord;

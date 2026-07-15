@@ -4,6 +4,7 @@
 #include "WorldConfig.h"
 
 #include <algorithm>
+#include <cstdint>
 #include <filesystem>
 #include <fstream>
 
@@ -13,6 +14,7 @@ namespace
     {
         bool Visible = false;
         unsigned char BlockID = ID::Air;
+        std::array<std::uint8_t, 4> AmbientOcclusion = {255, 255, 255, 255};
     };
 
     bool IsGreedyCubeBlock(const Block& block)
@@ -22,10 +24,17 @@ namespace
 
     bool CanMergeFaces(const GreedyFace& a, const GreedyFace& b)
     {
-        return a.Visible == b.Visible && a.BlockID == b.BlockID;
+        return a.Visible == b.Visible && a.BlockID == b.BlockID && a.AmbientOcclusion == b.AmbientOcclusion && a.AmbientOcclusion == std::array<std::uint8_t, 4>{255, 255, 255, 255};
     }
 
-    void AddGreedyQuad(Geometry* geometry, unsigned char blockID, int face, float minX, float minY, float minZ, float maxX, float maxY, float maxZ)
+    std::uint8_t CalculateAmbientOcclusion(bool side1, bool side2, bool corner)
+    {
+        const int occlusion = side1 && side2 ? 3 : static_cast<int>(side1) + static_cast<int>(side2) + static_cast<int>(corner);
+        constexpr std::array<std::uint8_t, 4> lightLevels = {105, 150, 200, 255};
+        return lightLevels[3 - occlusion];
+    }
+
+    void AddGreedyQuad(Geometry* geometry, unsigned char blockID, int face, float minX, float minY, float minZ, float maxX, float maxY, float maxZ, const std::array<std::uint8_t, 4>& ambientOcclusion)
     {
         unsigned int& offset = geometry->Offset;
         std::array<unsigned char, 6> blockTextures = Blocks::GetTextures(blockID);
@@ -50,40 +59,40 @@ namespace
         switch (face)
         {
             case 0:
-                geometry->Vertices.emplace_back(glm::vec3{maxX, maxY, maxZ}, topRight, glm::vec3{1.0f, 0.0f, 0.0f});
-                geometry->Vertices.emplace_back(glm::vec3{maxX, minY, maxZ}, bottomRight, glm::vec3{1.0f, 0.0f, 0.0f});
-                geometry->Vertices.emplace_back(glm::vec3{maxX, minY, minZ}, bottomLeft, glm::vec3{1.0f, 0.0f, 0.0f});
-                geometry->Vertices.emplace_back(glm::vec3{maxX, maxY, minZ}, topLeft, glm::vec3{1.0f, 0.0f, 0.0f});
+                geometry->Vertices.emplace_back(glm::vec3{maxX, maxY, maxZ}, topRight, glm::vec3{1.0f, 0.0f, 0.0f}, ambientOcclusion[0]);
+                geometry->Vertices.emplace_back(glm::vec3{maxX, minY, maxZ}, bottomRight, glm::vec3{1.0f, 0.0f, 0.0f}, ambientOcclusion[1]);
+                geometry->Vertices.emplace_back(glm::vec3{maxX, minY, minZ}, bottomLeft, glm::vec3{1.0f, 0.0f, 0.0f}, ambientOcclusion[2]);
+                geometry->Vertices.emplace_back(glm::vec3{maxX, maxY, minZ}, topLeft, glm::vec3{1.0f, 0.0f, 0.0f}, ambientOcclusion[3]);
                 break;
             case 1:
-                geometry->Vertices.emplace_back(glm::vec3{minX, maxY, maxZ}, topRight, glm::vec3{-1.0f, 0.0f, 0.0f});
-                geometry->Vertices.emplace_back(glm::vec3{minX, maxY, minZ}, topLeft, glm::vec3{-1.0f, 0.0f, 0.0f});
-                geometry->Vertices.emplace_back(glm::vec3{minX, minY, minZ}, bottomLeft, glm::vec3{-1.0f, 0.0f, 0.0f});
-                geometry->Vertices.emplace_back(glm::vec3{minX, minY, maxZ}, bottomRight, glm::vec3{-1.0f, 0.0f, 0.0f});
+                geometry->Vertices.emplace_back(glm::vec3{minX, maxY, maxZ}, topRight, glm::vec3{-1.0f, 0.0f, 0.0f}, ambientOcclusion[0]);
+                geometry->Vertices.emplace_back(glm::vec3{minX, maxY, minZ}, topLeft, glm::vec3{-1.0f, 0.0f, 0.0f}, ambientOcclusion[1]);
+                geometry->Vertices.emplace_back(glm::vec3{minX, minY, minZ}, bottomLeft, glm::vec3{-1.0f, 0.0f, 0.0f}, ambientOcclusion[2]);
+                geometry->Vertices.emplace_back(glm::vec3{minX, minY, maxZ}, bottomRight, glm::vec3{-1.0f, 0.0f, 0.0f}, ambientOcclusion[3]);
                 break;
             case 2:
-                geometry->Vertices.emplace_back(glm::vec3{maxX, maxY, maxZ}, topLeft, glm::vec3{0.0f, 1.0f, 0.0f});
-                geometry->Vertices.emplace_back(glm::vec3{maxX, maxY, minZ}, topRight, glm::vec3{0.0f, 1.0f, 0.0f});
-                geometry->Vertices.emplace_back(glm::vec3{minX, maxY, minZ}, bottomRight, glm::vec3{0.0f, 1.0f, 0.0f});
-                geometry->Vertices.emplace_back(glm::vec3{minX, maxY, maxZ}, bottomLeft, glm::vec3{0.0f, 1.0f, 0.0f});
+                geometry->Vertices.emplace_back(glm::vec3{maxX, maxY, maxZ}, topLeft, glm::vec3{0.0f, 1.0f, 0.0f}, ambientOcclusion[0]);
+                geometry->Vertices.emplace_back(glm::vec3{maxX, maxY, minZ}, topRight, glm::vec3{0.0f, 1.0f, 0.0f}, ambientOcclusion[1]);
+                geometry->Vertices.emplace_back(glm::vec3{minX, maxY, minZ}, bottomRight, glm::vec3{0.0f, 1.0f, 0.0f}, ambientOcclusion[2]);
+                geometry->Vertices.emplace_back(glm::vec3{minX, maxY, maxZ}, bottomLeft, glm::vec3{0.0f, 1.0f, 0.0f}, ambientOcclusion[3]);
                 break;
             case 3:
-                geometry->Vertices.emplace_back(glm::vec3{maxX, minY, maxZ}, topRight, glm::vec3{0.0f, -1.0f, 0.0f});
-                geometry->Vertices.emplace_back(glm::vec3{minX, minY, maxZ}, bottomRight, glm::vec3{0.0f, -1.0f, 0.0f});
-                geometry->Vertices.emplace_back(glm::vec3{minX, minY, minZ}, bottomLeft, glm::vec3{0.0f, -1.0f, 0.0f});
-                geometry->Vertices.emplace_back(glm::vec3{maxX, minY, minZ}, topLeft, glm::vec3{0.0f, -1.0f, 0.0f});
+                geometry->Vertices.emplace_back(glm::vec3{maxX, minY, maxZ}, topRight, glm::vec3{0.0f, -1.0f, 0.0f}, ambientOcclusion[0]);
+                geometry->Vertices.emplace_back(glm::vec3{minX, minY, maxZ}, bottomRight, glm::vec3{0.0f, -1.0f, 0.0f}, ambientOcclusion[1]);
+                geometry->Vertices.emplace_back(glm::vec3{minX, minY, minZ}, bottomLeft, glm::vec3{0.0f, -1.0f, 0.0f}, ambientOcclusion[2]);
+                geometry->Vertices.emplace_back(glm::vec3{maxX, minY, minZ}, topLeft, glm::vec3{0.0f, -1.0f, 0.0f}, ambientOcclusion[3]);
                 break;
             case 4:
-                geometry->Vertices.emplace_back(glm::vec3{maxX, maxY, maxZ}, topRight, glm::vec3{0.0f, 0.0f, 1.0f});
-                geometry->Vertices.emplace_back(glm::vec3{minX, maxY, maxZ}, topLeft, glm::vec3{0.0f, 0.0f, 1.0f});
-                geometry->Vertices.emplace_back(glm::vec3{minX, minY, maxZ}, bottomLeft, glm::vec3{0.0f, 0.0f, 1.0f});
-                geometry->Vertices.emplace_back(glm::vec3{maxX, minY, maxZ}, bottomRight, glm::vec3{0.0f, 0.0f, 1.0f});
+                geometry->Vertices.emplace_back(glm::vec3{maxX, maxY, maxZ}, topRight, glm::vec3{0.0f, 0.0f, 1.0f}, ambientOcclusion[0]);
+                geometry->Vertices.emplace_back(glm::vec3{minX, maxY, maxZ}, topLeft, glm::vec3{0.0f, 0.0f, 1.0f}, ambientOcclusion[1]);
+                geometry->Vertices.emplace_back(glm::vec3{minX, minY, maxZ}, bottomLeft, glm::vec3{0.0f, 0.0f, 1.0f}, ambientOcclusion[2]);
+                geometry->Vertices.emplace_back(glm::vec3{maxX, minY, maxZ}, bottomRight, glm::vec3{0.0f, 0.0f, 1.0f}, ambientOcclusion[3]);
                 break;
             case 5:
-                geometry->Vertices.emplace_back(glm::vec3{maxX, maxY, minZ}, topRight, glm::vec3{0.0f, 0.0f, -1.0f});
-                geometry->Vertices.emplace_back(glm::vec3{maxX, minY, minZ}, bottomRight, glm::vec3{0.0f, 0.0f, -1.0f});
-                geometry->Vertices.emplace_back(glm::vec3{minX, minY, minZ}, bottomLeft, glm::vec3{0.0f, 0.0f, -1.0f});
-                geometry->Vertices.emplace_back(glm::vec3{minX, maxY, minZ}, topLeft, glm::vec3{0.0f, 0.0f, -1.0f});
+                geometry->Vertices.emplace_back(glm::vec3{maxX, maxY, minZ}, topRight, glm::vec3{0.0f, 0.0f, -1.0f}, ambientOcclusion[0]);
+                geometry->Vertices.emplace_back(glm::vec3{maxX, minY, minZ}, bottomRight, glm::vec3{0.0f, 0.0f, -1.0f}, ambientOcclusion[1]);
+                geometry->Vertices.emplace_back(glm::vec3{minX, minY, minZ}, bottomLeft, glm::vec3{0.0f, 0.0f, -1.0f}, ambientOcclusion[2]);
+                geometry->Vertices.emplace_back(glm::vec3{minX, maxY, minZ}, topLeft, glm::vec3{0.0f, 0.0f, -1.0f}, ambientOcclusion[3]);
                 break;
         }
 
@@ -519,23 +528,83 @@ void Chunk::GenerateMesh()
                     }
                 }
 
-                emitFace(u, v, quadWidth, quadHeight, greedyMask[index].BlockID);
+                emitFace(u, v, quadWidth, quadHeight, greedyMask[index]);
             }
         }
     };
 
-    auto buildFace = [&getLocalBlock, &getNeighborBlock](int x, int y, int z, int dx, int dy, int dz) {
-        GreedyFace face;
+    auto occludesAmbient = [](const Block& block) {
+        return IsGreedyCubeBlock(block);
+    };
+
+    auto calculateCornerAO = [&getNeighborBlock, &occludesAmbient](int x, int y, int z, glm::ivec3 normal, glm::ivec3 side1, glm::ivec3 side2) {
+        const bool sideBlock1 = occludesAmbient(getNeighborBlock(x + normal.x + side1.x, y + normal.y + side1.y, z + normal.z + side1.z));
+        const bool sideBlock2 = occludesAmbient(getNeighborBlock(x + normal.x + side2.x, y + normal.y + side2.y, z + normal.z + side2.z));
+        const bool cornerBlock = occludesAmbient(getNeighborBlock(x + normal.x + side1.x + side2.x, y + normal.y + side1.y + side2.y, z + normal.z + side1.z + side2.z));
+        return CalculateAmbientOcclusion(sideBlock1, sideBlock2, cornerBlock);
+    };
+
+    auto calculateFaceAO = [&calculateCornerAO](int face, int x, int y, int z) -> std::array<std::uint8_t, 4> {
+        switch (face)
+        {
+            case 0:
+                return {
+                    calculateCornerAO(x, y, z, {1, 0, 0}, {0, 1, 0}, {0, 0, 1}),
+                    calculateCornerAO(x, y, z, {1, 0, 0}, {0, -1, 0}, {0, 0, 1}),
+                    calculateCornerAO(x, y, z, {1, 0, 0}, {0, -1, 0}, {0, 0, -1}),
+                    calculateCornerAO(x, y, z, {1, 0, 0}, {0, 1, 0}, {0, 0, -1}),
+                };
+            case 1:
+                return {
+                    calculateCornerAO(x, y, z, {-1, 0, 0}, {0, 1, 0}, {0, 0, 1}),
+                    calculateCornerAO(x, y, z, {-1, 0, 0}, {0, 1, 0}, {0, 0, -1}),
+                    calculateCornerAO(x, y, z, {-1, 0, 0}, {0, -1, 0}, {0, 0, -1}),
+                    calculateCornerAO(x, y, z, {-1, 0, 0}, {0, -1, 0}, {0, 0, 1}),
+                };
+            case 2:
+                return {
+                    calculateCornerAO(x, y, z, {0, 1, 0}, {1, 0, 0}, {0, 0, 1}),
+                    calculateCornerAO(x, y, z, {0, 1, 0}, {1, 0, 0}, {0, 0, -1}),
+                    calculateCornerAO(x, y, z, {0, 1, 0}, {-1, 0, 0}, {0, 0, -1}),
+                    calculateCornerAO(x, y, z, {0, 1, 0}, {-1, 0, 0}, {0, 0, 1}),
+                };
+            case 3:
+                return {
+                    calculateCornerAO(x, y, z, {0, -1, 0}, {1, 0, 0}, {0, 0, 1}),
+                    calculateCornerAO(x, y, z, {0, -1, 0}, {-1, 0, 0}, {0, 0, 1}),
+                    calculateCornerAO(x, y, z, {0, -1, 0}, {-1, 0, 0}, {0, 0, -1}),
+                    calculateCornerAO(x, y, z, {0, -1, 0}, {1, 0, 0}, {0, 0, -1}),
+                };
+            case 4:
+                return {
+                    calculateCornerAO(x, y, z, {0, 0, 1}, {1, 0, 0}, {0, 1, 0}),
+                    calculateCornerAO(x, y, z, {0, 0, 1}, {-1, 0, 0}, {0, 1, 0}),
+                    calculateCornerAO(x, y, z, {0, 0, 1}, {-1, 0, 0}, {0, -1, 0}),
+                    calculateCornerAO(x, y, z, {0, 0, 1}, {1, 0, 0}, {0, -1, 0}),
+                };
+            default:
+                return {
+                    calculateCornerAO(x, y, z, {0, 0, -1}, {1, 0, 0}, {0, 1, 0}),
+                    calculateCornerAO(x, y, z, {0, 0, -1}, {1, 0, 0}, {0, -1, 0}),
+                    calculateCornerAO(x, y, z, {0, 0, -1}, {-1, 0, 0}, {0, -1, 0}),
+                    calculateCornerAO(x, y, z, {0, 0, -1}, {-1, 0, 0}, {0, 1, 0}),
+                };
+        }
+    };
+
+    auto buildFace = [&getLocalBlock, &getNeighborBlock, &calculateFaceAO](int x, int y, int z, int faceIndex, int dx, int dy, int dz) {
+        GreedyFace greedyFace;
         const Block block = getLocalBlock(x, y, z);
         const Block neighbor = getNeighborBlock(x + dx, y + dy, z + dz);
 
         if (IsGreedyCubeBlock(block) && neighbor.IsTransparent)
         {
-            face.Visible = true;
-            face.BlockID = block.ID;
+            greedyFace.Visible = true;
+            greedyFace.BlockID = block.ID;
+            greedyFace.AmbientOcclusion = calculateFaceAO(faceIndex, x, y, z);
         }
 
-        return face;
+        return greedyFace;
     };
 
     const int meshMinY = minBlockY;
@@ -545,49 +614,49 @@ void Chunk::GenerateMesh()
     for (int x = 0; x < CHUNK_WIDTH; x++)
     {
         emitGreedyMask(
-            CHUNK_WIDTH, meshHeight, [&](int z, int y) { return buildFace(x, meshMinY + y, z, 1, 0, 0); },
-            [&](int z, int y, int width, int height, unsigned char blockID) {
+            CHUNK_WIDTH, meshHeight, [&](int z, int y) { return buildFace(x, meshMinY + y, z, 0, 1, 0, 0); },
+            [&](int z, int y, int width, int height, const GreedyFace& face) {
                 y += meshMinY;
-                AddGreedyQuad(&m_Geometry, blockID, 0, x - 0.5f, y - 0.5f, z - 0.5f, x + 0.5f, y + height - 0.5f, z + width - 0.5f);
+                AddGreedyQuad(&m_Geometry, face.BlockID, 0, x - 0.5f, y - 0.5f, z - 0.5f, x + 0.5f, y + height - 0.5f, z + width - 0.5f, face.AmbientOcclusion);
             });
 
         emitGreedyMask(
-            CHUNK_WIDTH, meshHeight, [&](int z, int y) { return buildFace(x, meshMinY + y, z, -1, 0, 0); },
-            [&](int z, int y, int width, int height, unsigned char blockID) {
+            CHUNK_WIDTH, meshHeight, [&](int z, int y) { return buildFace(x, meshMinY + y, z, 1, -1, 0, 0); },
+            [&](int z, int y, int width, int height, const GreedyFace& face) {
                 y += meshMinY;
-                AddGreedyQuad(&m_Geometry, blockID, 1, x - 0.5f, y - 0.5f, z - 0.5f, x + 0.5f, y + height - 0.5f, z + width - 0.5f);
+                AddGreedyQuad(&m_Geometry, face.BlockID, 1, x - 0.5f, y - 0.5f, z - 0.5f, x + 0.5f, y + height - 0.5f, z + width - 0.5f, face.AmbientOcclusion);
             });
     }
 
     for (int y = meshMinY; y <= meshMaxY; y++)
     {
         emitGreedyMask(
-            CHUNK_WIDTH, CHUNK_WIDTH, [&](int x, int z) { return buildFace(x, y, z, 0, 1, 0); },
-            [&](int x, int z, int width, int height, unsigned char blockID) {
-                AddGreedyQuad(&m_Geometry, blockID, 2, x - 0.5f, y - 0.5f, z - 0.5f, x + width - 0.5f, y + 0.5f, z + height - 0.5f);
+            CHUNK_WIDTH, CHUNK_WIDTH, [&](int x, int z) { return buildFace(x, y, z, 2, 0, 1, 0); },
+            [&](int x, int z, int width, int height, const GreedyFace& face) {
+                AddGreedyQuad(&m_Geometry, face.BlockID, 2, x - 0.5f, y - 0.5f, z - 0.5f, x + width - 0.5f, y + 0.5f, z + height - 0.5f, face.AmbientOcclusion);
             });
 
         emitGreedyMask(
-            CHUNK_WIDTH, CHUNK_WIDTH, [&](int x, int z) { return buildFace(x, y, z, 0, -1, 0); },
-            [&](int x, int z, int width, int height, unsigned char blockID) {
-                AddGreedyQuad(&m_Geometry, blockID, 3, x - 0.5f, y - 0.5f, z - 0.5f, x + width - 0.5f, y + 0.5f, z + height - 0.5f);
+            CHUNK_WIDTH, CHUNK_WIDTH, [&](int x, int z) { return buildFace(x, y, z, 3, 0, -1, 0); },
+            [&](int x, int z, int width, int height, const GreedyFace& face) {
+                AddGreedyQuad(&m_Geometry, face.BlockID, 3, x - 0.5f, y - 0.5f, z - 0.5f, x + width - 0.5f, y + 0.5f, z + height - 0.5f, face.AmbientOcclusion);
             });
     }
 
     for (int z = 0; z < CHUNK_WIDTH; z++)
     {
         emitGreedyMask(
-            CHUNK_WIDTH, meshHeight, [&](int x, int y) { return buildFace(x, meshMinY + y, z, 0, 0, 1); },
-            [&](int x, int y, int width, int height, unsigned char blockID) {
+            CHUNK_WIDTH, meshHeight, [&](int x, int y) { return buildFace(x, meshMinY + y, z, 4, 0, 0, 1); },
+            [&](int x, int y, int width, int height, const GreedyFace& face) {
                 y += meshMinY;
-                AddGreedyQuad(&m_Geometry, blockID, 4, x - 0.5f, y - 0.5f, z - 0.5f, x + width - 0.5f, y + height - 0.5f, z + 0.5f);
+                AddGreedyQuad(&m_Geometry, face.BlockID, 4, x - 0.5f, y - 0.5f, z - 0.5f, x + width - 0.5f, y + height - 0.5f, z + 0.5f, face.AmbientOcclusion);
             });
 
         emitGreedyMask(
-            CHUNK_WIDTH, meshHeight, [&](int x, int y) { return buildFace(x, meshMinY + y, z, 0, 0, -1); },
-            [&](int x, int y, int width, int height, unsigned char blockID) {
+            CHUNK_WIDTH, meshHeight, [&](int x, int y) { return buildFace(x, meshMinY + y, z, 5, 0, 0, -1); },
+            [&](int x, int y, int width, int height, const GreedyFace& face) {
                 y += meshMinY;
-                AddGreedyQuad(&m_Geometry, blockID, 5, x - 0.5f, y - 0.5f, z - 0.5f, x + width - 0.5f, y + height - 0.5f, z + 0.5f);
+                AddGreedyQuad(&m_Geometry, face.BlockID, 5, x - 0.5f, y - 0.5f, z - 0.5f, x + width - 0.5f, y + height - 0.5f, z + 0.5f, face.AmbientOcclusion);
             });
     }
 

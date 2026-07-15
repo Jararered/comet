@@ -12,7 +12,12 @@ struct Vertex
 {
     Vertex() = default;
     Vertex(glm::vec3 position, glm::vec2 textureCoordinate, glm::vec3 normal)
-        : PackedPosition(PackPosition(position)), PackedTextureU(PackTextureCoordinate(textureCoordinate.x)), PackedTextureV(PackTextureCoordinate(textureCoordinate.y)), PackedNormal(PackNormal(normal))
+        : Vertex(position, textureCoordinate, normal, 255)
+    {
+    }
+
+    Vertex(glm::vec3 position, glm::vec2 textureCoordinate, glm::vec3 normal, std::uint8_t ambientOcclusion)
+        : PackedPosition(PackPosition(position)), PackedTextureU(PackTextureCoordinate(textureCoordinate.x)), PackedTextureV(PackTextureCoordinate(textureCoordinate.y)), PackedNormal(PackNormal(normal)), AmbientOcclusion(ambientOcclusion)
     {
     }
 
@@ -56,6 +61,7 @@ struct Vertex
     std::int16_t PackedTextureU = 0;
     std::int16_t PackedTextureV = 0;
     std::uint8_t PackedNormal = 4;
+    std::uint8_t AmbientOcclusion = 255;
 
 private:
     static constexpr int PositionScale = 16;
@@ -110,6 +116,7 @@ private:
         }
         return normal.z >= 0.0f ? 4 : 5;
     }
+
 };
 
 static_assert(sizeof(Vertex) <= 12);

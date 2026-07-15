@@ -23,6 +23,11 @@ void ReleaseRaylibCpuMeshData(::Mesh& mesh)
         RL_FREE(mesh.normals);
         mesh.normals = nullptr;
     }
+    if (mesh.colors)
+    {
+        RL_FREE(mesh.colors);
+        mesh.colors = nullptr;
+    }
 }
 
 void PopulateRaylibMesh(::Mesh& mesh, const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices)
@@ -36,6 +41,7 @@ void PopulateRaylibMesh(::Mesh& mesh, const std::vector<Vertex>& vertices, const
     mesh.vertices = static_cast<float*>(RL_MALLOC(vertexCount * 3 * sizeof(float)));
     mesh.texcoords = static_cast<float*>(RL_MALLOC(vertexCount * 2 * sizeof(float)));
     mesh.normals = static_cast<float*>(RL_MALLOC(vertexCount * 3 * sizeof(float)));
+    mesh.colors = static_cast<unsigned char*>(RL_MALLOC(vertexCount * 4 * sizeof(unsigned char)));
     mesh.indices = nullptr;
 
     for (size_t i = 0; i < vertexCount; i++)
@@ -55,6 +61,10 @@ void PopulateRaylibMesh(::Mesh& mesh, const std::vector<Vertex>& vertices, const
         mesh.normals[i * 3 + 0] = normal.x;
         mesh.normals[i * 3 + 1] = normal.y;
         mesh.normals[i * 3 + 2] = normal.z;
+        mesh.colors[i * 4 + 0] = vertex.AmbientOcclusion;
+        mesh.colors[i * 4 + 1] = vertex.AmbientOcclusion;
+        mesh.colors[i * 4 + 2] = vertex.AmbientOcclusion;
+        mesh.colors[i * 4 + 3] = 255;
     }
 }
 

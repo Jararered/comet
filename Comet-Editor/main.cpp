@@ -26,7 +26,7 @@ int main(int argc, char const* argv[])
     // Create player entity and add it to the entity handler
     // Entity handler is now on the world thread
     Player player(&world, engine.Camera());
-    player.SetRenderDistance(15);
+    player.SetRenderDistance(10);
     world.SetMainPlayer(&player);
     engine.Entities().AddToUpdater(&player);
     engine.Entities().AddToFrameUpdater(&player);

@@ -30,6 +30,7 @@ void GameShader::Create(const std::string& vertFile, const std::string& fragFile
     m_Shader.locs[SHADER_LOC_VERTEX_POSITION] = GetShaderLocationAttrib(m_Shader, "vertexPosition");
     m_Shader.locs[SHADER_LOC_VERTEX_TEXCOORD01] = GetShaderLocationAttrib(m_Shader, "vertexTexCoord");
     m_Shader.locs[SHADER_LOC_VERTEX_NORMAL] = GetShaderLocationAttrib(m_Shader, "vertexNormal");
+    m_Shader.locs[SHADER_LOC_VERTEX_COLOR] = GetShaderLocationAttrib(m_Shader, "vertexColor");
     m_Shader.locs[SHADER_LOC_MATRIX_MVP] = GetShaderLocation(m_Shader, "mvp");
     m_Shader.locs[SHADER_LOC_MAP_DIFFUSE] = GetShaderLocation(m_Shader, "texture0");
 
@@ -37,6 +38,7 @@ void GameShader::Create(const std::string& vertFile, const std::string& fragFile
               << " position=" << m_Shader.locs[SHADER_LOC_VERTEX_POSITION]
               << " texcoord=" << m_Shader.locs[SHADER_LOC_VERTEX_TEXCOORD01]
               << " normal=" << m_Shader.locs[SHADER_LOC_VERTEX_NORMAL]
+              << " color=" << m_Shader.locs[SHADER_LOC_VERTEX_COLOR]
               << " mvp=" << m_Shader.locs[SHADER_LOC_MATRIX_MVP]
               << " texture=" << m_Shader.locs[SHADER_LOC_MAP_DIFFUSE] << "\n";
 }

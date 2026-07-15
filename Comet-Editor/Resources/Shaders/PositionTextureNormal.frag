@@ -3,6 +3,7 @@
 in vec3 v_Position;
 in vec2 v_TextureCoordinates;
 in vec3 v_Normal;
+in float v_AmbientOcclusion;
 flat in vec2 v_TextureTile;
 
 uniform sampler2D texture0;
@@ -16,7 +17,7 @@ void main()
 
     // ambient
     float ambientStrength = 1.0;
-    vec3 ambient = ambientStrength * lightColor;
+    vec3 ambient = ambientStrength * lightColor * v_AmbientOcclusion;
 
     // diffuse
     vec3 norm = normalize(v_Normal);
