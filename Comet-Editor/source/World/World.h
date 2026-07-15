@@ -45,7 +45,7 @@ public:
     void SetShader(const GameShader& shader) { m_Shader = shader; }
     void SetSeed(int seed) { ChunkGenerator::SetSeed(seed); }
     long Seed() { return m_Seed; }
-    void ProcessRequestedChunks(glm::ivec3 centerChunkIndex);
+    void ProcessRequestedChunks(glm::ivec3 centerChunkIndex, const Comet::ViewCamera& camera);
 
     const GameShader& GetShader() { return m_Shader; }
 

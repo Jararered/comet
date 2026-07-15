@@ -23,6 +23,79 @@ constexpr int MaxChunkDeletesPerWorldTick = 4;
 constexpr int MaxChunkUnrendersPerWorldTick = 4;
 constexpr auto WorldUpdateInterval = std::chrono::milliseconds(25);
 
+struct Frustum
+{
+    std::array<glm::vec4, 6> Planes;
+};
+
+glm::vec4 MatrixRow(const glm::mat4& matrix, int row)
+{
+    return {
+        matrix[0][row],
+        matrix[1][row],
+        matrix[2][row],
+        matrix[3][row]
+    };
+}
+
+glm::vec4 NormalizePlane(const glm::vec4& plane)
+{
+    const float length = glm::length(glm::vec3(plane));
+    if (length <= 0.0f)
+    {
+        return plane;
+    }
+    return plane / length;
+}
+
+Frustum BuildCameraFrustum(const Comet::ViewCamera& camera)
+{
+    const glm::mat4 viewProjection = camera.ProjMatrix() * camera.ViewMatrix();
+    const glm::vec4 row0 = MatrixRow(viewProjection, 0);
+    const glm::vec4 row1 = MatrixRow(viewProjection, 1);
+    const glm::vec4 row2 = MatrixRow(viewProjection, 2);
+    const glm::vec4 row3 = MatrixRow(viewProjection, 3);
+
+    return {{
+        NormalizePlane(row3 + row0),
+        NormalizePlane(row3 - row0),
+        NormalizePlane(row3 + row1),
+        NormalizePlane(row3 - row1),
+        NormalizePlane(row3 + row2),
+        NormalizePlane(row3 - row2)
+    }};
+}
+
+bool IsChunkColumnVisible(const Frustum& frustum, const glm::ivec3& chunkIndex)
+{
+    const glm::vec3 min = {
+        static_cast<float>(chunkIndex.x * CHUNK_WIDTH) - 0.5f,
+        -0.5f,
+        static_cast<float>(chunkIndex.z * CHUNK_WIDTH) - 0.5f
+    };
+    const glm::vec3 max = {
+        static_cast<float>((chunkIndex.x + 1) * CHUNK_WIDTH) - 0.5f,
+        static_cast<float>(CHUNK_HEIGHT) - 0.5f,
+        static_cast<float>((chunkIndex.z + 1) * CHUNK_WIDTH) - 0.5f
+    };
+
+    for (const glm::vec4& plane : frustum.Planes)
+    {
+        const glm::vec3 positiveVertex = {
+            plane.x >= 0.0f ? max.x : min.x,
+            plane.y >= 0.0f ? max.y : min.y,
+            plane.z >= 0.0f ? max.z : min.z
+        };
+
+        if (glm::dot(glm::vec3(plane), positiveVertex) + plane.w < 0.0f)
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 void PushUnique(std::vector<glm::ivec3>& chunks, const glm::ivec3& chunk)
 {
     if (std::find(chunks.begin(), chunks.end(), chunk) == chunks.end())
@@ -249,7 +322,7 @@ glm::ivec3 World::GetChunkIndex(glm::ivec3 worldCoord)
     return chunkIndex;
 }
 
-void World::ProcessRequestedChunks(glm::ivec3 centerChunkIndex)
+void World::ProcessRequestedChunks(glm::ivec3 centerChunkIndex, const Comet::ViewCamera& camera)
 {
     std::lock_guard lock(m_Lock);
 
@@ -259,6 +332,7 @@ void World::ProcessRequestedChunks(glm::ivec3 centerChunkIndex)
     int chunksToRenderAhead = 1;
     int renderDistance = m_MainPlayer->GetRenderDistance();
     int generateRadius = renderDistance + chunksToRenderAhead;
+    const Frustum cameraFrustum = BuildCameraFrustum(camera);
 
     int lowerx = centerChunkIndex.x - generateRadius;
     int lowerz = centerChunkIndex.z - generateRadius;
@@ -307,7 +381,7 @@ void World::ProcessRequestedChunks(glm::ivec3 centerChunkIndex)
 
             chunksGenerated.insert(index);
             m_ChunksToDelete.erase(index);
-            if (m_ChunkDataMap.find(index) == m_ChunkDataMap.end())
+            if (m_ChunkDataMap.find(index) == m_ChunkDataMap.end() && IsChunkColumnVisible(cameraFrustum, index))
             {
                 m_ChunksToGenerate.push_back(index);
             }
@@ -335,7 +409,7 @@ void World::ProcessRequestedChunks(glm::ivec3 centerChunkIndex)
 
             chunksRendered.insert(index);
             m_ChunksToUnrender.erase(index);
-            if (m_ChunkRenderMap.find(index) == m_ChunkRenderMap.end())
+            if (m_ChunkRenderMap.find(index) == m_ChunkRenderMap.end() && IsChunkColumnVisible(cameraFrustum, index))
             {
                 m_ChunksToRender.push_back(index);
             }

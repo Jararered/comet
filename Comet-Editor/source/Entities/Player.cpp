@@ -103,7 +103,7 @@ void Player::GetRequestedChunks()
     glm::ivec3 newChunkIndex = m_World->GetChunkIndex(position);
     SetChunkIndex(newChunkIndex);
 
-    m_World->ProcessRequestedChunks(newChunkIndex);
+    m_World->ProcessRequestedChunks(newChunkIndex, *m_Camera);
 }
 
 void Player::PlaceBlock()
