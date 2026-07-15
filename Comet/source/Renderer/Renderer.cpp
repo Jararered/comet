@@ -366,90 +366,89 @@ void Renderer::DrawInterfaceQueue()
 
 void Renderer::AddMeshToQueue(glm::ivec3 index, const GameMesh& mesh)
 {
-    QueueLock.AddQueue.lock();
+    std::lock_guard lock(QueueLock.AddQueue);
     Get().m_MeshesToAdd.insert_or_assign(index, mesh);
-    QueueLock.AddQueue.unlock();
 }
 
 void Renderer::AddWaterMeshToQueue(glm::ivec3 index, const GameMesh& mesh)
 {
-    QueueLock.AddQueue.lock();
+    std::lock_guard lock(QueueLock.AddQueue);
     Get().m_WaterMeshesToAdd.insert_or_assign(index, mesh);
-    QueueLock.AddQueue.unlock();
 }
 
 void Renderer::UpdateMeshInQueue(glm::ivec3 index)
 {
-    QueueLock.UpdateQueue.lock();
+    std::lock_guard lock(QueueLock.UpdateQueue);
     Get().m_MeshesToUpdate.insert(index);
-    QueueLock.UpdateQueue.unlock();
 }
 
 void Renderer::DeleteMeshFromQueue(glm::ivec3 index)
 {
-    QueueLock.DeleteQueue.lock();
+    std::lock_guard lock(QueueLock.DeleteQueue);
     Get().m_MeshesToDelete.insert(index);
-    QueueLock.DeleteQueue.unlock();
 }
 
 void Renderer::ProcessMeshQueues()
 {
-    QueueLock.AddQueue.lock();
-    for (const auto& [index, mesh] : Get().m_MeshesToAdd)
     {
-        Get().m_MeshMap.insert_or_assign(index, mesh);
-        Get().m_BatchesToUpdate.insert(BatchIndexForChunk(index));
-    }
-    Get().m_MeshesToAdd.clear();
-    for (const auto& [index, mesh] : Get().m_WaterMeshesToAdd)
-    {
-        if (mesh.GetIndices().empty())
+        std::lock_guard lock(QueueLock.AddQueue);
+        for (const auto& [index, mesh] : Get().m_MeshesToAdd)
         {
-            if (auto entry = Get().m_WaterMeshMap.find(index); entry != Get().m_WaterMeshMap.end())
+            Get().m_MeshMap.insert_or_assign(index, mesh);
+            Get().m_BatchesToUpdate.insert(BatchIndexForChunk(index));
+        }
+        Get().m_MeshesToAdd.clear();
+        for (const auto& [index, mesh] : Get().m_WaterMeshesToAdd)
+        {
+            if (mesh.GetIndices().empty())
             {
-                Get().m_WaterMeshMap.erase(entry);
+                if (auto entry = Get().m_WaterMeshMap.find(index); entry != Get().m_WaterMeshMap.end())
+                {
+                    Get().m_WaterMeshMap.erase(entry);
+                    Get().m_BatchesToUpdate.insert(BatchIndexForChunk(index));
+                }
+                continue;
+            }
+
+            Get().m_WaterMeshMap.insert_or_assign(index, mesh);
+            Get().m_BatchesToUpdate.insert(BatchIndexForChunk(index));
+        }
+        Get().m_WaterMeshesToAdd.clear();
+    }
+
+    {
+        std::lock_guard lock(QueueLock.UpdateQueue);
+        for (const auto& index : Get().m_MeshesToUpdate)
+        {
+            if (auto entry = Get().m_MeshMap.find(index); entry != Get().m_MeshMap.end())
+            {
                 Get().m_BatchesToUpdate.insert(BatchIndexForChunk(index));
             }
-            continue;
+            if (auto entry = Get().m_WaterMeshMap.find(index); entry != Get().m_WaterMeshMap.end())
+            {
+                Get().m_BatchesToUpdate.insert(BatchIndexForChunk(index));
+            }
         }
+        Get().m_MeshesToUpdate.clear();
+    } 
 
-        Get().m_WaterMeshMap.insert_or_assign(index, mesh);
-        Get().m_BatchesToUpdate.insert(BatchIndexForChunk(index));
-    }
-    Get().m_WaterMeshesToAdd.clear();
-    QueueLock.AddQueue.unlock();
-
-    QueueLock.UpdateQueue.lock();
-    for (const auto& index : Get().m_MeshesToUpdate)
     {
-        if (auto entry = Get().m_MeshMap.find(index); entry != Get().m_MeshMap.end())
+        std::lock_guard lock(QueueLock.DeleteQueue);
+        for (const auto& index : Get().m_MeshesToDelete)
         {
-            Get().m_BatchesToUpdate.insert(BatchIndexForChunk(index));
+            if (auto entry = Get().m_MeshMap.find(index); entry != Get().m_MeshMap.end())
+            {
+                Get().m_MeshMap.erase(index);
+                Get().m_BatchesToUpdate.insert(BatchIndexForChunk(index));
+            }
+            if (auto entry = Get().m_WaterMeshMap.find(index); entry != Get().m_WaterMeshMap.end())
+            {
+                Get().m_WaterMeshMap.erase(index);
+                Get().m_BatchesToUpdate.insert(BatchIndexForChunk(index));
+            }
         }
-        if (auto entry = Get().m_WaterMeshMap.find(index); entry != Get().m_WaterMeshMap.end())
-        {
-            Get().m_BatchesToUpdate.insert(BatchIndexForChunk(index));
-        }
+        Get().m_MeshesToDelete.clear();
     }
-    Get().m_MeshesToUpdate.clear();
-    QueueLock.UpdateQueue.unlock();
-
-    QueueLock.DeleteQueue.lock();
-    for (const auto& index : Get().m_MeshesToDelete)
-    {
-        if (auto entry = Get().m_MeshMap.find(index); entry != Get().m_MeshMap.end())
-        {
-            Get().m_MeshMap.erase(index);
-            Get().m_BatchesToUpdate.insert(BatchIndexForChunk(index));
-        }
-        if (auto entry = Get().m_WaterMeshMap.find(index); entry != Get().m_WaterMeshMap.end())
-        {
-            Get().m_WaterMeshMap.erase(index);
-            Get().m_BatchesToUpdate.insert(BatchIndexForChunk(index));
-        }
-    }
-    Get().m_MeshesToDelete.clear();
-    QueueLock.DeleteQueue.unlock();
 
     int rebuiltBatchCount = 0;
     for (auto batchIt = Get().m_BatchesToUpdate.begin(); batchIt != Get().m_BatchesToUpdate.end() && rebuiltBatchCount < MaxBatchRebuildsPerFrame;)
