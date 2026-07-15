@@ -70,7 +70,8 @@ private:
     std::unordered_map<glm::ivec3, GameMesh> m_WaterMeshesToAdd;
     std::unordered_set<glm::ivec3> m_MeshesToUpdate;
     std::unordered_set<glm::ivec3> m_MeshesToDelete;
-    std::unordered_set<glm::ivec3> m_BatchesToUpdate;
+    std::unordered_set<glm::ivec3> m_MeshBatchesToUpdate;
+    std::unordered_set<glm::ivec3> m_WaterBatchesToUpdate;
 
     ::Material m_BlockMaterial = {0};
     int m_OverlayColorLocation = -1;

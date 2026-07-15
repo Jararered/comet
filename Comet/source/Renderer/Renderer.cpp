@@ -198,6 +198,21 @@ void RebuildBatchMesh(
     batchMeshes.insert_or_assign(batchIndex, batchMesh);
     batchMeshes.at(batchIndex).Initialize();
 }
+
+void RebuildDirtyBatchMeshes(
+    std::unordered_set<glm::ivec3>& batchesToUpdate,
+    const std::unordered_map<glm::ivec3, GameMesh>& chunkMeshes,
+    std::unordered_map<glm::ivec3, GameMesh>& batchMeshes)
+{
+    int rebuiltBatchCount = 0;
+    for (auto batchIt = batchesToUpdate.begin(); batchIt != batchesToUpdate.end() && rebuiltBatchCount < MaxBatchRebuildsPerFrame;)
+    {
+        const glm::ivec3 batchIndex = *batchIt;
+        RebuildBatchMesh(batchIndex, chunkMeshes, batchMeshes);
+        batchIt = batchesToUpdate.erase(batchIt);
+        rebuiltBatchCount++;
+    }
+}
 }
 
 void Renderer::Initialize()
@@ -427,7 +442,7 @@ void Renderer::ProcessMeshQueues()
         for (const auto& [index, mesh] : Get().m_MeshesToAdd)
         {
             Get().m_MeshMap.insert_or_assign(index, mesh);
-            Get().m_BatchesToUpdate.insert(BatchIndexForChunk(index));
+            Get().m_MeshBatchesToUpdate.insert(BatchIndexForChunk(index));
         }
         Get().m_MeshesToAdd.clear();
         for (const auto& [index, mesh] : Get().m_WaterMeshesToAdd)
@@ -437,13 +452,13 @@ void Renderer::ProcessMeshQueues()
                 if (auto entry = Get().m_WaterMeshMap.find(index); entry != Get().m_WaterMeshMap.end())
                 {
                     Get().m_WaterMeshMap.erase(entry);
-                    Get().m_BatchesToUpdate.insert(BatchIndexForChunk(index));
+                    Get().m_WaterBatchesToUpdate.insert(BatchIndexForChunk(index));
                 }
                 continue;
             }
 
             Get().m_WaterMeshMap.insert_or_assign(index, mesh);
-            Get().m_BatchesToUpdate.insert(BatchIndexForChunk(index));
+            Get().m_WaterBatchesToUpdate.insert(BatchIndexForChunk(index));
         }
         Get().m_WaterMeshesToAdd.clear();
     }
@@ -454,11 +469,11 @@ void Renderer::ProcessMeshQueues()
         {
             if (auto entry = Get().m_MeshMap.find(index); entry != Get().m_MeshMap.end())
             {
-                Get().m_BatchesToUpdate.insert(BatchIndexForChunk(index));
+                Get().m_MeshBatchesToUpdate.insert(BatchIndexForChunk(index));
             }
             if (auto entry = Get().m_WaterMeshMap.find(index); entry != Get().m_WaterMeshMap.end())
             {
-                Get().m_BatchesToUpdate.insert(BatchIndexForChunk(index));
+                Get().m_WaterBatchesToUpdate.insert(BatchIndexForChunk(index));
             }
         }
         Get().m_MeshesToUpdate.clear();
@@ -471,26 +486,19 @@ void Renderer::ProcessMeshQueues()
             if (auto entry = Get().m_MeshMap.find(index); entry != Get().m_MeshMap.end())
             {
                 Get().m_MeshMap.erase(index);
-                Get().m_BatchesToUpdate.insert(BatchIndexForChunk(index));
+                Get().m_MeshBatchesToUpdate.insert(BatchIndexForChunk(index));
             }
             if (auto entry = Get().m_WaterMeshMap.find(index); entry != Get().m_WaterMeshMap.end())
             {
                 Get().m_WaterMeshMap.erase(index);
-                Get().m_BatchesToUpdate.insert(BatchIndexForChunk(index));
+                Get().m_WaterBatchesToUpdate.insert(BatchIndexForChunk(index));
             }
         }
         Get().m_MeshesToDelete.clear();
     }
 
-    int rebuiltBatchCount = 0;
-    for (auto batchIt = Get().m_BatchesToUpdate.begin(); batchIt != Get().m_BatchesToUpdate.end() && rebuiltBatchCount < MaxBatchRebuildsPerFrame;)
-    {
-        const glm::ivec3 batchIndex = *batchIt;
-        RebuildBatchMesh(batchIndex, Get().m_MeshMap, Get().m_BatchedMeshMap);
-        RebuildBatchMesh(batchIndex, Get().m_WaterMeshMap, Get().m_BatchedWaterMeshMap);
-        batchIt = Get().m_BatchesToUpdate.erase(batchIt);
-        rebuiltBatchCount++;
-    }
+    RebuildDirtyBatchMeshes(Get().m_MeshBatchesToUpdate, Get().m_MeshMap, Get().m_BatchedMeshMap);
+    RebuildDirtyBatchMeshes(Get().m_WaterBatchesToUpdate, Get().m_WaterMeshMap, Get().m_BatchedWaterMeshMap);
 }
 
 void Renderer::Update()
