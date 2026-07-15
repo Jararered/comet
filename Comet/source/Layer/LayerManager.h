@@ -7,27 +7,16 @@
 class LayerManager
 {
 public:
-    inline static auto& Get()
+    void AddLayer(Layer* layer) { m_Layers.insert(layer); }
+    void RemoveLayer(Layer* layer) { m_Layers.erase(layer); }
+    void Draw()
     {
-        static LayerManager instance;
-        return instance;
-    }
-
-    static void Initialize();
-    static void AddLayer(Layer* layer) { Get().m_Layers.insert(layer); }
-    static void RemoveLayer(Layer* layer) { Get().m_Layers.erase(layer); }
-    static void Draw()
-    {
-        for (const auto& layer : Get().m_Layers)
+        for (const auto& layer : m_Layers)
         {
             layer->Draw();
         }
     }
 
 private:
-    LayerManager() {}
-    LayerManager(LayerManager const&);
-    void operator=(LayerManager const&);
-
     std::unordered_set<Layer*> m_Layers;
 };

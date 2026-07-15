@@ -11,11 +11,13 @@ class Settings : public Layer
 {
 public:
     Settings() = default;
-    Settings(World* world) : m_World(world) {}
+    Settings(World* world, Renderer* renderer, Comet::ViewCamera* camera) : m_World(world), m_Renderer(renderer), m_Camera(camera) {}
     ~Settings() = default;
 
     void Draw() override;
 
 private:
     World* m_World = nullptr;
+    Renderer* m_Renderer = nullptr;
+    Comet::ViewCamera* m_Camera = nullptr;
 };

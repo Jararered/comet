@@ -8,8 +8,6 @@
 #include <utility>
 #include <vector>
 
-RenderLock Renderer::QueueLock;
-
 namespace
 {
 constexpr int ChunkWidth = 16;
@@ -70,9 +68,9 @@ glm::vec4 NormalizePlane(const glm::vec4& plane)
     return plane / length;
 }
 
-Frustum BuildCameraFrustum()
+Frustum BuildCameraFrustum(const Comet::ViewCamera& camera)
 {
-    const glm::mat4 viewProjection = Comet::ViewCamera::ProjMatrix() * Comet::ViewCamera::ViewMatrix();
+    const glm::mat4 viewProjection = camera.ProjMatrix() * camera.ViewMatrix();
     const glm::vec4 row0 = MatrixRow(viewProjection, 0);
     const glm::vec4 row1 = MatrixRow(viewProjection, 1);
     const glm::vec4 row2 = MatrixRow(viewProjection, 2);
@@ -217,8 +215,6 @@ void RebuildDirtyBatchMeshes(
 
 void Renderer::Initialize()
 {
-    Get();
-
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
@@ -231,28 +227,26 @@ void Renderer::Initialize()
 
 void Renderer::Finalize()
 {
-    auto& renderer = Get();
-
-    for (auto& [index, mesh] : renderer.m_MeshMap)
+    for (auto& [index, mesh] : m_MeshMap)
     {
         mesh.Finalize();
     }
-    renderer.m_MeshMap.clear();
-    for (auto& [index, mesh] : renderer.m_WaterMeshMap)
+    m_MeshMap.clear();
+    for (auto& [index, mesh] : m_WaterMeshMap)
     {
         mesh.Finalize();
     }
-    renderer.m_WaterMeshMap.clear();
-    for (auto& [index, mesh] : renderer.m_BatchedMeshMap)
+    m_WaterMeshMap.clear();
+    for (auto& [index, mesh] : m_BatchedMeshMap)
     {
         mesh.Finalize();
     }
-    renderer.m_BatchedMeshMap.clear();
-    for (auto& [index, mesh] : renderer.m_BatchedWaterMeshMap)
+    m_BatchedMeshMap.clear();
+    for (auto& [index, mesh] : m_BatchedWaterMeshMap)
     {
         mesh.Finalize();
     }
-    renderer.m_BatchedWaterMeshMap.clear();
+    m_BatchedWaterMeshMap.clear();
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui::DestroyContext();
@@ -260,13 +254,12 @@ void Renderer::Finalize()
 
 void Renderer::SetBlockMaterial(const ::Material& mat)
 {
-    auto& renderer = Get();
-    renderer.m_BlockMaterial = mat;
-    renderer.m_OverlayColorLocation = -1;
+    m_BlockMaterial = mat;
+    m_OverlayColorLocation = -1;
 
-    if (renderer.m_BlockMaterial.shader.id > 0)
+    if (m_BlockMaterial.shader.id > 0)
     {
-        renderer.m_OverlayColorLocation = GetShaderLocation(renderer.m_BlockMaterial.shader, "u_OverlayColor");
+        m_OverlayColorLocation = GetShaderLocation(m_BlockMaterial.shader, "u_OverlayColor");
     }
 }
 
@@ -274,38 +267,38 @@ void Renderer::NewFrame()
 {
     BeginDrawing();
     ClearBackground(Color{
-        static_cast<unsigned char>(Get().m_BackgroundColor.x * 255),
-        static_cast<unsigned char>(Get().m_BackgroundColor.y * 255),
-        static_cast<unsigned char>(Get().m_BackgroundColor.z * 255),
+        static_cast<unsigned char>(m_BackgroundColor.x * 255),
+        static_cast<unsigned char>(m_BackgroundColor.y * 255),
+        static_cast<unsigned char>(m_BackgroundColor.z * 255),
         255
     });
 }
 
-void Renderer::DrawMeshQueue()
+void Renderer::DrawMeshQueue(Comet::ViewCamera& camera)
 {
     size_t drawCallCount = 0;
     ProcessMeshQueues();
 
-    Comet::ViewCamera::Update();
-    const Frustum cameraFrustum = BuildCameraFrustum();
-    ::Camera3D raylibCam = Comet::ViewCamera::GetRaylibCamera();
+    camera.Update();
+    const Frustum cameraFrustum = BuildCameraFrustum(camera);
+    ::Camera3D raylibCam = camera.GetRaylibCamera();
     BeginMode3D(raylibCam);
     rlDisableBackfaceCulling();
 
-    if (Get().m_BlockMaterial.shader.id > 0)
+    if (m_BlockMaterial.shader.id > 0)
     {
-        if (Get().m_WireMeshEnabled)
+        if (m_WireMeshEnabled)
         {
             rlEnableWireMode();
         }
 
-        ::Shader rShader = Get().m_BlockMaterial.shader;
-        if (Get().m_OverlayColorLocation >= 0)
+        ::Shader rShader = m_BlockMaterial.shader;
+        if (m_OverlayColorLocation >= 0)
         {
-            SetShaderValue(rShader, Get().m_OverlayColorLocation, &Get().m_OverlayColor, SHADER_UNIFORM_VEC3);
+            SetShaderValue(rShader, m_OverlayColorLocation, &m_OverlayColor, SHADER_UNIFORM_VEC3);
         }
 
-        auto drawVisibleBatch = [&drawCallCount](const glm::ivec3& index, GameMesh& mesh)
+        auto drawVisibleBatch = [this, &drawCallCount](const glm::ivec3& index, GameMesh& mesh)
         {
             mesh.Update();
 
@@ -315,7 +308,7 @@ void Renderer::DrawMeshQueue()
                 BatchWorldOffset(index).z
             );
 
-            DrawMesh(mesh.GetRaylibMesh(), Get().m_BlockMaterial, transform);
+            DrawMesh(mesh.GetRaylibMesh(), m_BlockMaterial, transform);
             drawCallCount++;
         };
 
@@ -330,14 +323,14 @@ void Renderer::DrawMeshQueue()
             return true;
         };
 
-        for (auto& [index, mesh] : Get().m_BatchedMeshMap)
+        for (auto& [index, mesh] : m_BatchedMeshMap)
         {
             drawVisibleChunkMesh(index, mesh);
         }
 
         std::vector<std::pair<glm::ivec3, GameMesh*>> visibleWaterBatches;
-        visibleWaterBatches.reserve(Get().m_BatchedWaterMeshMap.size());
-        for (auto& [index, mesh] : Get().m_BatchedWaterMeshMap)
+        visibleWaterBatches.reserve(m_BatchedWaterMeshMap.size());
+        for (auto& [index, mesh] : m_BatchedWaterMeshMap)
         {
             if (IsMeshVisible(cameraFrustum, index, mesh))
             {
@@ -358,7 +351,7 @@ void Renderer::DrawMeshQueue()
             rlEnableDepthMask();
         }
 
-        if (Get().m_WireMeshEnabled)
+        if (m_WireMeshEnabled)
         {
             rlDisableWireMode();
         }
@@ -369,7 +362,7 @@ void Renderer::DrawMeshQueue()
     SetDrawCallsPerFrame(drawCallCount);
 }
 
-void Renderer::DrawInterfaceQueue()
+void Renderer::DrawInterfaceQueue(LayerManager& layerManager)
 {
     ImGuiIO& io = ImGui::GetIO();
     io.DisplaySize = ImVec2(static_cast<float>(GetScreenWidth()), static_cast<float>(GetScreenHeight()));
@@ -404,7 +397,7 @@ void Renderer::DrawInterfaceQueue()
     ImGui_ImplOpenGL3_NewFrame();
     ImGui::NewFrame();
 
-    LayerManager::Draw();
+    layerManager.Draw();
 
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -413,99 +406,99 @@ void Renderer::DrawInterfaceQueue()
 
 void Renderer::AddMeshToQueue(glm::ivec3 index, const GameMesh& mesh)
 {
-    std::lock_guard lock(QueueLock.AddQueue);
-    Get().m_MeshesToAdd.insert_or_assign(index, mesh);
+    std::lock_guard lock(m_QueueLock.AddQueue);
+    m_MeshesToAdd.insert_or_assign(index, mesh);
 }
 
 void Renderer::AddWaterMeshToQueue(glm::ivec3 index, const GameMesh& mesh)
 {
-    std::lock_guard lock(QueueLock.AddQueue);
-    Get().m_WaterMeshesToAdd.insert_or_assign(index, mesh);
+    std::lock_guard lock(m_QueueLock.AddQueue);
+    m_WaterMeshesToAdd.insert_or_assign(index, mesh);
 }
 
 void Renderer::UpdateMeshInQueue(glm::ivec3 index)
 {
-    std::lock_guard lock(QueueLock.UpdateQueue);
-    Get().m_MeshesToUpdate.insert(index);
+    std::lock_guard lock(m_QueueLock.UpdateQueue);
+    m_MeshesToUpdate.insert(index);
 }
 
 void Renderer::DeleteMeshFromQueue(glm::ivec3 index)
 {
-    std::lock_guard lock(QueueLock.DeleteQueue);
-    Get().m_MeshesToDelete.insert(index);
+    std::lock_guard lock(m_QueueLock.DeleteQueue);
+    m_MeshesToDelete.insert(index);
 }
 
 void Renderer::ProcessMeshQueues()
 {
     {
-        std::lock_guard lock(QueueLock.AddQueue);
-        for (const auto& [index, mesh] : Get().m_MeshesToAdd)
+        std::lock_guard lock(m_QueueLock.AddQueue);
+        for (const auto& [index, mesh] : m_MeshesToAdd)
         {
-            Get().m_MeshMap.insert_or_assign(index, mesh);
-            Get().m_MeshBatchesToUpdate.insert(BatchIndexForChunk(index));
+            m_MeshMap.insert_or_assign(index, mesh);
+            m_MeshBatchesToUpdate.insert(BatchIndexForChunk(index));
         }
-        Get().m_MeshesToAdd.clear();
-        for (const auto& [index, mesh] : Get().m_WaterMeshesToAdd)
+        m_MeshesToAdd.clear();
+        for (const auto& [index, mesh] : m_WaterMeshesToAdd)
         {
             if (mesh.GetIndices().empty())
             {
-                if (auto entry = Get().m_WaterMeshMap.find(index); entry != Get().m_WaterMeshMap.end())
+                if (auto entry = m_WaterMeshMap.find(index); entry != m_WaterMeshMap.end())
                 {
-                    Get().m_WaterMeshMap.erase(entry);
-                    Get().m_WaterBatchesToUpdate.insert(BatchIndexForChunk(index));
+                    m_WaterMeshMap.erase(entry);
+                    m_WaterBatchesToUpdate.insert(BatchIndexForChunk(index));
                 }
                 continue;
             }
 
-            Get().m_WaterMeshMap.insert_or_assign(index, mesh);
-            Get().m_WaterBatchesToUpdate.insert(BatchIndexForChunk(index));
+            m_WaterMeshMap.insert_or_assign(index, mesh);
+            m_WaterBatchesToUpdate.insert(BatchIndexForChunk(index));
         }
-        Get().m_WaterMeshesToAdd.clear();
+        m_WaterMeshesToAdd.clear();
     }
 
     {
-        std::lock_guard lock(QueueLock.UpdateQueue);
-        for (const auto& index : Get().m_MeshesToUpdate)
+        std::lock_guard lock(m_QueueLock.UpdateQueue);
+        for (const auto& index : m_MeshesToUpdate)
         {
-            if (auto entry = Get().m_MeshMap.find(index); entry != Get().m_MeshMap.end())
+            if (auto entry = m_MeshMap.find(index); entry != m_MeshMap.end())
             {
-                Get().m_MeshBatchesToUpdate.insert(BatchIndexForChunk(index));
+                m_MeshBatchesToUpdate.insert(BatchIndexForChunk(index));
             }
-            if (auto entry = Get().m_WaterMeshMap.find(index); entry != Get().m_WaterMeshMap.end())
+            if (auto entry = m_WaterMeshMap.find(index); entry != m_WaterMeshMap.end())
             {
-                Get().m_WaterBatchesToUpdate.insert(BatchIndexForChunk(index));
+                m_WaterBatchesToUpdate.insert(BatchIndexForChunk(index));
             }
         }
-        Get().m_MeshesToUpdate.clear();
+        m_MeshesToUpdate.clear();
     } 
 
     {
-        std::lock_guard lock(QueueLock.DeleteQueue);
-        for (const auto& index : Get().m_MeshesToDelete)
+        std::lock_guard lock(m_QueueLock.DeleteQueue);
+        for (const auto& index : m_MeshesToDelete)
         {
-            if (auto entry = Get().m_MeshMap.find(index); entry != Get().m_MeshMap.end())
+            if (auto entry = m_MeshMap.find(index); entry != m_MeshMap.end())
             {
-                Get().m_MeshMap.erase(index);
-                Get().m_MeshBatchesToUpdate.insert(BatchIndexForChunk(index));
+                m_MeshMap.erase(index);
+                m_MeshBatchesToUpdate.insert(BatchIndexForChunk(index));
             }
-            if (auto entry = Get().m_WaterMeshMap.find(index); entry != Get().m_WaterMeshMap.end())
+            if (auto entry = m_WaterMeshMap.find(index); entry != m_WaterMeshMap.end())
             {
-                Get().m_WaterMeshMap.erase(index);
-                Get().m_WaterBatchesToUpdate.insert(BatchIndexForChunk(index));
+                m_WaterMeshMap.erase(index);
+                m_WaterBatchesToUpdate.insert(BatchIndexForChunk(index));
             }
         }
-        Get().m_MeshesToDelete.clear();
+        m_MeshesToDelete.clear();
     }
 
-    RebuildDirtyBatchMeshes(Get().m_MeshBatchesToUpdate, Get().m_MeshMap, Get().m_BatchedMeshMap);
-    RebuildDirtyBatchMeshes(Get().m_WaterBatchesToUpdate, Get().m_WaterMeshMap, Get().m_BatchedWaterMeshMap);
+    RebuildDirtyBatchMeshes(m_MeshBatchesToUpdate, m_MeshMap, m_BatchedMeshMap);
+    RebuildDirtyBatchMeshes(m_WaterBatchesToUpdate, m_WaterMeshMap, m_BatchedWaterMeshMap);
 }
 
-void Renderer::Update()
+void Renderer::Update(LayerManager& layerManager, Comet::ViewCamera& camera)
 {
     NewFrame();
-    DrawMeshQueue();
+    DrawMeshQueue(camera);
     rlDrawRenderBatchActive();
-    DrawInterfaceQueue();
+    DrawInterfaceQueue(layerManager);
     EndDrawing();
 }

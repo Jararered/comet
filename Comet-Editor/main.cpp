@@ -20,32 +20,32 @@ int main(int argc, char const* argv[])
     Engine engine;
 
     // Starting world thread and configuring
-    World world("world", 34985);
+    World world("world", 34985, engine.Entities(), engine.GetRenderer());
     world.Initialize();
 
     // Create player entity and add it to the entity handler
     // Entity handler is now on the world thread
-    Player player(&world);
+    Player player(&world, engine.Camera());
     player.SetRenderDistance(15);
     world.SetMainPlayer(&player);
-    EntityManager::AddToUpdater(&player);
-    EntityManager::AddToFrameUpdater(&player);
+    engine.Entities().AddToUpdater(&player);
+    engine.Entities().AddToFrameUpdater(&player);
 
     // Create the debugging menu
-    Settings settings(&world);
+    Settings settings(&world, &engine.GetRenderer(), &engine.Camera());
     Crosshair crosshair;
-    LayerManager::AddLayer(&settings);
-    LayerManager::AddLayer(&crosshair);
+    engine.Layers().AddLayer(&settings);
+    engine.Layers().AddLayer(&crosshair);
 
     // Starting main engine thread
     engine.Initialize();
 
     // Ending threads
     world.Finalize();
-    EntityManager::RemoveFromFrameUpdater(&player);
-    EntityManager::RemoveFromUpdater(&player);
-    LayerManager::RemoveLayer(&crosshair);
-    LayerManager::RemoveLayer(&settings);
+    engine.Entities().RemoveFromFrameUpdater(&player);
+    engine.Entities().RemoveFromUpdater(&player);
+    engine.Layers().RemoveLayer(&crosshair);
+    engine.Layers().RemoveLayer(&settings);
 
     return 0;
 }

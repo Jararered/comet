@@ -17,12 +17,12 @@
 #include <vector>
 
 class Player;
+class EntityManager;
 
 class World
 {
 public:
-    World() = default;
-    World(std::string folderName, long seed);
+    World(std::string folderName, long seed, EntityManager& entityManager, Renderer& renderer);
     ~World();
 
     void Initialize();
@@ -69,5 +69,7 @@ private:
 
     std::thread m_Thread;
 
+    EntityManager& m_EntityManager;
+    Renderer& m_Renderer;
     Player* m_MainPlayer = nullptr;
 };

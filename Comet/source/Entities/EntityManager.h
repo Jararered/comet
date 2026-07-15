@@ -7,43 +7,31 @@
 class EntityManager
 {
 public:
-    inline static auto& Get()
-    {
-        static EntityManager instance;
-        return instance;
-    }
+    void AddToUpdater(Entity* entity) { m_Updates.insert(entity); }
+    void AddToFrameUpdater(Entity* entity) { m_FrameUpdates.insert(entity); }
 
-    static void Initialize() { Get(); }
-
-    static void AddToUpdater(Entity* entity) { Get().m_Updates.insert(entity); }
-    static void AddToFrameUpdater(Entity* entity) { Get().m_FrameUpdates.insert(entity); }
-
-    static void RemoveFromUpdater(Entity* entity) { Get().m_Updates.erase(entity); }
-    static void RemoveFromFrameUpdater(Entity* entity) { Get().m_FrameUpdates.erase(entity); }
+    void RemoveFromUpdater(Entity* entity) { m_Updates.erase(entity); }
+    void RemoveFromFrameUpdater(Entity* entity) { m_FrameUpdates.erase(entity); }
 
     // Should be called from the engine loop, not the game loop
-    static void Update()
+    void Update()
     {
-        for (const auto& entity : Get().m_Updates)
+        for (const auto& entity : m_Updates)
         {
             entity->Update();
         }
     }
 
     // Should be called from the game loop, not the engine loop
-    static void FrameUpdate(float dt)
+    void FrameUpdate(float dt)
     {
-        for (const auto& entity : Get().m_FrameUpdates)
+        for (const auto& entity : m_FrameUpdates)
         {
             entity->FrameUpdate(dt);
         }
     }
 
 private:
-    EntityManager() {}
-    EntityManager(EntityManager const&);
-    void operator=(EntityManager const&);
-
     std::unordered_set<Entity*> m_Updates;
     std::unordered_set<Entity*> m_FrameUpdates;
 };

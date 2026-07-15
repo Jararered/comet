@@ -12,13 +12,13 @@
 #include <memory>
 #include <print>
 
-World::World(std::string folderName, long seed) : m_FolderName(folderName), m_Seed(seed)
+World::World(std::string folderName, long seed, EntityManager& entityManager, Renderer& renderer)
+    : m_FolderName(folderName), m_Seed(seed), m_EntityManager(entityManager), m_Renderer(renderer)
 {
     std::filesystem::create_directory(folderName);
 
     ChunkGenerator::Initialize();
     Blocks::Initialize();
-    EntityManager::Initialize();
 
     const std::filesystem::path res = EditorResourcesRoot();
 
@@ -35,7 +35,7 @@ World::World(std::string folderName, long seed) : m_FolderName(folderName), m_Se
     ::Material mat = LoadMaterialDefault();
     mat.shader = m_Shader.GetID();
     SetMaterialTexture(&mat, MATERIAL_MAP_DIFFUSE, m_Texture.GetTexture());
-    Renderer::SetBlockMaterial(mat);
+    m_Renderer.SetBlockMaterial(mat);
 
     SetSeed(seed);
 
@@ -63,7 +63,7 @@ void World::Update()
 {
     while (m_Running)
     {
-        EntityManager::Update();
+        m_EntityManager.Update();
 
         Generate();
 
@@ -323,7 +323,7 @@ void World::Generate()
 
     for (const auto& index : m_ChunksToUnrender)
     {
-        Renderer::DeleteMeshFromQueue(index);
+        m_Renderer.DeleteMeshFromQueue(index);
 
         m_ChunkRenderMap.erase(index);
     }
@@ -337,8 +337,8 @@ void World::GenerateMesh(glm::ivec3 index)
     std::shared_ptr<Chunk> chunk = m_ChunkDataMap.at(index);
     GameMesh mesh(&chunk->GetGeometry()->Vertices, &chunk->GetGeometry()->Indices, &m_Shader);
     GameMesh waterMesh(&chunk->GetWaterGeometry()->Vertices, &chunk->GetWaterGeometry()->Indices, &m_Shader);
-    Renderer::AddMeshToQueue(index, mesh);
-    Renderer::AddWaterMeshToQueue(index, waterMesh);
+    m_Renderer.AddMeshToQueue(index, mesh);
+    m_Renderer.AddWaterMeshToQueue(index, waterMesh);
 }
 
 void World::SetMainPlayer(Player* player)

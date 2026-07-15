@@ -25,35 +25,27 @@ struct RenderLock
 class Renderer
 {
 public:
-    inline static auto& Get()
-    {
-        static Renderer instance;
-        return instance;
-    }
+    Renderer() = default;
 
-    static RenderLock QueueLock;
+    void Initialize();
+    void Finalize();
+    void Update(LayerManager& layerManager, Comet::ViewCamera& camera);
 
-    static void Initialize();
-    static void Finalize();
-    static void Update();
+    void NewFrame();
+    void DrawMeshQueue(Comet::ViewCamera& camera);
+    void DrawInterfaceQueue(LayerManager& layerManager);
 
-    static void NewFrame();
-    static void DrawMeshQueue();
-    static void DrawInterfaceQueue();
+    void AddMeshToQueue(glm::ivec3 index, const GameMesh& mesh);
+    void AddWaterMeshToQueue(glm::ivec3 index, const GameMesh& mesh);
+    void UpdateMeshInQueue(glm::ivec3 index);
+    void DeleteMeshFromQueue(glm::ivec3 index);
+    void ProcessMeshQueues();
 
-    static void AddMeshToQueue(glm::ivec3 index, const GameMesh& mesh);
-    static void AddWaterMeshToQueue(glm::ivec3 index, const GameMesh& mesh);
-    static void UpdateMeshInQueue(glm::ivec3 index);
-    static void DeleteMeshFromQueue(glm::ivec3 index);
-    static void ProcessMeshQueues();
-
-    static void SetBlockMaterial(const ::Material& mat);
-    static ::Material GetBlockMaterial() { return Get().m_BlockMaterial; }
+    void SetBlockMaterial(const ::Material& mat);
+    ::Material GetBlockMaterial() const { return m_BlockMaterial; }
 
 private:
-    Renderer() {}
-    Renderer(Renderer const&);
-    void operator=(Renderer const&);
+    RenderLock m_QueueLock;
 
     unsigned int m_DrawCallsPerFrame = 0;
 
@@ -77,15 +69,15 @@ private:
     int m_OverlayColorLocation = -1;
 
 public:
-    static glm::vec3 OverlayColor() { return Get().m_OverlayColor; }
-    static void SetOverlayColor(const glm::vec3& OverlayColor) { Get().m_OverlayColor = OverlayColor; }
+    glm::vec3 OverlayColor() const { return m_OverlayColor; }
+    void SetOverlayColor(const glm::vec3& OverlayColor) { m_OverlayColor = OverlayColor; }
 
-    static glm::vec3 BackgroundColor() { return Get().m_BackgroundColor; }
-    static void SetBackgroundColor(const glm::vec3& BackgroundColor) { Get().m_BackgroundColor = BackgroundColor; }
+    glm::vec3 BackgroundColor() const { return m_BackgroundColor; }
+    void SetBackgroundColor(const glm::vec3& BackgroundColor) { m_BackgroundColor = BackgroundColor; }
 
-    static bool WireMeshEnabled() { return Get().m_WireMeshEnabled; }
-    static void SetWireMeshEnabled(bool enabled) { Get().m_WireMeshEnabled = enabled; }
+    bool WireMeshEnabled() const { return m_WireMeshEnabled; }
+    void SetWireMeshEnabled(bool enabled) { m_WireMeshEnabled = enabled; }
 
-    static unsigned int DrawCallsPerFrame() { return Get().m_DrawCallsPerFrame; }
-    static void SetDrawCallsPerFrame(unsigned int DrawCallsPerFrame) { Get().m_DrawCallsPerFrame = DrawCallsPerFrame; }
+    unsigned int DrawCallsPerFrame() const { return m_DrawCallsPerFrame; }
+    void SetDrawCallsPerFrame(unsigned int DrawCallsPerFrame) { m_DrawCallsPerFrame = DrawCallsPerFrame; }
 };

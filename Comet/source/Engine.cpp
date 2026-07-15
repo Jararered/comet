@@ -1,11 +1,8 @@
 #include "Engine.h"
 
-#include "Entities/EntityManager.h"
-
 #include "Input/Input.h"
 
 #include "Renderer/ViewCamera.h"
-#include "Renderer/Renderer.h"
 #include "Renderer/Shader.h"
 #include "Renderer/Texture.h"
 #include "Renderer/TextureMap.h"
@@ -21,14 +18,14 @@ Engine::Engine()
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE);
     SetTargetFPS(0);
 
-    Renderer::Initialize();
-    ViewCamera::Initialize();
+    m_Renderer.Initialize();
+    m_Camera.Initialize();
     TextureMap::Initialize();
 }
 
 Engine::~Engine()
 {
-    Renderer::Finalize();
+    m_Renderer.Finalize();
     CloseWindow();
 }
 
@@ -43,13 +40,11 @@ void Engine::Update()
     {
         PollInputEvents();
 
-        EntityManager::FrameUpdate(Clock::Time());
+        m_EntityManager.FrameUpdate(Clock::Time());
 
         Clock::Reset();
 
-        ViewCamera::Update();
-
-        Renderer::Update();
+        m_Renderer.Update(m_LayerManager, m_Camera);
     }
 }
 

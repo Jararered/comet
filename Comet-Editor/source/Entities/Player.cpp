@@ -10,12 +10,12 @@
 
 using namespace Comet;
 
-Player::Player(World* world) : m_World(world)
+Player::Player(World* world, Comet::ViewCamera& camera) : m_World(world), m_Camera(&camera)
 {
     SetPosition({0.0f, 50.0f, 0.0f});
     m_CollisionHeight = m_Height;
     m_CollisionHeadClearance = m_HeadClearance;
-    ViewCamera::SetPosition(ViewPosition());
+    m_Camera->SetPosition(ViewPosition());
 }
 
 Player::~Player()
@@ -230,8 +230,8 @@ glm::vec3 Player::ViewPosition() const
 
 void Player::UpdateCamera()
 {
-    ViewCamera::SetPosition(ViewPosition());
-    ViewCamera::SetForwardVector(m_ForwardVector);
+    m_Camera->SetPosition(ViewPosition());
+    m_Camera->SetForwardVector(m_ForwardVector);
 }
 
 void Player::UpdateBoundingBox()

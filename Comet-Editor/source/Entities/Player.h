@@ -13,7 +13,7 @@ class Player : public Entity
 {
 public:
     Player() = default;
-    Player(World* world);
+    Player(World* world, Comet::ViewCamera& camera);
     ~Player();
 
     void Update();
@@ -40,6 +40,7 @@ public:
 
 private:
     World* m_World;
+    Comet::ViewCamera* m_Camera = nullptr;
 
     bool m_InWater = false;
     bool m_Flying = true;

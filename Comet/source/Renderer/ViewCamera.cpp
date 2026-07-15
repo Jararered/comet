@@ -7,36 +7,34 @@ namespace Comet
 
 void ViewCamera::Initialize()
 {
-    Get();
     CalcViewMatrix();
     CalcProjMatrix();
 }
 
 void ViewCamera::Update()
 {
-    Get().m_Aspect = (float)GetScreenWidth() / (float)GetScreenHeight();
+    m_Aspect = (float)GetScreenWidth() / (float)GetScreenHeight();
     CalcViewMatrix();
     CalcProjMatrix();
 }
 
 void ViewCamera::CalcViewMatrix()
 {
-    Get().m_ViewMatrix = glm::lookAt(Get().m_Position, Get().m_Position + Get().m_ForwardVector, Get().POSITIVE_Y);
+    m_ViewMatrix = glm::lookAt(m_Position, m_Position + m_ForwardVector, POSITIVE_Y);
 }
 
 void ViewCamera::CalcProjMatrix()
 {
-    Get().m_ProjMatrix = glm::perspective(Get().m_FOV, Get().m_Aspect, Get().m_Near, Get().m_Far);
+    m_ProjMatrix = glm::perspective(m_FOV, m_Aspect, m_Near, m_Far);
 }
 
-::Camera3D ViewCamera::GetRaylibCamera()
+::Camera3D ViewCamera::GetRaylibCamera() const
 {
-    auto& self = Get();
     ::Camera3D cam = {0};
-    cam.position = {self.m_Position.x, self.m_Position.y, self.m_Position.z};
-    cam.target = {self.m_Position.x + self.m_ForwardVector.x, self.m_Position.y + self.m_ForwardVector.y, self.m_Position.z + self.m_ForwardVector.z};
+    cam.position = {m_Position.x, m_Position.y, m_Position.z};
+    cam.target = {m_Position.x + m_ForwardVector.x, m_Position.y + m_ForwardVector.y, m_Position.z + m_ForwardVector.z};
     cam.up = {0.0f, 1.0f, 0.0f};
-    cam.fovy = glm::degrees(self.m_FOV);
+    cam.fovy = glm::degrees(m_FOV);
     cam.projection = CAMERA_PERSPECTIVE;
     return cam;
 }
