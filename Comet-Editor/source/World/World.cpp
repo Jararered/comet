@@ -45,9 +45,8 @@ namespace
         return plane / length;
     }
 
-    Frustum BuildCameraFrustum(const Comet::ViewCamera& camera)
+    Frustum BuildFrustumFromViewProjection(const glm::mat4& viewProjection)
     {
-        const glm::mat4 viewProjection = camera.ProjMatrix() * camera.ViewMatrix();
         const glm::vec4 row0 = MatrixRow(viewProjection, 0);
         const glm::vec4 row1 = MatrixRow(viewProjection, 1);
         const glm::vec4 row2 = MatrixRow(viewProjection, 2);
@@ -136,6 +135,14 @@ void World::Update()
         try
         {
             COMET_PROFILE_SCOPE("World::Tick", "world");
+
+            StreamingSnapshot snapshot;
+            {
+                std::lock_guard lock(m_StreamingSnapshotMutex);
+                snapshot = m_StreamingSnapshot;
+            }
+            ProcessRequestedChunks(snapshot);
+
             m_EntityManager.Update();
 
             Generate();
@@ -316,22 +323,32 @@ glm::ivec3 World::GetChunkIndex(glm::ivec3 worldCoord)
     return chunkIndex;
 }
 
-void World::ProcessRequestedChunks(glm::ivec3 centerChunkIndex, const Comet::ViewCamera& camera)
+void World::PublishStreamingSnapshot(glm::ivec3 centerChunkIndex, const glm::mat4& viewProjection, int renderDistance)
 {
-    std::lock_guard lock(m_Lock);
+    std::lock_guard lock(m_StreamingSnapshotMutex);
+    m_StreamingSnapshot.CenterChunkIndex = centerChunkIndex;
+    m_StreamingSnapshot.ViewProjection = viewProjection;
+    m_StreamingSnapshot.RenderDistance = renderDistance;
+    m_StreamingSnapshot.Valid = true;
+}
 
-    glm::ivec3 index;
-    std::unordered_set<glm::ivec3> chunksGenerated;
-    std::unordered_set<glm::ivec3> chunksRendered;
-    int chunksToRenderAhead = 1;
-    int renderDistance = m_MainPlayer->GetRenderDistance();
-    int generateRadius = renderDistance + chunksToRenderAhead;
-    const Frustum cameraFrustum = BuildCameraFrustum(camera);
+void World::ProcessRequestedChunks(const StreamingSnapshot& snapshot)
+{
+    if (!snapshot.Valid)
+        return;
 
-    int lowerx = centerChunkIndex.x - generateRadius;
-    int lowerz = centerChunkIndex.z - generateRadius;
-    int upperx = 1 + centerChunkIndex.x + generateRadius;
-    int upperz = 1 + centerChunkIndex.z + generateRadius;
+    COMET_PROFILE_SCOPE("World::ProcessRequestedChunks", "world");
+
+    const glm::ivec3 centerChunkIndex = snapshot.CenterChunkIndex;
+    const int renderDistance = snapshot.RenderDistance;
+    constexpr int chunksToRenderAhead = 1;
+    const int generateRadius = renderDistance + chunksToRenderAhead;
+    const Frustum cameraFrustum = BuildFrustumFromViewProjection(snapshot.ViewProjection);
+
+    const int lowerx = centerChunkIndex.x - generateRadius;
+    const int lowerz = centerChunkIndex.z - generateRadius;
+    const int upperx = 1 + centerChunkIndex.x + generateRadius;
+    const int upperz = 1 + centerChunkIndex.z + generateRadius;
 
     auto chunkDistanceSquared = [centerChunkIndex](const glm::ivec3& chunkIndex)
     {
@@ -340,7 +357,8 @@ void World::ProcessRequestedChunks(glm::ivec3 centerChunkIndex, const Comet::Vie
         return dx * dx + dz * dz;
     };
 
-    auto isChunkWithinRadius = [&chunkDistanceSquared](const glm::ivec3& chunkIndex, int radius) { return chunkDistanceSquared(chunkIndex) <= radius * radius; };
+    auto isChunkWithinRadius = [&chunkDistanceSquared](const glm::ivec3& chunkIndex, int radius)
+    { return chunkDistanceSquared(chunkIndex) <= radius * radius; };
 
     auto sortClosestFirst = [&chunkDistanceSquared](std::vector<glm::ivec3>& chunks)
     {
@@ -357,34 +375,53 @@ void World::ProcessRequestedChunks(glm::ivec3 centerChunkIndex, const Comet::Vie
                   });
     };
 
-    m_ChunksToGenerate.clear();
-    m_ChunksToRender.clear();
+    std::unordered_set<glm::ivec3> dataKeys;
+    std::unordered_set<glm::ivec3> renderKeys;
+    {
+        std::shared_lock lock(m_Lock);
+        dataKeys.reserve(m_ChunkDataMap.size());
+        for (const auto& [index, chunk] : m_ChunkDataMap)
+        {
+            dataKeys.insert(index);
+        }
+        renderKeys.reserve(m_ChunkRenderMap.size());
+        for (const auto& [index, chunk] : m_ChunkRenderMap)
+        {
+            renderKeys.insert(index);
+        }
+    }
+
+    std::unordered_set<glm::ivec3> chunksGenerated;
+    std::unordered_set<glm::ivec3> chunksRendered;
+    std::vector<glm::ivec3> chunksToGenerate;
+    std::vector<glm::ivec3> chunksToRender;
+    std::unordered_set<glm::ivec3> chunksToDelete;
+    std::unordered_set<glm::ivec3> chunksToUnrender;
 
     for (int x = lowerx; x < upperx; x++)
     {
         for (int z = lowerz; z < upperz; z++)
         {
-            index = {x, 0, z};
+            const glm::ivec3 index = {x, 0, z};
             if (!isChunkWithinRadius(index, generateRadius))
             {
                 continue;
             }
 
             chunksGenerated.insert(index);
-            m_ChunksToDelete.erase(index);
-            if (m_ChunkDataMap.find(index) == m_ChunkDataMap.end() && IsChunkColumnVisible(cameraFrustum, index))
+            if (dataKeys.find(index) == dataKeys.end() && IsChunkColumnVisible(cameraFrustum, index))
             {
-                m_ChunksToGenerate.push_back(index);
+                chunksToGenerate.push_back(index);
             }
         }
     }
-    sortClosestFirst(m_ChunksToGenerate);
+    sortClosestFirst(chunksToGenerate);
 
-    for (const auto& [index, chunk] : m_ChunkDataMap)
+    for (const glm::ivec3& index : dataKeys)
     {
         if (chunksGenerated.find(index) == chunksGenerated.end())
         {
-            m_ChunksToDelete.insert(index);
+            chunksToDelete.insert(index);
         }
     }
 
@@ -392,28 +429,35 @@ void World::ProcessRequestedChunks(glm::ivec3 centerChunkIndex, const Comet::Vie
     {
         for (int z = lowerz + 1; z < upperz - 1; z++)
         {
-            index = {x, 0, z};
+            const glm::ivec3 index = {x, 0, z};
             if (!isChunkWithinRadius(index, renderDistance))
             {
                 continue;
             }
 
             chunksRendered.insert(index);
-            m_ChunksToUnrender.erase(index);
-            if (m_ChunkRenderMap.find(index) == m_ChunkRenderMap.end() && IsChunkColumnVisible(cameraFrustum, index))
+            if (renderKeys.find(index) == renderKeys.end() && IsChunkColumnVisible(cameraFrustum, index))
             {
-                m_ChunksToRender.push_back(index);
+                chunksToRender.push_back(index);
             }
         }
     }
-    sortClosestFirst(m_ChunksToRender);
+    sortClosestFirst(chunksToRender);
 
-    for (const auto& [index, chunk] : m_ChunkRenderMap)
+    for (const glm::ivec3& index : renderKeys)
     {
         if (chunksRendered.find(index) == chunksRendered.end())
         {
-            m_ChunksToUnrender.insert(index);
+            chunksToUnrender.insert(index);
         }
+    }
+
+    {
+        std::lock_guard lock(m_Lock);
+        m_ChunksToGenerate = std::move(chunksToGenerate);
+        m_ChunksToRender = std::move(chunksToRender);
+        m_ChunksToDelete = std::move(chunksToDelete);
+        m_ChunksToUnrender = std::move(chunksToUnrender);
     }
 }
 

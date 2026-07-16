@@ -64,8 +64,8 @@ void Player::FrameUpdate(float dt)
         UpdateCamera();
     }
 
-    // Chunk requests use the camera frustum. Keep that work on the main thread
-    // with the camera updates instead of racing the renderer from the world thread.
+    // Publish a frustum snapshot for the world thread. Streaming queue rebuilds
+    // run there so the main thread only pays for a cheap matrix copy.
     m_Camera->Update();
     GetRequestedChunks();
 
@@ -108,7 +108,8 @@ void Player::GetRequestedChunks()
     glm::ivec3 newChunkIndex = m_World->GetChunkIndex(position);
     SetChunkIndex(newChunkIndex);
 
-    m_World->ProcessRequestedChunks(newChunkIndex, *m_Camera);
+    const glm::mat4 viewProjection = m_Camera->ProjMatrix() * m_Camera->ViewMatrix();
+    m_World->PublishStreamingSnapshot(newChunkIndex, viewProjection, m_RenderDistance);
 }
 
 void Player::PlaceBlock()

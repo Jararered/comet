@@ -1,8 +1,7 @@
 #include "Renderer.h"
 #include "../Profiler/Profiler.h"
 
-#include <imgui.h>
-#include <imgui_impl_opengl3.h>
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <raymath.h>
@@ -14,6 +13,7 @@ namespace
 {
 constexpr int ChunkWidth = 16;
 constexpr int ChunkRenderAddFrameInterval = 60;
+constexpr int WaterRenderAddsPerFrame = 1;
 
 struct Frustum
 {
@@ -115,14 +115,6 @@ void ReplaceMesh(std::unordered_map<glm::ivec3, GameMesh>& meshes, const glm::iv
 
 void Renderer::Initialize()
 {
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGui::StyleColorsDark();
-
-    ImGuiIO& io = ImGui::GetIO();
-    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-
-    ImGui_ImplOpenGL3_Init("#version 330");
 }
 
 void Renderer::Finalize()
@@ -137,9 +129,6 @@ void Renderer::Finalize()
         mesh.Finalize();
     }
     m_WaterMeshMap.clear();
-
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui::DestroyContext();
 }
 
 void Renderer::SetBlockMaterial(const ::Material& mat)
@@ -285,44 +274,7 @@ void Renderer::DrawMeshQueue(Comet::ViewCamera& camera)
 
 void Renderer::DrawInterfaceQueue(LayerManager& layerManager)
 {
-    ImGuiIO& io = ImGui::GetIO();
-    io.DisplaySize = ImVec2(static_cast<float>(GetScreenWidth()), static_cast<float>(GetScreenHeight()));
-    io.DeltaTime = GetFrameTime();
-
-    io.MousePos = ImVec2(static_cast<float>(GetMouseX()), static_cast<float>(GetMouseY()));
-    io.MouseDown[0] = IsMouseButtonDown(MOUSE_BUTTON_LEFT);
-    io.MouseDown[1] = IsMouseButtonDown(MOUSE_BUTTON_RIGHT);
-    io.MouseDown[2] = IsMouseButtonDown(MOUSE_BUTTON_MIDDLE);
-
-    Vector2 wheelMove = GetMouseWheelMoveV();
-    io.MouseWheel = wheelMove.y;
-    io.MouseWheelH = wheelMove.x;
-
-    for (int key = 0; key < 512; key++)
-    {
-        io.KeysDown[key] = IsKeyDown(key);
-    }
-
-    io.KeyCtrl = IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL);
-    io.KeyShift = IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT);
-    io.KeyAlt = IsKeyDown(KEY_LEFT_ALT) || IsKeyDown(KEY_RIGHT_ALT);
-    io.KeySuper = IsKeyDown(KEY_LEFT_SUPER) || IsKeyDown(KEY_RIGHT_SUPER);
-
-    int key = GetCharPressed();
-    while (key > 0)
-    {
-        io.AddInputCharacter(static_cast<unsigned int>(key));
-        key = GetCharPressed();
-    }
-
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui::NewFrame();
-
     layerManager.Draw();
-
-    ImGui::Render();
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
 }
 
 void Renderer::AddMeshToQueue(glm::ivec3 index, const GameMesh& mesh)
@@ -402,7 +354,9 @@ void Renderer::ProcessMeshQueues()
             }
         }
 
-        for (auto waterMeshIt = m_WaterMeshesToAdd.begin(); waterMeshIt != m_WaterMeshesToAdd.end();)
+        int waterAddsThisFrame = 0;
+        for (auto waterMeshIt = m_WaterMeshesToAdd.begin();
+             waterMeshIt != m_WaterMeshesToAdd.end() && waterAddsThisFrame < WaterRenderAddsPerFrame;)
         {
             const glm::ivec3 index = waterMeshIt->first;
             if (waterMeshIt->second.GetIndices().empty())
@@ -418,6 +372,7 @@ void Renderer::ProcessMeshQueues()
                 ReplaceMesh(m_WaterMeshMap, index, waterMeshIt->second);
             }
             waterMeshIt = m_WaterMeshesToAdd.erase(waterMeshIt);
+            waterAddsThisFrame++;
         }
     }
 

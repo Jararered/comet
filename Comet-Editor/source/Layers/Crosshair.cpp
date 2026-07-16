@@ -1,7 +1,5 @@
 #include "Crosshair.h"
 
-#include <imgui.h>
-
 Crosshair::Crosshair()
 {
     const std::filesystem::path res = EditorResourcesRoot();
@@ -13,14 +11,7 @@ Crosshair::Crosshair()
 
 void Crosshair::Draw()
 {
-    ImVec2 screenSize = ImGui::GetIO().DisplaySize;
-    ImVec2 pos = ImVec2(
-        (screenSize.x - static_cast<float>(m_Texture.width)) * 0.5f,
-        (screenSize.y - static_cast<float>(m_Texture.height)) * 0.5f
-    );
-    ImGui::GetForegroundDrawList()->AddImage(
-        reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(m_Texture.id)),
-        pos,
-        ImVec2(pos.x + static_cast<float>(m_Texture.width), pos.y + static_cast<float>(m_Texture.height))
-    );
+    const float x = (static_cast<float>(GetScreenWidth()) - static_cast<float>(m_Texture.width)) * 0.5f;
+    const float y = (static_cast<float>(GetScreenHeight()) - static_cast<float>(m_Texture.height)) * 0.5f;
+    DrawTexture(m_Texture, static_cast<int>(x), static_cast<int>(y), WHITE);
 }

@@ -24,9 +24,12 @@ struct State
     std::vector<Event> events;
     std::uint64_t sequence = 0;
     std::atomic_bool running = false;
+    std::chrono::steady_clock::time_point lastFlush{};
     std::filesystem::path directory;
     std::jthread writer;
 };
+
+constexpr auto ProfilerFlushInterval = std::chrono::milliseconds(100);
 State& GetState() { static State state; return state; }
 thread_local std::uint64_t threadId = std::hash<std::thread::id>{}(std::this_thread::get_id());
 thread_local std::vector<Event> pending;
@@ -97,9 +100,10 @@ void Profiler::Start()
 void Profiler::Stop()
 {
     auto& state = GetState();
-    FlushIfDue();
     {
         std::lock_guard lock(state.lock);
+        for (auto& event : pending) event.sequence = state.sequence++;
+        CommitPending(state);
         state.running = false;
     }
     state.wakeWriter.notify_one();
@@ -123,8 +127,14 @@ void Profiler::Record(std::string_view name, std::string_view category, double m
 void Profiler::FlushIfDue()
 {
     auto& state = GetState();
+    if (!state.running) return;
+
+    const auto now = std::chrono::steady_clock::now();
     {
         std::lock_guard lock(state.lock);
+        if (now - state.lastFlush < ProfilerFlushInterval)
+            return;
+        state.lastFlush = now;
         for (auto& event : pending) event.sequence = state.sequence++;
         CommitPending(state);
     }

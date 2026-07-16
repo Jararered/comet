@@ -6,7 +6,6 @@ target_include_directories(Comet-Editor
 PRIVATE
     source
     ${CMAKE_SOURCE_DIR}/libraries/glm/include
-    ${CMAKE_SOURCE_DIR}/libraries/imgui/include
     ${CMAKE_SOURCE_DIR}/libraries/FastNoiseLite/include
     ${CMAKE_SOURCE_DIR}/libraries/cereal/include
 )

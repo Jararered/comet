@@ -17,12 +17,22 @@
 #include <thread>
 #include <vector>
 
+#include <glm/mat4x4.hpp>
+
 class Player;
 class EntityManager;
 
 class World
 {
 public:
+    struct StreamingSnapshot
+    {
+        glm::ivec3 CenterChunkIndex = {0, 0, 0};
+        glm::mat4 ViewProjection = glm::mat4(1.0f);
+        int RenderDistance = 0;
+        bool Valid = false;
+    };
+
     World(std::string folderName, long seed, EntityManager& entityManager, Renderer& renderer);
     ~World();
 
@@ -48,11 +58,13 @@ public:
     void SetShader(const GameShader& shader) { m_Shader = shader; }
     void SetSeed(int seed) { ChunkGenerator::SetSeed(seed); }
     long Seed() { return m_Seed; }
-    void ProcessRequestedChunks(glm::ivec3 centerChunkIndex, const Comet::ViewCamera& camera);
+    void PublishStreamingSnapshot(glm::ivec3 centerChunkIndex, const glm::mat4& viewProjection, int renderDistance);
 
     const GameShader& GetShader() { return m_Shader; }
 
 private:
+    void ProcessRequestedChunks(const StreamingSnapshot& snapshot);
+
     std::unordered_map<glm::ivec3, std::shared_ptr<Chunk>> m_ChunkDataMap;
     std::unordered_map<glm::ivec3, std::shared_ptr<Chunk>> m_ChunkRenderMap;
 
@@ -74,6 +86,8 @@ private:
     std::atomic_bool m_Running = false;
 
     std::shared_mutex m_Lock;
+    std::mutex m_StreamingSnapshotMutex;
+    StreamingSnapshot m_StreamingSnapshot;
 
     std::thread m_Thread;
 
