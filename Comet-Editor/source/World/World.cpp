@@ -4,6 +4,7 @@
 #include "BlockLibrary.h"
 #include "Chunk.h"
 #include "ChunkGenerator.h"
+#include <Profiler/Profiler.h>
 
 #include "Entities/Player.h"
 
@@ -156,13 +157,16 @@ void World::Update()
 {
     while (m_Running)
     {
+        COMET_PROFILE_SCOPE("World::Tick", "world");
         m_EntityManager.Update();
 
         Generate();
 
         std::this_thread::sleep_for(WorldUpdateInterval);
+        Comet::Profiler::Instance().FlushIfDue();
     }
 
+    Comet::Profiler::Instance().FlushIfDue();
     std::println("Exiting world thread...");
 }
 
@@ -189,7 +193,13 @@ void World::Finalize()
 
 Block World::GetBlock(glm::ivec3 worldCoord)
 {
-    std::lock_guard lock(m_Lock);
+    std::shared_lock lock(m_Lock);
+
+    return GetBlockForMeshing(worldCoord);
+}
+
+Block World::GetBlockForMeshing(glm::ivec3 worldCoord)
+{
 
     glm::ivec3 index = GetChunkIndex(worldCoord);
     glm::ivec3 chunkCoord = GetChunkCoord(worldCoord);
@@ -225,15 +235,6 @@ void World::SetBlock(glm::ivec3 worldCoord, Block blockToSet)
         const int dx = chunkIndex.x - playerChunk.x;
         const int dz = chunkIndex.z - playerChunk.z;
         return dx * dx + dz * dz;
-    };
-
-    auto regenerateChunk = [this](const glm::ivec3& chunkIndex)
-    {
-        if (auto chunk = m_ChunkDataMap.find(chunkIndex); chunk != m_ChunkDataMap.end())
-        {
-            chunk->second->GenerateMesh();
-            GenerateMesh(chunkIndex, true);
-        }
     };
 
     if (auto entry = m_ChunkDataMap.find(index); entry != m_ChunkDataMap.end())
@@ -275,7 +276,10 @@ void World::SetBlock(glm::ivec3 worldCoord, Block blockToSet)
 
         for (const glm::ivec3& chunkIndex : chunksToRegenerate)
         {
-            regenerateChunk(chunkIndex);
+            if (m_ChunkRenderMap.find(chunkIndex) != m_ChunkRenderMap.end())
+            {
+                PushUnique(m_ChunksToRerender, chunkIndex);
+            }
         }
     }
 }
@@ -428,40 +432,68 @@ void World::ProcessRequestedChunks(glm::ivec3 centerChunkIndex, const Comet::Vie
 
 void World::Generate()
 {
-    std::lock_guard lock(m_Lock);
-
+    COMET_PROFILE_SCOPE("World::Generate", "world");
     int chunksGenerated = 0;
-    while (!m_ChunksToGenerate.empty() && chunksGenerated < MaxChunkGenerationsPerWorldTick)
+    while (chunksGenerated < MaxChunkGenerationsPerWorldTick)
     {
-        const glm::ivec3 index = m_ChunksToGenerate.front();
-        m_ChunksToGenerate.erase(m_ChunksToGenerate.begin());
+        glm::ivec3 index;
+        {
+            std::unique_lock lock(m_Lock);
+            if (m_ChunksToGenerate.empty())
+                break;
 
-        if (m_ChunkDataMap.find(index) != m_ChunkDataMap.end())
-            continue;
+            index = m_ChunksToGenerate.front();
+            m_ChunksToGenerate.erase(m_ChunksToGenerate.begin());
+            if (m_ChunkDataMap.find(index) != m_ChunkDataMap.end())
+                continue;
+        }
 
-        m_ChunkDataMap[index] = std::make_shared<Chunk>(this, index);
-        m_ChunkDataMap.at(index)->Allocate();
-        m_ChunkDataMap.at(index)->Generate();
+        auto chunk = std::make_shared<Chunk>(this, index);
+        chunk->Allocate();
+        chunk->Generate();
+
+        {
+            std::unique_lock lock(m_Lock);
+            if (m_ChunkDataMap.find(index) != m_ChunkDataMap.end())
+                continue;
+
+            m_ChunkDataMap.insert_or_assign(index, std::move(chunk));
+        }
 
         chunksGenerated++;
     }
 
     int chunkMeshesBuilt = 0;
-    while (!m_ChunksToRender.empty() && chunkMeshesBuilt < MaxChunkMeshBuildsPerWorldTick)
+    while (chunksGenerated == 0 && chunkMeshesBuilt < MaxChunkMeshBuildsPerWorldTick)
     {
-        const glm::ivec3 index = m_ChunksToRender.front();
-        m_ChunksToRender.erase(m_ChunksToRender.begin());
+        glm::ivec3 index;
+        std::shared_ptr<Chunk> chunk;
+        {
+            std::unique_lock lock(m_Lock);
+            if (m_ChunksToRender.empty())
+                break;
 
-        if (m_ChunkDataMap.find(index) == m_ChunkDataMap.end())
-            continue;
-        if (m_ChunkRenderMap.find(index) != m_ChunkRenderMap.end())
-            continue;
+            index = m_ChunksToRender.front();
+            m_ChunksToRender.erase(m_ChunksToRender.begin());
 
-        std::shared_ptr<Chunk> chunk = m_ChunkDataMap.at(index);
-        chunk->GenerateMesh();
-        m_ChunkRenderMap.insert_or_assign(index, chunk);
+            if (m_ChunkDataMap.find(index) == m_ChunkDataMap.end() || m_ChunkRenderMap.find(index) != m_ChunkRenderMap.end())
+                continue;
 
+            chunk = m_ChunkDataMap.at(index);
+        }
+
+        {
+            std::shared_lock lock(m_Lock);
+            chunk->GenerateMesh();
+        }
+
+        {
+            std::unique_lock lock(m_Lock);
+            m_ChunkRenderMap.insert_or_assign(index, chunk);
+        }
         GenerateMesh(index);
+
+        std::unique_lock lock(m_Lock);
         const std::array<glm::ivec3, 4> neighbors = {
             glm::ivec3{index.x - 1, index.y, index.z},
             glm::ivec3{index.x + 1, index.y, index.z},
@@ -479,43 +511,55 @@ void World::Generate()
     }
 
     int chunksRemeshed = 0;
-    while (!m_ChunksToRerender.empty() && chunksRemeshed < MaxChunkRemeshesPerWorldTick)
+    while (chunksGenerated == 0 && chunkMeshesBuilt == 0 && chunksRemeshed < MaxChunkRemeshesPerWorldTick)
     {
-        const glm::ivec3 index = m_ChunksToRerender.front();
-        m_ChunksToRerender.erase(m_ChunksToRerender.begin());
-
-        if (auto chunk = m_ChunkRenderMap.find(index); chunk != m_ChunkRenderMap.end())
+        glm::ivec3 index;
+        std::shared_ptr<Chunk> chunk;
         {
-            chunk->second->GenerateMesh();
+            std::unique_lock lock(m_Lock);
+            if (m_ChunksToRerender.empty())
+                break;
+
+            index = m_ChunksToRerender.front();
+            m_ChunksToRerender.erase(m_ChunksToRerender.begin());
+            if (auto entry = m_ChunkRenderMap.find(index); entry != m_ChunkRenderMap.end())
+                chunk = entry->second;
+        }
+
+        if (chunk)
+        {
+            std::shared_lock lock(m_Lock);
+            chunk->GenerateMesh();
+            lock.unlock();
             GenerateMesh(index, true);
             chunksRemeshed++;
         }
     }
 
-    int chunksDeleted = 0;
-    for (auto deleteIt = m_ChunksToDelete.begin(); deleteIt != m_ChunksToDelete.end() && chunksDeleted < MaxChunkDeletesPerWorldTick;)
     {
-        const glm::ivec3 index = *deleteIt;
-        m_ChunkDataMap.erase(index);
-        deleteIt = m_ChunksToDelete.erase(deleteIt);
-        chunksDeleted++;
-    }
+        std::unique_lock lock(m_Lock);
+        int chunksDeleted = 0;
+        for (auto deleteIt = m_ChunksToDelete.begin(); deleteIt != m_ChunksToDelete.end() && chunksDeleted < MaxChunkDeletesPerWorldTick;)
+        {
+            m_ChunkDataMap.erase(*deleteIt);
+            deleteIt = m_ChunksToDelete.erase(deleteIt);
+            chunksDeleted++;
+        }
 
-    int chunksUnrendered = 0;
-    for (auto unrenderIt = m_ChunksToUnrender.begin(); unrenderIt != m_ChunksToUnrender.end() && chunksUnrendered < MaxChunkUnrendersPerWorldTick;)
-    {
-        const glm::ivec3 index = *unrenderIt;
-        m_Renderer.DeleteMeshFromQueue(index);
-
-        m_ChunkRenderMap.erase(index);
-        unrenderIt = m_ChunksToUnrender.erase(unrenderIt);
-        chunksUnrendered++;
+        int chunksUnrendered = 0;
+        for (auto unrenderIt = m_ChunksToUnrender.begin(); unrenderIt != m_ChunksToUnrender.end() && chunksUnrendered < MaxChunkUnrendersPerWorldTick;)
+        {
+            m_Renderer.DeleteMeshFromQueue(*unrenderIt);
+            m_ChunkRenderMap.erase(*unrenderIt);
+            unrenderIt = m_ChunksToUnrender.erase(unrenderIt);
+            chunksUnrendered++;
+        }
     }
 }
 
 void World::GenerateMesh(glm::ivec3 index, bool prioritize)
 {
-    std::lock_guard lock(m_Lock);
+    std::shared_lock lock(m_Lock);
 
     std::shared_ptr<Chunk> chunk = m_ChunkDataMap.at(index);
     GameMesh mesh(&chunk->GetGeometry()->Vertices, &chunk->GetGeometry()->Indices, &m_Shader);

@@ -9,6 +9,7 @@
 
 #include "Timer.h"
 #include "Utilities.h"
+#include "Profiler/Profiler.h"
 
 #include <chrono>
 
@@ -16,6 +17,7 @@ using namespace Comet;
 
 Engine::Engine()
 {
+    Profiler::Instance().Start();
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE);
     SetTargetFPS(0);
@@ -30,6 +32,7 @@ Engine::~Engine()
     StopPhysics();
     m_Renderer.Finalize();
     CloseWindow();
+    Profiler::Instance().Stop();
 }
 
 void Engine::Initialize()
@@ -43,13 +46,21 @@ void Engine::Update()
 {
     while (!WindowShouldClose())
     {
+        COMET_PROFILE_SCOPE("Engine::Frame", "render");
         PollInputEvents();
 
-        m_EntityManager.FrameUpdate(Clock::Time());
+        {
+            COMET_PROFILE_SCOPE("Engine::FrameUpdate", "main");
+            m_EntityManager.FrameUpdate(Clock::Time());
+        }
 
         Clock::Reset();
 
-        m_Renderer.Update(m_LayerManager, m_Camera);
+        {
+            COMET_PROFILE_SCOPE("Engine::RendererUpdate", "render");
+            m_Renderer.Update(m_LayerManager, m_Camera);
+        }
+        Profiler::Instance().FlushIfDue();
     }
 }
 
@@ -84,6 +95,7 @@ void Engine::PhysicsLoop()
     auto nextTick = clock::now() + tick;
     while (m_PhysicsRunning)
     {
+        COMET_PROFILE_SCOPE("Engine::PhysicsTick", "physics");
         m_EntityManager.PhysicsUpdate(fixedDt);
         std::this_thread::sleep_until(nextTick);
         nextTick += tick;
@@ -92,4 +104,6 @@ void Engine::PhysicsLoop()
         if (nextTick < now)
             nextTick = now + tick;
     }
+
+    Profiler::Instance().FlushIfDue();
 }

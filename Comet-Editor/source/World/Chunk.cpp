@@ -2,8 +2,10 @@
 
 #include "World.h"
 #include "WorldConfig.h"
+#include <Profiler/Profiler.h>
 
 #include <algorithm>
+#include <array>
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
@@ -17,6 +19,7 @@ namespace
         std::array<std::uint8_t, 4> AmbientOcclusion = {255, 255, 255, 255};
     };
 
+
     bool IsGreedyCubeBlock(const Block& block)
     {
         return block.ID != ID::Air && block.ID != ID::Water && block.Shape == Block::Shapes::Cube && !block.IsTransparent;
@@ -24,7 +27,7 @@ namespace
 
     bool CanMergeFaces(const GreedyFace& a, const GreedyFace& b)
     {
-        return a.Visible == b.Visible && a.BlockID == b.BlockID && a.AmbientOcclusion == b.AmbientOcclusion && a.AmbientOcclusion == std::array<std::uint8_t, 4>{255, 255, 255, 255};
+        return a.Visible == b.Visible && a.BlockID == b.BlockID && a.AmbientOcclusion == b.AmbientOcclusion;
     }
 
     std::uint8_t CalculateAmbientOcclusion(bool side1, bool side2, bool corner)
@@ -54,7 +57,14 @@ namespace
         const glm::vec2 bottomLeft = encodeGreedyUv(0.0f, tileHeight);
         const glm::vec2 bottomRight = encodeGreedyUv(tileWidth, tileHeight);
 
-        geometry->Indices.insert(geometry->Indices.end(), {0 + offset, 1 + offset, 2 + offset, 2 + offset, 3 + offset, 0 + offset});
+        if (ambientOcclusion[0] + ambientOcclusion[2] > ambientOcclusion[1] + ambientOcclusion[3])
+        {
+            geometry->Indices.insert(geometry->Indices.end(), {0 + offset, 1 + offset, 3 + offset, 1 + offset, 2 + offset, 3 + offset});
+        }
+        else
+        {
+            geometry->Indices.insert(geometry->Indices.end(), {0 + offset, 1 + offset, 2 + offset, 2 + offset, 3 + offset, 0 + offset});
+        }
 
         switch (face)
         {
@@ -145,6 +155,7 @@ void Chunk::LoadFromDisk(const std::string& filename)
 
 void Chunk::Generate()
 {
+    COMET_PROFILE_SCOPE("Chunk::Generate", "world_generation");
     std::string filename = ".\\worlddata\\" + std::to_string(m_Chunk.x) + " " + std::to_string(m_Chunk.z) + ".bin";
     if (std::filesystem::exists(filename))
     {
@@ -406,6 +417,7 @@ void Chunk::GenerateSand()
 
 void Chunk::GenerateMesh()
 {
+    COMET_PROFILE_SCOPE("Chunk::GenerateMesh", "world_meshing");
     m_Geometry.Vertices.clear();
     m_Geometry.Indices.clear();
     m_Geometry.Offset = 0;
@@ -461,7 +473,7 @@ void Chunk::GenerateMesh()
 
         if (x < 0 || x >= CHUNK_WIDTH || z < 0 || z >= CHUNK_WIDTH)
         {
-            return m_World->GetBlock({x + m_Chunk.x * CHUNK_WIDTH, y, z + m_Chunk.z * CHUNK_WIDTH});
+            return m_World->GetBlockForMeshing({x + m_Chunk.x * CHUNK_WIDTH, y, z + m_Chunk.z * CHUNK_WIDTH});
         }
 
         return getLocalBlock(x, y, z);
@@ -695,13 +707,13 @@ void Chunk::GenerateMesh()
                 if (x == 0)
                 {
                     pxBlock = getLocalBlock(x + 1, y, z);
-                    nxBlock = m_World->GetBlock({worldx - 1, y, worldz});
+                    nxBlock = m_World->GetBlockForMeshing({worldx - 1, y, worldz});
                 }
                 else
                 {
                     if (x == CHUNK_WIDTH - 1)
                     {
-                        pxBlock = m_World->GetBlock({worldx + 1, y, worldz});
+                        pxBlock = m_World->GetBlockForMeshing({worldx + 1, y, worldz});
                         nxBlock = getLocalBlock(x - 1, y, z);
                     }
                     else
@@ -717,13 +729,13 @@ void Chunk::GenerateMesh()
                 if (z == 0)
                 {
                     pzBlock = getLocalBlock(x, y, z + 1);
-                    nzBlock = m_World->GetBlock({worldx, y, worldz - 1});
+                    nzBlock = m_World->GetBlockForMeshing({worldx, y, worldz - 1});
                 }
                 else
                 {
                     if (z == CHUNK_WIDTH - 1)
                     {
-                        pzBlock = m_World->GetBlock({worldx, y, worldz + 1});
+                        pzBlock = m_World->GetBlockForMeshing({worldx, y, worldz + 1});
                         nzBlock = getLocalBlock(x, y, z - 1);
                     }
                     else

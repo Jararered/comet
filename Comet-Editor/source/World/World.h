@@ -13,6 +13,7 @@
 #include <atomic>
 #include <memory>
 #include <mutex>
+#include <shared_mutex>
 #include <thread>
 #include <vector>
 
@@ -36,6 +37,8 @@ public:
     Player* GetMainPlayer() const { return m_MainPlayer; }
 
     Block GetBlock(glm::ivec3 worldPos);
+    // Caller must hold m_Lock in shared or exclusive mode for the duration of the lookup.
+    Block GetBlockForMeshing(glm::ivec3 worldPos);
     void SetBlock(glm::ivec3 worldPos, Block block);
     void SetBlockOverlay(glm::ivec3 worldPos);
     void ClearBlockOverlay();
@@ -68,7 +71,7 @@ private:
 
     std::atomic_bool m_Running = false;
 
-    std::recursive_mutex m_Lock;
+    std::shared_mutex m_Lock;
 
     std::thread m_Thread;
 

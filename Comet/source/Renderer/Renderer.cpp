@@ -1,4 +1,5 @@
 #include "Renderer.h"
+#include "../Profiler/Profiler.h"
 
 #include <imgui.h>
 #include <imgui_impl_opengl3.h>
@@ -176,6 +177,7 @@ void Renderer::NewFrame()
 
 void Renderer::DrawMeshQueue(Comet::ViewCamera& camera)
 {
+    COMET_PROFILE_SCOPE("Renderer::DrawMeshQueue", "render");
     size_t drawCallCount = 0;
     ProcessMeshQueues();
 
@@ -365,6 +367,7 @@ void Renderer::DeleteMeshFromQueue(glm::ivec3 index)
 
 void Renderer::ProcessMeshQueues()
 {
+    COMET_PROFILE_SCOPE("Renderer::ProcessMeshQueues", "mesh_upload");
     {
         std::lock_guard lock(m_QueueLock.AddQueue);
         bool canAddChunk = true;
@@ -456,6 +459,7 @@ void Renderer::ProcessMeshQueues()
 
 void Renderer::Update(LayerManager& layerManager, Comet::ViewCamera& camera)
 {
+    COMET_PROFILE_SCOPE("Renderer::Update", "render");
     NewFrame();
     DrawMeshQueue(camera);
     rlDrawRenderBatchActive();

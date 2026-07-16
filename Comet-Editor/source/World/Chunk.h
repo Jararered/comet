@@ -58,7 +58,10 @@ struct Chunk
         return m_BlockData.at(chunkPos.x * CHUNK_HEIGHT * CHUNK_WIDTH + chunkPos.y * CHUNK_WIDTH + chunkPos.z);
     }
 
-    void SetBlock(glm::ivec3 chunkPos, Block block) { m_BlockData.at(chunkPos.x * CHUNK_HEIGHT * CHUNK_WIDTH + chunkPos.y * CHUNK_WIDTH + chunkPos.z) = block; }
+    void SetBlock(glm::ivec3 chunkPos, Block block)
+    {
+        m_BlockData.at(chunkPos.x * CHUNK_HEIGHT * CHUNK_WIDTH + chunkPos.y * CHUNK_WIDTH + chunkPos.z) = block;
+    }
 
     void SetHeight(int x, int z, int y) { m_HeightData.at(CHUNK_WIDTH * x + z) = y; }
     float GetHeight(int x, int z) { return m_HeightData.at(CHUNK_WIDTH * x + z); }
