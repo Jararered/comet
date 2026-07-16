@@ -1,15 +1,16 @@
 #include "World.h"
 
-#include "ResourcePaths.h"
 #include "BlockLibrary.h"
 #include "Chunk.h"
 #include "ChunkGenerator.h"
+#include "ResourcePaths.h"
 #include <Profiler/Profiler.h>
 
 #include "Entities/Player.h"
 
 #include <algorithm>
 #include <array>
+#include <cassert>
 #include <chrono>
 #include <filesystem>
 #include <memory>
@@ -17,97 +18,72 @@
 
 namespace
 {
-constexpr int MaxChunkGenerationsPerWorldTick = 1;
-constexpr int MaxChunkMeshBuildsPerWorldTick = 1;
-constexpr int MaxChunkRemeshesPerWorldTick = 1;
-constexpr int MaxChunkDeletesPerWorldTick = 4;
-constexpr int MaxChunkUnrendersPerWorldTick = 4;
-constexpr auto WorldUpdateInterval = std::chrono::milliseconds(25);
+    constexpr int MaxChunkGenerationsPerWorldTick = 1;
+    constexpr int MaxChunkMeshBuildsPerWorldTick = 1;
+    constexpr int MaxChunkRemeshesPerWorldTick = 1;
+    constexpr int MaxChunkDeletesPerWorldTick = 4;
+    constexpr int MaxChunkUnrendersPerWorldTick = 4;
+    constexpr auto WorldUpdateInterval = std::chrono::milliseconds(25);
 
-struct Frustum
-{
-    std::array<glm::vec4, 6> Planes;
-};
-
-glm::vec4 MatrixRow(const glm::mat4& matrix, int row)
-{
-    return {
-        matrix[0][row],
-        matrix[1][row],
-        matrix[2][row],
-        matrix[3][row]
-    };
-}
-
-glm::vec4 NormalizePlane(const glm::vec4& plane)
-{
-    const float length = glm::length(glm::vec3(plane));
-    if (length <= 0.0f)
+    struct Frustum
     {
-        return plane;
+        std::array<glm::vec4, 6> Planes;
+    };
+
+    glm::vec4 MatrixRow(const glm::mat4& matrix, int row)
+    {
+        return {matrix[0][row], matrix[1][row], matrix[2][row], matrix[3][row]};
     }
-    return plane / length;
-}
 
-Frustum BuildCameraFrustum(const Comet::ViewCamera& camera)
-{
-    const glm::mat4 viewProjection = camera.ProjMatrix() * camera.ViewMatrix();
-    const glm::vec4 row0 = MatrixRow(viewProjection, 0);
-    const glm::vec4 row1 = MatrixRow(viewProjection, 1);
-    const glm::vec4 row2 = MatrixRow(viewProjection, 2);
-    const glm::vec4 row3 = MatrixRow(viewProjection, 3);
-
-    return {{
-        NormalizePlane(row3 + row0),
-        NormalizePlane(row3 - row0),
-        NormalizePlane(row3 + row1),
-        NormalizePlane(row3 - row1),
-        NormalizePlane(row3 + row2),
-        NormalizePlane(row3 - row2)
-    }};
-}
-
-bool IsChunkColumnVisible(const Frustum& frustum, const glm::ivec3& chunkIndex)
-{
-    const glm::vec3 min = {
-        static_cast<float>(chunkIndex.x * CHUNK_WIDTH) - 0.5f,
-        -0.5f,
-        static_cast<float>(chunkIndex.z * CHUNK_WIDTH) - 0.5f
-    };
-    const glm::vec3 max = {
-        static_cast<float>((chunkIndex.x + 1) * CHUNK_WIDTH) - 0.5f,
-        static_cast<float>(CHUNK_HEIGHT) - 0.5f,
-        static_cast<float>((chunkIndex.z + 1) * CHUNK_WIDTH) - 0.5f
-    };
-
-    for (const glm::vec4& plane : frustum.Planes)
+    glm::vec4 NormalizePlane(const glm::vec4& plane)
     {
-        const glm::vec3 positiveVertex = {
-            plane.x >= 0.0f ? max.x : min.x,
-            plane.y >= 0.0f ? max.y : min.y,
-            plane.z >= 0.0f ? max.z : min.z
-        };
-
-        if (glm::dot(glm::vec3(plane), positiveVertex) + plane.w < 0.0f)
+        const float length = glm::length(glm::vec3(plane));
+        if (length <= 0.0f)
         {
-            return false;
+            return plane;
+        }
+        return plane / length;
+    }
+
+    Frustum BuildCameraFrustum(const Comet::ViewCamera& camera)
+    {
+        const glm::mat4 viewProjection = camera.ProjMatrix() * camera.ViewMatrix();
+        const glm::vec4 row0 = MatrixRow(viewProjection, 0);
+        const glm::vec4 row1 = MatrixRow(viewProjection, 1);
+        const glm::vec4 row2 = MatrixRow(viewProjection, 2);
+        const glm::vec4 row3 = MatrixRow(viewProjection, 3);
+
+        return {{NormalizePlane(row3 + row0), NormalizePlane(row3 - row0), NormalizePlane(row3 + row1), NormalizePlane(row3 - row1), NormalizePlane(row3 + row2), NormalizePlane(row3 - row2)}};
+    }
+
+    bool IsChunkColumnVisible(const Frustum& frustum, const glm::ivec3& chunkIndex)
+    {
+        const glm::vec3 min = {static_cast<float>(chunkIndex.x * CHUNK_WIDTH) - 0.5f, -0.5f, static_cast<float>(chunkIndex.z * CHUNK_WIDTH) - 0.5f};
+        const glm::vec3 max = {static_cast<float>((chunkIndex.x + 1) * CHUNK_WIDTH) - 0.5f, static_cast<float>(CHUNK_HEIGHT) - 0.5f, static_cast<float>((chunkIndex.z + 1) * CHUNK_WIDTH) - 0.5f};
+
+        for (const glm::vec4& plane : frustum.Planes)
+        {
+            const glm::vec3 positiveVertex = {plane.x >= 0.0f ? max.x : min.x, plane.y >= 0.0f ? max.y : min.y, plane.z >= 0.0f ? max.z : min.z};
+
+            if (glm::dot(glm::vec3(plane), positiveVertex) + plane.w < 0.0f)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    void PushUnique(std::vector<glm::ivec3>& chunks, const glm::ivec3& chunk)
+    {
+        if (std::find(chunks.begin(), chunks.end(), chunk) == chunks.end())
+        {
+            chunks.push_back(chunk);
         }
     }
-
-    return true;
 }
 
-void PushUnique(std::vector<glm::ivec3>& chunks, const glm::ivec3& chunk)
-{
-    if (std::find(chunks.begin(), chunks.end(), chunk) == chunks.end())
-    {
-        chunks.push_back(chunk);
-    }
-}
-}
-
-World::World(std::string folderName, long seed, EntityManager& entityManager, Renderer& renderer)
-    : m_FolderName(folderName), m_Seed(seed), m_EntityManager(entityManager), m_Renderer(renderer)
+World::World(std::string folderName, long seed, EntityManager& entityManager, Renderer& renderer) : m_FolderName(folderName), m_Seed(seed), m_EntityManager(entityManager), m_Renderer(renderer)
 {
     std::filesystem::create_directory(folderName);
 
@@ -157,10 +133,23 @@ void World::Update()
 {
     while (m_Running)
     {
-        COMET_PROFILE_SCOPE("World::Tick", "world");
-        m_EntityManager.Update();
+        try
+        {
+            COMET_PROFILE_SCOPE("World::Tick", "world");
+            m_EntityManager.Update();
 
-        Generate();
+            Generate();
+        }
+        catch (const std::exception& exception)
+        {
+            std::println(stderr, "FATAL: World thread stopped: {}", exception.what());
+            throw;
+        }
+        catch (...)
+        {
+            std::println(stderr, "FATAL: World thread stopped by an unknown exception");
+            throw;
+        }
 
         std::this_thread::sleep_for(WorldUpdateInterval);
         Comet::Profiler::Instance().FlushIfDue();
@@ -263,16 +252,16 @@ void World::SetBlock(glm::ivec3 worldCoord, Block blockToSet)
         }
 
         std::sort(chunksToRegenerate.begin(), chunksToRegenerate.end(),
-            [&chunkDistanceSquared](const glm::ivec3& lhs, const glm::ivec3& rhs)
-            {
-                const int lhsDistance = chunkDistanceSquared(lhs);
-                const int rhsDistance = chunkDistanceSquared(rhs);
-                if (lhsDistance != rhsDistance)
-                    return lhsDistance < rhsDistance;
-                if (lhs.x != rhs.x)
-                    return lhs.x < rhs.x;
-                return lhs.z < rhs.z;
-            });
+                  [&chunkDistanceSquared](const glm::ivec3& lhs, const glm::ivec3& rhs)
+                  {
+                      const int lhsDistance = chunkDistanceSquared(lhs);
+                      const int rhsDistance = chunkDistanceSquared(rhs);
+                      if (lhsDistance != rhsDistance)
+                          return lhsDistance < rhsDistance;
+                      if (lhs.x != rhs.x)
+                          return lhs.x < rhs.x;
+                      return lhs.z < rhs.z;
+                  });
 
         for (const glm::ivec3& chunkIndex : chunksToRegenerate)
         {
@@ -350,24 +339,21 @@ void World::ProcessRequestedChunks(glm::ivec3 centerChunkIndex, const Comet::Vie
         return dx * dx + dz * dz;
     };
 
-    auto isChunkWithinRadius = [&chunkDistanceSquared](const glm::ivec3& chunkIndex, int radius)
-    {
-        return chunkDistanceSquared(chunkIndex) <= radius * radius;
-    };
+    auto isChunkWithinRadius = [&chunkDistanceSquared](const glm::ivec3& chunkIndex, int radius) { return chunkDistanceSquared(chunkIndex) <= radius * radius; };
 
     auto sortClosestFirst = [&chunkDistanceSquared](std::vector<glm::ivec3>& chunks)
     {
         std::sort(chunks.begin(), chunks.end(),
-            [&chunkDistanceSquared](const glm::ivec3& lhs, const glm::ivec3& rhs)
-            {
-                const int lhsDistance = chunkDistanceSquared(lhs);
-                const int rhsDistance = chunkDistanceSquared(rhs);
-                if (lhsDistance != rhsDistance)
-                    return lhsDistance < rhsDistance;
-                if (lhs.x != rhs.x)
-                    return lhs.x < rhs.x;
-                return lhs.z < rhs.z;
-            });
+                  [&chunkDistanceSquared](const glm::ivec3& lhs, const glm::ivec3& rhs)
+                  {
+                      const int lhsDistance = chunkDistanceSquared(lhs);
+                      const int rhsDistance = chunkDistanceSquared(rhs);
+                      if (lhsDistance != rhsDistance)
+                          return lhsDistance < rhsDistance;
+                      if (lhs.x != rhs.x)
+                          return lhs.x < rhs.x;
+                      return lhs.z < rhs.z;
+                  });
     };
 
     m_ChunksToGenerate.clear();
@@ -464,7 +450,7 @@ void World::Generate()
     }
 
     int chunkMeshesBuilt = 0;
-    while (chunksGenerated == 0 && chunkMeshesBuilt < MaxChunkMeshBuildsPerWorldTick)
+    while (chunkMeshesBuilt < MaxChunkMeshBuildsPerWorldTick)
     {
         glm::ivec3 index;
         std::shared_ptr<Chunk> chunk;
@@ -551,9 +537,26 @@ void World::Generate()
         {
             m_Renderer.DeleteMeshFromQueue(*unrenderIt);
             m_ChunkRenderMap.erase(*unrenderIt);
+            std::erase(m_ChunksToRerender, *unrenderIt);
             unrenderIt = m_ChunksToUnrender.erase(unrenderIt);
             chunksUnrendered++;
         }
+
+#ifndef NDEBUG
+        static auto nextStreamLog = std::chrono::steady_clock::now();
+        const auto now = std::chrono::steady_clock::now();
+        if (now >= nextStreamLog)
+        {
+            std::println("STREAM: data={} rendered={} generate={} render={} remesh={} delete={} unrender={}", m_ChunkDataMap.size(), m_ChunkRenderMap.size(), m_ChunksToGenerate.size(),
+                         m_ChunksToRender.size(), m_ChunksToRerender.size(), m_ChunksToDelete.size(), m_ChunksToUnrender.size());
+            nextStreamLog = now + std::chrono::seconds(1);
+        }
+
+        for (const auto& [index, chunk] : m_ChunkRenderMap)
+        {
+            assert(chunk != nullptr && "Rendered chunk entry must own a Chunk");
+        }
+#endif
     }
 }
 
@@ -561,7 +564,25 @@ void World::GenerateMesh(glm::ivec3 index, bool prioritize)
 {
     std::shared_lock lock(m_Lock);
 
-    std::shared_ptr<Chunk> chunk = m_ChunkDataMap.at(index);
+    std::shared_ptr<Chunk> chunk;
+    if (auto entry = m_ChunkDataMap.find(index); entry != m_ChunkDataMap.end())
+    {
+        chunk = entry->second;
+    }
+    else if (auto entry = m_ChunkRenderMap.find(index); entry != m_ChunkRenderMap.end())
+    {
+        // Streaming may evict source data before a previously queued remesh is
+        // consumed. The rendered map retains the chunk until its GPU mesh is removed.
+        chunk = entry->second;
+    }
+
+    if (!chunk)
+    {
+        std::println(stderr, "STREAM ERROR: tried to queue a mesh for missing chunk ({}, {}, {})", index.x, index.y, index.z);
+        assert(false && "Mesh queue entry must have a source or rendered chunk");
+        return;
+    }
+
     GameMesh mesh(&chunk->GetGeometry()->Vertices, &chunk->GetGeometry()->Indices, &m_Shader);
     GameMesh waterMesh(&chunk->GetWaterGeometry()->Vertices, &chunk->GetWaterGeometry()->Indices, &m_Shader);
     if (prioritize)

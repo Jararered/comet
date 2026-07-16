@@ -16,6 +16,14 @@ public:
     GameMesh() = default;
     GameMesh(std::vector<Vertex>* vertices, std::vector<unsigned int>* indices, GameShader* shader);
     GameMesh(std::vector<float> vertices, std::vector<float> texcoords, std::vector<float> normals);
+    ~GameMesh();
+
+    // GPU resources cannot be shared by two mesh values. Copies deliberately
+    // keep only the CPU geometry so queued meshes always receive a fresh upload.
+    GameMesh(const GameMesh& other);
+    GameMesh& operator=(const GameMesh& other);
+    GameMesh(GameMesh&& other) noexcept;
+    GameMesh& operator=(GameMesh&& other) noexcept;
 
     void Initialize();
     void Update();

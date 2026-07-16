@@ -24,7 +24,6 @@ Player::~Player()
 
 void Player::Update()
 {
-    GetRequestedChunks();
 }
 
 void Player::FrameUpdate(float dt)
@@ -63,6 +62,11 @@ void Player::FrameUpdate(float dt)
         ProcessRotation();
         UpdateCamera();
     }
+
+    // Chunk requests use the camera frustum. Keep that work on the main thread
+    // with the camera updates instead of racing the renderer from the world thread.
+    m_Camera->Update();
+    GetRequestedChunks();
 
     UpdateTargetBlockOverlay();
 

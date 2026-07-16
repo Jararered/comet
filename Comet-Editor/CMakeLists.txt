@@ -14,6 +14,7 @@ PRIVATE
 target_link_libraries(Comet-Editor
 PRIVATE
     Comet
+    Dbghelp
 )
 
 file(GLOB_RECURSE CPP_FILES source/*.cpp)

@@ -6,85 +6,85 @@
 
 namespace
 {
-void ReleaseRaylibCpuMeshData(::Mesh& mesh)
-{
-    if (mesh.vertices)
+    void ReleaseRaylibCpuMeshData(::Mesh& mesh)
     {
-        RL_FREE(mesh.vertices);
-        mesh.vertices = nullptr;
+        if (mesh.vertices)
+        {
+            RL_FREE(mesh.vertices);
+            mesh.vertices = nullptr;
+        }
+        if (mesh.texcoords)
+        {
+            RL_FREE(mesh.texcoords);
+            mesh.texcoords = nullptr;
+        }
+        if (mesh.normals)
+        {
+            RL_FREE(mesh.normals);
+            mesh.normals = nullptr;
+        }
+        if (mesh.colors)
+        {
+            RL_FREE(mesh.colors);
+            mesh.colors = nullptr;
+        }
     }
-    if (mesh.texcoords)
+
+    void PopulateRaylibMesh(::Mesh& mesh, const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices)
     {
-        RL_FREE(mesh.texcoords);
-        mesh.texcoords = nullptr;
+        const size_t vertexCount = indices.size();
+
+        mesh = {0};
+        mesh.vertexCount = static_cast<int>(vertexCount);
+        mesh.triangleCount = static_cast<int>(vertexCount / 3);
+
+        mesh.vertices = static_cast<float*>(RL_MALLOC(vertexCount * 3 * sizeof(float)));
+        mesh.texcoords = static_cast<float*>(RL_MALLOC(vertexCount * 2 * sizeof(float)));
+        mesh.normals = static_cast<float*>(RL_MALLOC(vertexCount * 3 * sizeof(float)));
+        mesh.colors = static_cast<unsigned char*>(RL_MALLOC(vertexCount * 4 * sizeof(unsigned char)));
+        mesh.indices = nullptr;
+
+        for (size_t i = 0; i < vertexCount; i++)
+        {
+            const Vertex& vertex = vertices[indices[i]];
+            const glm::vec3 position = vertex.Position();
+            const glm::vec2 textureCoordinate = vertex.TextureCoordinate();
+            const glm::vec3 normal = vertex.Normal();
+
+            mesh.vertices[i * 3 + 0] = position.x;
+            mesh.vertices[i * 3 + 1] = position.y;
+            mesh.vertices[i * 3 + 2] = position.z;
+
+            mesh.texcoords[i * 2 + 0] = textureCoordinate.x;
+            mesh.texcoords[i * 2 + 1] = textureCoordinate.y;
+
+            mesh.normals[i * 3 + 0] = normal.x;
+            mesh.normals[i * 3 + 1] = normal.y;
+            mesh.normals[i * 3 + 2] = normal.z;
+            mesh.colors[i * 4 + 0] = vertex.AmbientOcclusion;
+            mesh.colors[i * 4 + 1] = vertex.AmbientOcclusion;
+            mesh.colors[i * 4 + 2] = vertex.AmbientOcclusion;
+            mesh.colors[i * 4 + 3] = 255;
+        }
     }
-    if (mesh.normals)
+
+    void PopulateRaylibMesh(::Mesh& mesh, const std::vector<float>& vertices, const std::vector<float>& texcoords, const std::vector<float>& normals)
     {
-        RL_FREE(mesh.normals);
-        mesh.normals = nullptr;
+        const size_t vertexCount = vertices.size() / 3;
+
+        mesh = {0};
+        mesh.vertexCount = static_cast<int>(vertexCount);
+        mesh.triangleCount = static_cast<int>(vertexCount / 3);
+
+        mesh.vertices = static_cast<float*>(RL_MALLOC(vertices.size() * sizeof(float)));
+        mesh.texcoords = static_cast<float*>(RL_MALLOC(texcoords.size() * sizeof(float)));
+        mesh.normals = static_cast<float*>(RL_MALLOC(normals.size() * sizeof(float)));
+        mesh.indices = nullptr;
+
+        std::copy(vertices.begin(), vertices.end(), mesh.vertices);
+        std::copy(texcoords.begin(), texcoords.end(), mesh.texcoords);
+        std::copy(normals.begin(), normals.end(), mesh.normals);
     }
-    if (mesh.colors)
-    {
-        RL_FREE(mesh.colors);
-        mesh.colors = nullptr;
-    }
-}
-
-void PopulateRaylibMesh(::Mesh& mesh, const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices)
-{
-    const size_t vertexCount = indices.size();
-
-    mesh = {0};
-    mesh.vertexCount = static_cast<int>(vertexCount);
-    mesh.triangleCount = static_cast<int>(vertexCount / 3);
-
-    mesh.vertices = static_cast<float*>(RL_MALLOC(vertexCount * 3 * sizeof(float)));
-    mesh.texcoords = static_cast<float*>(RL_MALLOC(vertexCount * 2 * sizeof(float)));
-    mesh.normals = static_cast<float*>(RL_MALLOC(vertexCount * 3 * sizeof(float)));
-    mesh.colors = static_cast<unsigned char*>(RL_MALLOC(vertexCount * 4 * sizeof(unsigned char)));
-    mesh.indices = nullptr;
-
-    for (size_t i = 0; i < vertexCount; i++)
-    {
-        const Vertex& vertex = vertices[indices[i]];
-        const glm::vec3 position = vertex.Position();
-        const glm::vec2 textureCoordinate = vertex.TextureCoordinate();
-        const glm::vec3 normal = vertex.Normal();
-
-        mesh.vertices[i * 3 + 0] = position.x;
-        mesh.vertices[i * 3 + 1] = position.y;
-        mesh.vertices[i * 3 + 2] = position.z;
-
-        mesh.texcoords[i * 2 + 0] = textureCoordinate.x;
-        mesh.texcoords[i * 2 + 1] = textureCoordinate.y;
-
-        mesh.normals[i * 3 + 0] = normal.x;
-        mesh.normals[i * 3 + 1] = normal.y;
-        mesh.normals[i * 3 + 2] = normal.z;
-        mesh.colors[i * 4 + 0] = vertex.AmbientOcclusion;
-        mesh.colors[i * 4 + 1] = vertex.AmbientOcclusion;
-        mesh.colors[i * 4 + 2] = vertex.AmbientOcclusion;
-        mesh.colors[i * 4 + 3] = 255;
-    }
-}
-
-void PopulateRaylibMesh(::Mesh& mesh, const std::vector<float>& vertices, const std::vector<float>& texcoords, const std::vector<float>& normals)
-{
-    const size_t vertexCount = vertices.size() / 3;
-
-    mesh = {0};
-    mesh.vertexCount = static_cast<int>(vertexCount);
-    mesh.triangleCount = static_cast<int>(vertexCount / 3);
-
-    mesh.vertices = static_cast<float*>(RL_MALLOC(vertices.size() * sizeof(float)));
-    mesh.texcoords = static_cast<float*>(RL_MALLOC(texcoords.size() * sizeof(float)));
-    mesh.normals = static_cast<float*>(RL_MALLOC(normals.size() * sizeof(float)));
-    mesh.indices = nullptr;
-
-    std::copy(vertices.begin(), vertices.end(), mesh.vertices);
-    std::copy(texcoords.begin(), texcoords.end(), mesh.texcoords);
-    std::copy(normals.begin(), normals.end(), mesh.normals);
-}
 }
 
 GameMesh::GameMesh(std::vector<Vertex>* vertices, std::vector<unsigned int>* indices, GameShader* shader)
@@ -95,6 +95,76 @@ GameMesh::GameMesh(std::vector<Vertex>* vertices, std::vector<unsigned int>* ind
 GameMesh::GameMesh(std::vector<float> vertices, std::vector<float> texcoords, std::vector<float> normals)
     : m_ExpandedVertices(std::move(vertices)), m_ExpandedTexcoords(std::move(texcoords)), m_ExpandedNormals(std::move(normals)), m_OnGPU(false), m_ModelMatrix(1.0f)
 {
+}
+
+GameMesh::~GameMesh()
+{
+    Finalize();
+}
+
+GameMesh::GameMesh(const GameMesh& other)
+    : m_Vertices(other.m_Vertices), m_Indices(other.m_Indices), m_ExpandedVertices(other.m_ExpandedVertices), m_ExpandedTexcoords(other.m_ExpandedTexcoords),
+      m_ExpandedNormals(other.m_ExpandedNormals), p_Shader(other.p_Shader), m_HasBounds(other.m_HasBounds), m_BoundsMin(other.m_BoundsMin), m_BoundsMax(other.m_BoundsMax),
+      m_ModelMatrix(other.m_ModelMatrix)
+{
+}
+
+GameMesh& GameMesh::operator=(const GameMesh& other)
+{
+    if (this == &other)
+    {
+        return *this;
+    }
+
+    Finalize();
+    m_Vertices = other.m_Vertices;
+    m_Indices = other.m_Indices;
+    m_ExpandedVertices = other.m_ExpandedVertices;
+    m_ExpandedTexcoords = other.m_ExpandedTexcoords;
+    m_ExpandedNormals = other.m_ExpandedNormals;
+    p_Shader = other.p_Shader;
+    m_HasBounds = other.m_HasBounds;
+    m_BoundsMin = other.m_BoundsMin;
+    m_BoundsMax = other.m_BoundsMax;
+    m_ModelMatrix = other.m_ModelMatrix;
+    m_RaylibMesh = {0};
+    m_OnGPU = false;
+    return *this;
+}
+
+GameMesh::GameMesh(GameMesh&& other) noexcept
+    : m_Vertices(std::move(other.m_Vertices)), m_Indices(std::move(other.m_Indices)), m_ExpandedVertices(std::move(other.m_ExpandedVertices)),
+      m_ExpandedTexcoords(std::move(other.m_ExpandedTexcoords)), m_ExpandedNormals(std::move(other.m_ExpandedNormals)), p_Shader(other.p_Shader), m_RaylibMesh(other.m_RaylibMesh),
+      m_OnGPU(other.m_OnGPU), m_HasBounds(other.m_HasBounds), m_BoundsMin(other.m_BoundsMin), m_BoundsMax(other.m_BoundsMax), m_ModelMatrix(other.m_ModelMatrix)
+{
+    other.m_RaylibMesh = {0};
+    other.m_OnGPU = false;
+}
+
+GameMesh& GameMesh::operator=(GameMesh&& other) noexcept
+{
+    if (this == &other)
+    {
+        return *this;
+    }
+
+    Finalize();
+    m_Vertices = std::move(other.m_Vertices);
+    m_Indices = std::move(other.m_Indices);
+    m_ExpandedVertices = std::move(other.m_ExpandedVertices);
+    m_ExpandedTexcoords = std::move(other.m_ExpandedTexcoords);
+    m_ExpandedNormals = std::move(other.m_ExpandedNormals);
+    p_Shader = other.p_Shader;
+    m_RaylibMesh = other.m_RaylibMesh;
+    m_OnGPU = other.m_OnGPU;
+    m_HasBounds = other.m_HasBounds;
+    m_BoundsMin = other.m_BoundsMin;
+    m_BoundsMax = other.m_BoundsMax;
+    m_ModelMatrix = other.m_ModelMatrix;
+
+    other.m_RaylibMesh = {0};
+    other.m_OnGPU = false;
+    return *this;
 }
 
 void GameMesh::UpdateBounds()
@@ -191,6 +261,7 @@ void GameMesh::Finalize()
     if (m_OnGPU)
     {
         UnloadMesh(m_RaylibMesh);
+        m_RaylibMesh = {0};
         m_OnGPU = false;
     }
 }
