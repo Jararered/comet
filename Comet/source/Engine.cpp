@@ -2,14 +2,14 @@
 
 #include "Input/Input.h"
 
-#include "Renderer/ViewCamera.h"
 #include "Renderer/Shader.h"
 #include "Renderer/Texture.h"
 #include "Renderer/TextureMap.h"
+#include "Renderer/ViewCamera.h"
 
+#include "Profiler/Profiler.h"
 #include "Timer.h"
 #include "Utilities.h"
-#include "Profiler/Profiler.h"
 
 #include <chrono>
 
@@ -20,6 +20,7 @@ Engine::Engine()
     Profiler::Instance().Start();
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE);
+    SetExitKey(KEY_NULL);
     SetTargetFPS(0);
 
     m_Renderer.Initialize();
@@ -47,7 +48,7 @@ void Engine::Update()
     while (!WindowShouldClose())
     {
         COMET_PROFILE_SCOPE("Engine::Frame", "render");
-        PollInputEvents();
+        Input::PollEvents();
 
         {
             COMET_PROFILE_SCOPE("Engine::FrameUpdate", "main");
