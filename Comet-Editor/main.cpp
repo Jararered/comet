@@ -1,6 +1,5 @@
 #include <Engine.h>
 
-#include "CrashDiagnostics.h"
 #include "World/Block.h"
 #include "World/Chunk.h"
 #include "World/World.h"
@@ -14,8 +13,6 @@
 
 int main(int argc, char const* argv[])
 {
-    CrashDiagnostics::Install();
-
     // Output the current working directory using modern c++
     std::filesystem::path path = std::filesystem::current_path();
     std::cout << "Current working directory: " << path << std::endl;
