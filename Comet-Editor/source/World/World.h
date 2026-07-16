@@ -60,6 +60,8 @@ private:
     std::vector<glm::ivec3> m_ChunksToGenerate;
 
     std::vector<glm::ivec3> m_ChunksToRender;
+    // Player edits must not wait for the background streaming remesh queue.
+    std::vector<glm::ivec3> m_ChunksToPriorityRerender;
     std::vector<glm::ivec3> m_ChunksToRerender;
     std::unordered_set<glm::ivec3> m_ChunksToUnrender;
 

@@ -90,7 +90,7 @@ void Engine::PhysicsLoop()
 {
     using clock = std::chrono::steady_clock;
 
-    constexpr float fixedDt = 1.0f / 500.0f;
+    constexpr float fixedDt = 1.0f / 240.0f;
     constexpr auto tick = std::chrono::duration_cast<clock::duration>(std::chrono::duration<float>(fixedDt));
 
     auto nextTick = clock::now() + tick;

@@ -9,6 +9,7 @@
 #include "World/Chunk.h"
 #include "World/World.h"
 
+#include <algorithm>
 #include <optional>
 
 class Player : public Entity
@@ -32,6 +33,7 @@ public:
 
     int GetRenderDistance() { return m_RenderDistance; }
     float FlySpeedMultiplier() const { return m_FlySpeedMultiplier; }
+    void SetSurfaceSlipperiness(float slipperiness) { m_SurfaceSlipperiness = std::clamp(slipperiness, 0.0f, 1.0f); }
 
     void ProcessCollision();
     void UpdateBoundingBox();
@@ -106,6 +108,10 @@ private:
 
     float m_MovementSpeed = 4.317f;
     float m_FlySpeedMultiplier = 1.0f;
+    glm::vec3 m_WalkVelocity = {0.0f, 0.0f, 0.0f};
+    float m_SurfaceSlipperiness = 0.02f;
+    float m_WalkAccelerationTime = 0.06f;
+    float m_WalkDecelerationTime = 0.08f;
     float m_RotationSpeed = 0.6f;
     glm::vec3 m_ForwardVector = {0.0f, 0.0f, -1.0f};
     glm::vec3 m_Direction = {0.0f, 0.0f, 0.0f};

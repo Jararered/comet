@@ -48,6 +48,7 @@ void Player::FrameUpdate(float dt)
             m_Flying = !m_Flying;
             m_LastPosition = m_Position;
             m_Acceleration = {0.0f, 0.0f, 0.0f};
+            m_WalkVelocity = {0.0f, 0.0f, 0.0f};
         }
         m_FlyToggleKeyWasDown = flyKeyDown;
 
@@ -235,7 +236,19 @@ void Player::ProcessMovement(float dt)
         if (direction.x != 0.0f || direction.z != 0.0f)
             direction = glm::normalize(direction);
 
-        ApplyMovement(direction * movementSpeed * dt);
+        const glm::vec3 targetVelocity = direction * movementSpeed;
+        const bool hasMovementInput = glm::length(targetVelocity) > 1e-5f;
+        // Grass begins close to the base stopping time, while ice can retain momentum for much longer.
+        const float responseTime = hasMovementInput ? m_WalkAccelerationTime : m_WalkDecelerationTime + m_SurfaceSlipperiness * 0.8f;
+        const glm::vec3 velocityDelta = targetVelocity - m_WalkVelocity;
+        const float deltaLength = glm::length(velocityDelta);
+        const float maxVelocityChange = movementSpeed * dt / responseTime;
+        if (deltaLength <= maxVelocityChange)
+            m_WalkVelocity = targetVelocity;
+        else if (deltaLength > 1e-5f)
+            m_WalkVelocity += velocityDelta * (maxVelocityChange / deltaLength);
+
+        ApplyMovement(m_WalkVelocity * dt);
 
         const bool jumpKey = m_MovementInput.Jump;
         const bool grounded = Comet::Physics::IsGrounded(m_Position, m_Width, m_CollisionHeight, m_CollisionHeadClearance, [this](const glm::ivec3& cell) { return m_World->GetBlock(cell).IsSolid; });

@@ -176,6 +176,7 @@ void World::Finalize()
     m_ChunksToDelete.clear();
     m_ChunksToGenerate.clear();
     m_ChunksToRender.clear();
+    m_ChunksToPriorityRerender.clear();
     m_ChunksToRerender.clear();
     m_ChunksToUnrender.clear();
 }
@@ -267,7 +268,7 @@ void World::SetBlock(glm::ivec3 worldCoord, Block blockToSet)
         {
             if (m_ChunkRenderMap.find(chunkIndex) != m_ChunkRenderMap.end())
             {
-                PushUnique(m_ChunksToRerender, chunkIndex);
+                PushUnique(m_ChunksToPriorityRerender, chunkIndex);
             }
         }
     }
@@ -496,30 +497,42 @@ void World::Generate()
         chunkMeshesBuilt++;
     }
 
-    int chunksRemeshed = 0;
-    while (chunksGenerated == 0 && chunkMeshesBuilt == 0 && chunksRemeshed < MaxChunkRemeshesPerWorldTick)
+    auto remeshQueuedChunks = [this](std::vector<glm::ivec3>& queue, int maxRemeshes)
     {
-        glm::ivec3 index;
-        std::shared_ptr<Chunk> chunk;
+        int chunksRemeshed = 0;
+        while (chunksRemeshed < maxRemeshes)
         {
-            std::unique_lock lock(m_Lock);
-            if (m_ChunksToRerender.empty())
-                break;
+            glm::ivec3 index;
+            std::shared_ptr<Chunk> chunk;
+            {
+                std::unique_lock lock(m_Lock);
+                if (queue.empty())
+                    break;
 
-            index = m_ChunksToRerender.front();
-            m_ChunksToRerender.erase(m_ChunksToRerender.begin());
-            if (auto entry = m_ChunkRenderMap.find(index); entry != m_ChunkRenderMap.end())
-                chunk = entry->second;
-        }
+                index = queue.front();
+                queue.erase(queue.begin());
+                if (auto entry = m_ChunkRenderMap.find(index); entry != m_ChunkRenderMap.end())
+                    chunk = entry->second;
+            }
 
-        if (chunk)
-        {
-            std::shared_lock lock(m_Lock);
-            chunk->GenerateMesh();
-            lock.unlock();
-            GenerateMesh(index, true);
-            chunksRemeshed++;
+            if (chunk)
+            {
+                std::shared_lock lock(m_Lock);
+                chunk->GenerateMesh();
+                lock.unlock();
+                GenerateMesh(index, true);
+                chunksRemeshed++;
+            }
         }
+        return chunksRemeshed;
+    };
+
+    // Local block changes take a remesh slot even while chunk streaming is busy.
+    // The regular queue remains idle-only to keep neighbor maintenance from adding hitches.
+    const int priorityRemeshes = remeshQueuedChunks(m_ChunksToPriorityRerender, MaxChunkRemeshesPerWorldTick);
+    if (priorityRemeshes == 0 && chunksGenerated == 0 && chunkMeshesBuilt == 0)
+    {
+        remeshQueuedChunks(m_ChunksToRerender, MaxChunkRemeshesPerWorldTick);
     }
 
     {
@@ -537,6 +550,7 @@ void World::Generate()
         {
             m_Renderer.DeleteMeshFromQueue(*unrenderIt);
             m_ChunkRenderMap.erase(*unrenderIt);
+            std::erase(m_ChunksToPriorityRerender, *unrenderIt);
             std::erase(m_ChunksToRerender, *unrenderIt);
             unrenderIt = m_ChunksToUnrender.erase(unrenderIt);
             chunksUnrendered++;
@@ -548,7 +562,7 @@ void World::Generate()
         if (now >= nextStreamLog)
         {
             std::println("STREAM: data={} rendered={} generate={} render={} remesh={} delete={} unrender={}", m_ChunkDataMap.size(), m_ChunkRenderMap.size(), m_ChunksToGenerate.size(),
-                         m_ChunksToRender.size(), m_ChunksToRerender.size(), m_ChunksToDelete.size(), m_ChunksToUnrender.size());
+                         m_ChunksToRender.size(), m_ChunksToPriorityRerender.size() + m_ChunksToRerender.size(), m_ChunksToDelete.size(), m_ChunksToUnrender.size());
             nextStreamLog = now + std::chrono::seconds(1);
         }
 
