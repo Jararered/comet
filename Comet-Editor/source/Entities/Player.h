@@ -91,6 +91,8 @@ private:
 
     bool m_FlyToggleKeyWasDown = false;
     bool m_JumpKeyWasDown = false;
+    float m_TimeSinceGrounded = 1.0f;
+    float m_CoyoteTime = 0.1f;
     MovementInput m_MovementInput;
 
     Collision m_BoundingBox;

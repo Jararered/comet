@@ -234,14 +234,13 @@ void Player::ProcessMovement(float dt)
         ApplyMovement(direction * movementSpeed * dt);
 
         const bool jumpKey = m_MovementInput.Jump;
-        const bool grounded = Comet::Physics::IsGrounded(
-            m_Position,
-            m_Width,
-            m_CollisionHeight,
-            m_CollisionHeadClearance,
-            [this](const glm::ivec3& cell) { return m_World->GetBlock(cell).IsSolid; });
-        if (grounded && jumpKey && !m_JumpKeyWasDown)
+        const bool grounded = Comet::Physics::IsGrounded(m_Position, m_Width, m_CollisionHeight, m_CollisionHeadClearance, [this](const glm::ivec3& cell) { return m_World->GetBlock(cell).IsSolid; });
+        m_TimeSinceGrounded = grounded ? 0.0f : m_TimeSinceGrounded + dt;
+        if (m_TimeSinceGrounded <= m_CoyoteTime && jumpKey && !m_JumpKeyWasDown)
+        {
             m_LastPosition.y -= m_JumpSpeed * dt;
+            m_TimeSinceGrounded = m_CoyoteTime;
+        }
         m_JumpKeyWasDown = jumpKey;
     }
 }
@@ -292,20 +291,10 @@ void Player::UpdateBoundingBox()
 
 void Player::ProcessCollision()
 {
-    Comet::Physics::ResolveVoxelCollisions(
-        m_Position,
-        m_LastPosition,
-        m_Width,
-        m_CollisionHeight,
-        m_CollisionHeadClearance,
-        [this](const glm::ivec3& cell) { return m_World->GetBlock(cell).IsSolid; });
+    Comet::Physics::ResolveVoxelCollisions(m_Position, m_LastPosition, m_Width, m_CollisionHeight, m_CollisionHeadClearance,
+                                           [this](const glm::ivec3& cell) { return m_World->GetBlock(cell).IsSolid; });
 
     UpdateBoundingBox();
 
-    m_Standing = Comet::Physics::IsGrounded(
-        m_Position,
-        m_Width,
-        m_CollisionHeight,
-        m_CollisionHeadClearance,
-        [this](const glm::ivec3& cell) { return m_World->GetBlock(cell).IsSolid; });
+    m_Standing = Comet::Physics::IsGrounded(m_Position, m_Width, m_CollisionHeight, m_CollisionHeadClearance, [this](const glm::ivec3& cell) { return m_World->GetBlock(cell).IsSolid; });
 }
