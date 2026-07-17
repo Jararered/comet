@@ -8,26 +8,24 @@
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
 
+#include <cstddef>
 #include <vector>
 
 class GameMesh
 {
 public:
     GameMesh() = default;
-    GameMesh(std::vector<Vertex>* vertices, std::vector<unsigned int>* indices, GameShader* shader);
+    GameMesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, GameShader* shader);
     GameMesh(std::vector<float> vertices, std::vector<float> texcoords, std::vector<float> normals);
     ~GameMesh();
 
-    // GPU resources cannot be shared by two mesh values. Copies deliberately
-    // keep only the CPU geometry so queued meshes always receive a fresh upload.
-    GameMesh(const GameMesh& other);
-    GameMesh& operator=(const GameMesh& other);
+    GameMesh(const GameMesh& other) = delete;
+    GameMesh& operator=(const GameMesh& other) = delete;
     GameMesh(GameMesh&& other) noexcept;
     GameMesh& operator=(GameMesh&& other) noexcept;
 
     void Initialize();
     void Update();
-    void UpdateGeometry();
     void Finalize();
     void Bind();
     void Unbind();
@@ -55,6 +53,9 @@ public:
     const std::vector<Vertex>& GetVertices() const { return m_Vertices; }
     const std::vector<unsigned int>& GetIndices() const { return m_Indices; }
     const std::vector<float>& GetExpandedVertices() const { return m_ExpandedVertices; }
+    std::size_t CpuByteSize() const;
+    std::size_t UploadByteSize() const;
+    bool Empty() const { return m_Indices.empty() && !HasExpandedGeometry(); }
     bool HasExpandedGeometry() const { return !m_ExpandedVertices.empty(); }
     bool HasBounds() const { return m_HasBounds; }
     glm::vec3 BoundsMin() const { return m_BoundsMin; }

@@ -9,10 +9,12 @@
 
 #include <glm/gtx/hash.hpp>
 
+#include <cstddef>
 #include <memory>
 #include <mutex>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include <raylib.h>
@@ -20,7 +22,6 @@
 struct RenderLock
 {
     std::mutex AddQueue;
-    std::mutex UpdateQueue;
     std::mutex DeleteQueue;
 };
 
@@ -38,10 +39,7 @@ public:
     void DrawMeshQueue(Comet::ViewCamera& camera);
     void DrawInterfaceQueue(LayerManager& layerManager);
 
-    void AddMeshToQueue(glm::ivec3 index, const GameMesh& mesh);
-    void AddPriorityMeshToQueue(glm::ivec3 index, const GameMesh& mesh);
-    void AddWaterMeshToQueue(glm::ivec3 index, const GameMesh& mesh);
-    void UpdateMeshInQueue(glm::ivec3 index);
+    void AddChunkMeshToQueue(glm::ivec3 index, GameMesh terrainMesh, GameMesh waterMesh, bool prioritize = false);
     void DeleteMeshFromQueue(glm::ivec3 index);
     void ProcessMeshQueues();
 
@@ -51,6 +49,16 @@ public:
     void ClearBlockOverlay();
 
 private:
+    struct ChunkMeshUpload
+    {
+        GameMesh Terrain;
+        GameMesh Water;
+
+        ChunkMeshUpload(GameMesh terrain, GameMesh water) : Terrain(std::move(terrain)), Water(std::move(water)) {}
+        std::size_t CpuByteSize() const { return Terrain.CpuByteSize() + Water.CpuByteSize(); }
+        std::size_t UploadByteSize() const { return Terrain.UploadByteSize() + Water.UploadByteSize(); }
+    };
+
     std::weak_ptr<Comet::ViewCamera> m_Camera;
     Comet::ViewCamera m_DefaultCamera;
     RenderLock m_QueueLock;
@@ -66,12 +74,10 @@ private:
     std::unordered_map<glm::ivec3, GameMesh> m_MeshMap;
     std::unordered_map<glm::ivec3, GameMesh> m_WaterMeshMap;
 
-    std::unordered_map<glm::ivec3, GameMesh> m_MeshesToAdd;
-    std::unordered_map<glm::ivec3, GameMesh> m_WaterMeshesToAdd;
+    std::unordered_map<glm::ivec3, ChunkMeshUpload> m_MeshesToAdd;
     std::vector<glm::ivec3> m_MeshesToAddOrder;
-    std::unordered_set<glm::ivec3> m_MeshesToUpdate;
     std::unordered_set<glm::ivec3> m_MeshesToDelete;
-    int m_ChunkRenderFramesUntilNextAdd = 0;
+    std::size_t m_QueuedUploadBytes = 0;
 
     ::Material m_BlockMaterial = {0};
     int m_OverlayColorLocation = -1;
