@@ -3,7 +3,9 @@
 
 #include <algorithm>
 #include <array>
+#include <chrono>
 #include <cmath>
+#include <optional>
 #include <raymath.h>
 #include <rlgl.h>
 #include <utility>
@@ -12,8 +14,8 @@
 namespace
 {
     constexpr int ChunkWidth = 16;
-    constexpr int ChunkRenderAddFrameInterval = 60;
-    constexpr int WaterRenderAddsPerFrame = 1;
+    constexpr auto ChunkUploadTimeBudget = std::chrono::microseconds(750);
+    constexpr std::size_t ChunkUploadByteBudget = 4 * 1024 * 1024;
 
     struct Frustum
     {
@@ -75,9 +77,9 @@ namespace
         return true;
     }
 
-    void ReplaceMesh(std::unordered_map<glm::ivec3, GameMesh>& meshes, const glm::ivec3& index, const GameMesh& mesh)
+    void ReplaceMesh(std::unordered_map<glm::ivec3, GameMesh>& meshes, const glm::ivec3& index, GameMesh&& mesh)
     {
-        if (mesh.GetIndices().empty() && !mesh.HasExpandedGeometry())
+        if (mesh.Empty())
         {
             if (auto entry = meshes.find(index); entry != meshes.end())
             {
@@ -87,18 +89,17 @@ namespace
             return;
         }
 
-        GameMesh replacement(mesh);
-        replacement.Initialize();
+        mesh.Initialize();
 
         if (auto entry = meshes.find(index); entry != meshes.end())
         {
             // Keep the current GPU mesh alive until its replacement has finished
             // uploading, then transfer ownership and release the old resources.
-            entry->second = std::move(replacement);
+            entry->second = std::move(mesh);
         }
         else
         {
-            meshes.emplace(index, std::move(replacement));
+            meshes.emplace(index, std::move(mesh));
         }
     }
 }
@@ -120,6 +121,11 @@ void Renderer::Finalize()
         mesh.Finalize();
     }
     m_WaterMeshMap.clear();
+
+    std::lock_guard lock(m_QueueLock.AddQueue);
+    m_MeshesToAdd.clear();
+    m_MeshesToAddOrder.clear();
+    m_QueuedUploadBytes = 0;
 }
 
 void Renderer::SetBlockMaterial(const ::Material& mat)
@@ -255,42 +261,39 @@ void Renderer::DrawInterfaceQueue(LayerManager& layerManager)
     layerManager.Draw();
 }
 
-void Renderer::AddMeshToQueue(glm::ivec3 index, const GameMesh& mesh)
+void Renderer::AddChunkMeshToQueue(glm::ivec3 index, GameMesh terrainMesh, GameMesh waterMesh, bool prioritize)
 {
+    ChunkMeshUpload upload(std::move(terrainMesh), std::move(waterMesh));
+    const std::size_t uploadBytes = upload.CpuByteSize();
+
     std::lock_guard lock(m_QueueLock.AddQueue);
-    if (m_MeshesToAdd.find(index) == m_MeshesToAdd.end())
+    if (auto entry = m_MeshesToAdd.find(index); entry != m_MeshesToAdd.end())
     {
+        m_QueuedUploadBytes -= entry->second.CpuByteSize();
+        entry->second = std::move(upload);
+    }
+    else
+    {
+        m_MeshesToAdd.emplace(index, std::move(upload));
         m_MeshesToAddOrder.push_back(index);
     }
-    m_MeshesToAdd.insert_or_assign(index, mesh);
-}
+    m_QueuedUploadBytes += uploadBytes;
 
-void Renderer::AddPriorityMeshToQueue(glm::ivec3 index, const GameMesh& mesh)
-{
-    std::lock_guard lock(m_QueueLock.AddQueue);
-    std::erase(m_MeshesToAddOrder, index);
-    m_MeshesToAddOrder.insert(m_MeshesToAddOrder.begin(), index);
-    m_MeshesToAdd.insert_or_assign(index, mesh);
-    m_ChunkRenderFramesUntilNextAdd = 0;
-}
-
-void Renderer::AddWaterMeshToQueue(glm::ivec3 index, const GameMesh& mesh)
-{
-    std::lock_guard lock(m_QueueLock.AddQueue);
-    m_WaterMeshesToAdd.insert_or_assign(index, mesh);
-}
-
-void Renderer::UpdateMeshInQueue(glm::ivec3 index)
-{
-    std::lock_guard lock(m_QueueLock.UpdateQueue);
-    m_MeshesToUpdate.insert(index);
+    if (prioritize)
+    {
+        std::erase(m_MeshesToAddOrder, index);
+        m_MeshesToAddOrder.insert(m_MeshesToAddOrder.begin(), index);
+    }
 }
 
 void Renderer::DeleteMeshFromQueue(glm::ivec3 index)
 {
     std::scoped_lock lock(m_QueueLock.AddQueue, m_QueueLock.DeleteQueue);
-    m_MeshesToAdd.erase(index);
-    m_WaterMeshesToAdd.erase(index);
+    if (auto entry = m_MeshesToAdd.find(index); entry != m_MeshesToAdd.end())
+    {
+        m_QueuedUploadBytes -= entry->second.CpuByteSize();
+        m_MeshesToAdd.erase(entry);
+    }
     std::erase(m_MeshesToAddOrder, index);
     m_MeshesToDelete.insert(index);
 }
@@ -298,75 +301,66 @@ void Renderer::DeleteMeshFromQueue(glm::ivec3 index)
 void Renderer::ProcessMeshQueues()
 {
     COMET_PROFILE_SCOPE("Renderer::ProcessMeshQueues", "mesh_upload");
-    {
-        std::lock_guard lock(m_QueueLock.AddQueue);
-        bool canAddChunk = true;
-        if (m_ChunkRenderFramesUntilNextAdd > 0)
-        {
-            m_ChunkRenderFramesUntilNextAdd--;
-            canAddChunk = m_ChunkRenderFramesUntilNextAdd == 0;
-        }
+    const auto uploadStart = std::chrono::steady_clock::now();
+    std::size_t uploadedBytes = 0;
+    std::uint64_t uploadedChunks = 0;
 
-        if (canAddChunk)
+    while (true)
+    {
+        std::optional<std::pair<glm::ivec3, ChunkMeshUpload>> pendingUpload;
         {
+            std::lock_guard lock(m_QueueLock.AddQueue);
+
             while (!m_MeshesToAddOrder.empty())
             {
                 const glm::ivec3 index = m_MeshesToAddOrder.front();
-                if (m_MeshesToAdd.find(index) == m_MeshesToAdd.end())
+                const auto meshEntry = m_MeshesToAdd.find(index);
+                if (meshEntry == m_MeshesToAdd.end())
                 {
                     m_MeshesToAddOrder.erase(m_MeshesToAddOrder.begin());
                     continue;
                 }
 
-                const auto meshEntry = m_MeshesToAdd.find(index);
-                if (meshEntry == m_MeshesToAdd.end())
-                {
-                    break;
-                }
-
-                ReplaceMesh(m_MeshMap, index, meshEntry->second);
+                const std::size_t uploadBytes = meshEntry->second.CpuByteSize();
+                pendingUpload.emplace(index, std::move(meshEntry->second));
+                m_QueuedUploadBytes -= uploadBytes;
                 m_MeshesToAdd.erase(meshEntry);
                 m_MeshesToAddOrder.erase(m_MeshesToAddOrder.begin());
-                m_ChunkRenderFramesUntilNextAdd = ChunkRenderAddFrameInterval;
                 break;
             }
         }
 
-        int waterAddsThisFrame = 0;
-        for (auto waterMeshIt = m_WaterMeshesToAdd.begin(); waterMeshIt != m_WaterMeshesToAdd.end() && waterAddsThisFrame < WaterRenderAddsPerFrame;)
+        if (!pendingUpload)
         {
-            const glm::ivec3 index = waterMeshIt->first;
-            if (waterMeshIt->second.GetIndices().empty())
-            {
-                if (auto entry = m_WaterMeshMap.find(index); entry != m_WaterMeshMap.end())
-                {
-                    entry->second.Finalize();
-                    m_WaterMeshMap.erase(entry);
-                }
-            }
-            else
-            {
-                ReplaceMesh(m_WaterMeshMap, index, waterMeshIt->second);
-            }
-            waterMeshIt = m_WaterMeshesToAdd.erase(waterMeshIt);
-            waterAddsThisFrame++;
+            break;
+        }
+
+        const glm::ivec3 index = pendingUpload->first;
+        uploadedBytes += pendingUpload->second.UploadByteSize();
+        ReplaceMesh(m_MeshMap, index, std::move(pendingUpload->second.Terrain));
+        ReplaceMesh(m_WaterMeshMap, index, std::move(pendingUpload->second.Water));
+        uploadedChunks++;
+
+        if (uploadedBytes >= ChunkUploadByteBudget || std::chrono::steady_clock::now() - uploadStart >= ChunkUploadTimeBudget)
+        {
+            break;
         }
     }
 
+    std::size_t queuedUploadBytes = 0;
+    std::size_t queuedUploadCount = 0;
     {
-        std::lock_guard lock(m_QueueLock.UpdateQueue);
-        for (const auto& index : m_MeshesToUpdate)
-        {
-            if (auto entry = m_MeshMap.find(index); entry != m_MeshMap.end())
-            {
-                entry->second.UpdateGeometry();
-            }
-            if (auto entry = m_WaterMeshMap.find(index); entry != m_WaterMeshMap.end())
-            {
-                entry->second.UpdateGeometry();
-            }
-        }
-        m_MeshesToUpdate.clear();
+        std::lock_guard lock(m_QueueLock.AddQueue);
+        queuedUploadBytes = m_QueuedUploadBytes;
+        queuedUploadCount = m_MeshesToAdd.size();
+    }
+
+    if (uploadedChunks > 0 || queuedUploadCount > 0)
+    {
+        Comet::Profiler::Instance().Record("Renderer::UploadedChunks", "mesh_upload_metrics", 0.0, uploadedChunks);
+        Comet::Profiler::Instance().Record("Renderer::UploadedBytes", "mesh_upload_metrics", 0.0, uploadedBytes);
+        Comet::Profiler::Instance().Record("Renderer::QueuedChunks", "mesh_upload_metrics", 0.0, queuedUploadCount);
+        Comet::Profiler::Instance().Record("Renderer::QueuedBytes", "mesh_upload_metrics", 0.0, queuedUploadBytes);
     }
 
     {

@@ -655,13 +655,9 @@ void World::GenerateMesh(glm::ivec3 index, bool prioritize)
         return;
     }
 
-    GameMesh mesh(&chunk->GetGeometry()->Vertices, &chunk->GetGeometry()->Indices, &m_Shader);
-    GameMesh waterMesh(&chunk->GetWaterGeometry()->Vertices, &chunk->GetWaterGeometry()->Indices, &m_Shader);
-    if (prioritize)
-        m_Renderer.AddPriorityMeshToQueue(index, mesh);
-    else
-        m_Renderer.AddMeshToQueue(index, mesh);
-    m_Renderer.AddWaterMeshToQueue(index, waterMesh);
+    GameMesh mesh(std::move(chunk->GetGeometry()->Vertices), std::move(chunk->GetGeometry()->Indices), &m_Shader);
+    GameMesh waterMesh(std::move(chunk->GetWaterGeometry()->Vertices), std::move(chunk->GetWaterGeometry()->Indices), &m_Shader);
+    m_Renderer.AddChunkMeshToQueue(index, std::move(mesh), std::move(waterMesh), prioritize);
 }
 
 Player& World::AddPlayer()

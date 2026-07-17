@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <glm/ext/matrix_transform.hpp>
+#include <limits>
 #include <utility>
 
 namespace
@@ -32,21 +33,31 @@ namespace
 
     void PopulateRaylibMesh(::Mesh& mesh, const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices)
     {
-        const size_t vertexCount = indices.size();
+        constexpr std::size_t MaxIndexedVertexCount = static_cast<std::size_t>(std::numeric_limits<unsigned short>::max()) + 1;
+        const bool hasValidIndices = std::ranges::all_of(indices, [&vertices](unsigned int index) { return index < vertices.size(); });
+        const bool canUseIndices =
+            hasValidIndices && vertices.size() <= MaxIndexedVertexCount && std::ranges::all_of(indices, [](unsigned int index) { return index <= std::numeric_limits<unsigned short>::max(); });
+        const size_t vertexCount = canUseIndices ? vertices.size() : indices.size();
+
+        if (!hasValidIndices)
+        {
+            mesh = {0};
+            return;
+        }
 
         mesh = {0};
         mesh.vertexCount = static_cast<int>(vertexCount);
-        mesh.triangleCount = static_cast<int>(vertexCount / 3);
+        mesh.triangleCount = static_cast<int>(indices.size() / 3);
 
         mesh.vertices = static_cast<float*>(RL_MALLOC(vertexCount * 3 * sizeof(float)));
         mesh.texcoords = static_cast<float*>(RL_MALLOC(vertexCount * 2 * sizeof(float)));
         mesh.normals = static_cast<float*>(RL_MALLOC(vertexCount * 3 * sizeof(float)));
         mesh.colors = static_cast<unsigned char*>(RL_MALLOC(vertexCount * 4 * sizeof(unsigned char)));
-        mesh.indices = nullptr;
+        mesh.indices = canUseIndices ? static_cast<unsigned short*>(RL_MALLOC(indices.size() * sizeof(unsigned short))) : nullptr;
 
         for (size_t i = 0; i < vertexCount; i++)
         {
-            const Vertex& vertex = vertices[indices[i]];
+            const Vertex& vertex = vertices[canUseIndices ? i : indices[i]];
             const glm::vec3 position = vertex.Position();
             const glm::vec2 textureCoordinate = vertex.TextureCoordinate();
             const glm::vec3 normal = vertex.Normal();
@@ -65,6 +76,11 @@ namespace
             mesh.colors[i * 4 + 1] = vertex.AmbientOcclusion;
             mesh.colors[i * 4 + 2] = vertex.AmbientOcclusion;
             mesh.colors[i * 4 + 3] = 255;
+        }
+
+        if (canUseIndices)
+        {
+            std::transform(indices.begin(), indices.end(), mesh.indices, [](unsigned int index) { return static_cast<unsigned short>(index); });
         }
     }
 
@@ -87,8 +103,8 @@ namespace
     }
 }
 
-GameMesh::GameMesh(std::vector<Vertex>* vertices, std::vector<unsigned int>* indices, GameShader* shader)
-    : m_Vertices(vertices ? *vertices : std::vector<Vertex>{}), m_Indices(indices ? *indices : std::vector<unsigned int>{}), p_Shader(shader), m_OnGPU(false), m_ModelMatrix(1.0f)
+GameMesh::GameMesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, GameShader* shader)
+    : m_Vertices(std::move(vertices)), m_Indices(std::move(indices)), p_Shader(shader), m_OnGPU(false), m_ModelMatrix(1.0f)
 {
 }
 
@@ -100,36 +116,6 @@ GameMesh::GameMesh(std::vector<float> vertices, std::vector<float> texcoords, st
 GameMesh::~GameMesh()
 {
     Finalize();
-}
-
-GameMesh::GameMesh(const GameMesh& other)
-    : m_Vertices(other.m_Vertices), m_Indices(other.m_Indices), m_ExpandedVertices(other.m_ExpandedVertices), m_ExpandedTexcoords(other.m_ExpandedTexcoords),
-      m_ExpandedNormals(other.m_ExpandedNormals), p_Shader(other.p_Shader), m_HasBounds(other.m_HasBounds), m_BoundsMin(other.m_BoundsMin), m_BoundsMax(other.m_BoundsMax),
-      m_ModelMatrix(other.m_ModelMatrix)
-{
-}
-
-GameMesh& GameMesh::operator=(const GameMesh& other)
-{
-    if (this == &other)
-    {
-        return *this;
-    }
-
-    Finalize();
-    m_Vertices = other.m_Vertices;
-    m_Indices = other.m_Indices;
-    m_ExpandedVertices = other.m_ExpandedVertices;
-    m_ExpandedTexcoords = other.m_ExpandedTexcoords;
-    m_ExpandedNormals = other.m_ExpandedNormals;
-    p_Shader = other.p_Shader;
-    m_HasBounds = other.m_HasBounds;
-    m_BoundsMin = other.m_BoundsMin;
-    m_BoundsMax = other.m_BoundsMax;
-    m_ModelMatrix = other.m_ModelMatrix;
-    m_RaylibMesh = {0};
-    m_OnGPU = false;
-    return *this;
 }
 
 GameMesh::GameMesh(GameMesh&& other) noexcept
@@ -227,6 +213,11 @@ void GameMesh::Initialize()
     }
     UploadMesh(&m_RaylibMesh, false);
     ReleaseRaylibCpuMeshData(m_RaylibMesh);
+    std::vector<Vertex>().swap(m_Vertices);
+    std::vector<unsigned int>().swap(m_Indices);
+    std::vector<float>().swap(m_ExpandedVertices);
+    std::vector<float>().swap(m_ExpandedTexcoords);
+    std::vector<float>().swap(m_ExpandedNormals);
     m_OnGPU = true;
 }
 
@@ -234,26 +225,28 @@ void GameMesh::Update()
 {
 }
 
-void GameMesh::UpdateGeometry()
+std::size_t GameMesh::CpuByteSize() const
 {
-    if (m_OnGPU)
-    {
-        UnloadMesh(m_RaylibMesh);
-    }
+    return m_Vertices.size() * sizeof(Vertex) + m_Indices.size() * sizeof(unsigned int) + (m_ExpandedVertices.size() + m_ExpandedTexcoords.size() + m_ExpandedNormals.size()) * sizeof(float);
+}
 
-    UpdateBounds();
-
+std::size_t GameMesh::UploadByteSize() const
+{
     if (HasExpandedGeometry())
     {
-        PopulateRaylibMesh(m_RaylibMesh, m_ExpandedVertices, m_ExpandedTexcoords, m_ExpandedNormals);
+        return (m_ExpandedVertices.size() + m_ExpandedTexcoords.size() + m_ExpandedNormals.size()) * sizeof(float);
     }
-    else
+
+    constexpr std::size_t MaxIndexedVertexCount = static_cast<std::size_t>(std::numeric_limits<unsigned short>::max()) + 1;
+    constexpr std::size_t ExpandedVertexSize = (3 + 2 + 3) * sizeof(float) + 4 * sizeof(unsigned char);
+    const bool canUseIndices = m_Vertices.size() <= MaxIndexedVertexCount &&
+                               std::ranges::all_of(m_Indices, [this](unsigned int index) { return index < m_Vertices.size() && index <= std::numeric_limits<unsigned short>::max(); });
+
+    if (canUseIndices)
     {
-        PopulateRaylibMesh(m_RaylibMesh, m_Vertices, m_Indices);
+        return m_Vertices.size() * ExpandedVertexSize + m_Indices.size() * sizeof(unsigned short);
     }
-    UploadMesh(&m_RaylibMesh, false);
-    ReleaseRaylibCpuMeshData(m_RaylibMesh);
-    m_OnGPU = true;
+    return m_Indices.size() * ExpandedVertexSize;
 }
 
 void GameMesh::Finalize()
