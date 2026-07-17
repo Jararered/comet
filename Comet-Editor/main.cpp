@@ -9,14 +9,8 @@
 
 #include "Entities/Player.h"
 
-#include <filesystem>
-
 int main(int argc, char const* argv[])
 {
-    // Output the current working directory using modern c++
-    std::filesystem::path path = std::filesystem::current_path();
-    std::cout << "Current working directory: " << path << std::endl;
-
     Engine engine;
 
     // Starting world thread and configuring
@@ -25,29 +19,20 @@ int main(int argc, char const* argv[])
 
     // Create player entity and add it to the entity handler
     // Entity handler is now on the world thread
-    Player player(&world, engine.Camera());
+    Player& player = world.AddPlayer();
     player.SetRenderDistance(10);
-    world.SetMainPlayer(&player);
-    engine.Entities().AddToUpdater(&player);
-    engine.Entities().AddToFrameUpdater(&player);
-    engine.Entities().AddToPhysicsUpdater(&player);
 
     // Create the debugging menu
-    Settings settings(&world, &engine.GetRenderer(), &engine.Camera());
-    Crosshair crosshair;
-    engine.Layers().AddLayer(&settings);
-    engine.Layers().AddLayer(&crosshair);
+    engine.Layers().AddLayer<Settings>("settings", &world, &engine.GetRenderer(), player.Camera());
+    engine.Layers().AddLayer<Crosshair>("crosshair");
 
     // Starting main engine thread
     engine.Initialize();
 
     // Ending threads
     world.Finalize();
-    engine.Entities().RemoveFromPhysicsUpdater(&player);
-    engine.Entities().RemoveFromFrameUpdater(&player);
-    engine.Entities().RemoveFromUpdater(&player);
-    engine.Layers().RemoveLayer(&crosshair);
-    engine.Layers().RemoveLayer(&settings);
+    engine.Layers().RemoveLayer("crosshair");
+    engine.Layers().RemoveLayer("settings");
 
     return 0;
 }

@@ -21,7 +21,6 @@ public:
     EntityManager& Entities() { return m_EntityManager; }
     LayerManager& Layers() { return m_LayerManager; }
     Renderer& GetRenderer() { return m_Renderer; }
-    Comet::ViewCamera& Camera() { return m_Camera; }
 
 private:
     void StartPhysics();
@@ -30,7 +29,6 @@ private:
 
     EntityManager m_EntityManager;
     LayerManager m_LayerManager;
-    Comet::ViewCamera m_Camera;
     Renderer m_Renderer;
     std::atomic_bool m_PhysicsRunning = false;
     std::thread m_PhysicsThread;

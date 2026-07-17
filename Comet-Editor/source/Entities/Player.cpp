@@ -10,8 +10,9 @@
 
 using namespace Comet;
 
-Player::Player(World* world, Comet::ViewCamera& camera) : m_World(world), m_Camera(&camera)
+Player::Player(World* world) : m_World(world), m_Camera(std::make_shared<Comet::ViewCamera>())
 {
+    m_Camera->Initialize();
     SetPosition({0.0f, 50.0f, 0.0f});
     m_CollisionHeight = m_Height;
     m_CollisionHeadClearance = m_HeadClearance;
@@ -99,6 +100,9 @@ void Player::PhysicsUpdate(float dt)
 }
 void Player::GetRequestedChunks()
 {
+    if (m_World->GetMainPlayer() != this)
+        return;
+
     glm::vec3 position;
     {
         std::lock_guard lock(m_StateMutex);

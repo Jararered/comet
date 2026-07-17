@@ -12,11 +12,15 @@
 #include "Utilities.h"
 
 #include <chrono>
+#include <filesystem>
+#include <iostream>
 
 using namespace Comet;
 
 Engine::Engine()
 {
+    std::cout << "Current working directory: " << std::filesystem::current_path() << std::endl;
+
     Profiler::Instance().Start();
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE);
@@ -24,13 +28,13 @@ Engine::Engine()
     SetTargetFPS(0);
 
     m_Renderer.Initialize();
-    m_Camera.Initialize();
     TextureMap::Initialize();
 }
 
 Engine::~Engine()
 {
     StopPhysics();
+    m_LayerManager.Clear();
     m_Renderer.Finalize();
     CloseWindow();
     Profiler::Instance().Stop();
@@ -59,7 +63,7 @@ void Engine::Update()
 
         {
             COMET_PROFILE_SCOPE("Engine::RendererUpdate", "render");
-            m_Renderer.Update(m_LayerManager, m_Camera);
+            m_Renderer.Update(m_LayerManager);
         }
         Profiler::Instance().FlushIfDue();
     }

@@ -43,6 +43,7 @@ public:
     void Generate();
     void GenerateMesh(glm::ivec3 index, bool prioritize = false);
 
+    Player& AddPlayer();
     void SetMainPlayer(Player* player);
     Player* GetMainPlayer() const { return m_MainPlayer; }
 
@@ -84,6 +85,7 @@ private:
     long m_Seed = 0;
 
     std::atomic_bool m_Running = false;
+    bool m_Finalized = false;
 
     std::shared_mutex m_Lock;
     std::mutex m_StreamingSnapshotMutex;
@@ -93,5 +95,6 @@ private:
 
     EntityManager& m_EntityManager;
     Renderer& m_Renderer;
+    std::vector<std::unique_ptr<Player>> m_Players;
     Player* m_MainPlayer = nullptr;
 };

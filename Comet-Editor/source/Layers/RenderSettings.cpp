@@ -4,6 +4,7 @@
 
 #include <Input/Input.h>
 
+#include <cmath>
 #include <cstdio>
 #include <raygui.h>
 #include <raylib.h>
@@ -13,7 +14,7 @@ void Settings::Draw()
     constexpr float panelX = 10.0f;
     constexpr float panelY = 10.0f;
     constexpr float panelWidth = 280.0f;
-    constexpr float panelHeight = 220.0f;
+    constexpr float panelHeight = 320.0f;
     constexpr float pad = 12.0f;
     constexpr float rowHeight = 24.0f;
     constexpr float rowGap = 6.0f;
@@ -48,13 +49,22 @@ void Settings::Draw()
 
     if (m_World != nullptr && m_World->GetMainPlayer() != nullptr)
     {
-        std::snprintf(line, sizeof(line), "Fly Speed: %.2fx", m_World->GetMainPlayer()->FlySpeedMultiplier());
+        Player* mainPlayer = m_World->GetMainPlayer();
+        float renderDistance = static_cast<float>(mainPlayer->GetRenderDistance());
+        if (GuiSlider(Rectangle{contentX + 110.0f, y, contentWidth - 145.0f, rowHeight}, "Render Distance", TextFormat("%d", mainPlayer->GetRenderDistance()), &renderDistance, 2.0f, 32.0f))
+        {
+            mainPlayer->SetRenderDistance(static_cast<int>(std::round(renderDistance)));
+        }
+        y += rowHeight + rowGap;
+
+        std::snprintf(line, sizeof(line), "Fly Speed: %.2fx", mainPlayer->FlySpeedMultiplier());
         GuiLabel(Rectangle{contentX, y, contentWidth, rowHeight}, line);
         y += rowHeight + rowGap;
     }
 
-    const glm::vec3 cameraPosition = m_Camera != nullptr ? m_Camera->Position() : glm::vec3{0.0f};
-    const glm::vec3 cameraForward = m_Camera != nullptr ? m_Camera->ForwardVector() : glm::vec3{0.0f};
+    const std::shared_ptr<Comet::ViewCamera> camera = m_Camera.lock();
+    const glm::vec3 cameraPosition = camera ? camera->Position() : glm::vec3{0.0f};
+    const glm::vec3 cameraForward = camera ? camera->ForwardVector() : glm::vec3{0.0f, 0.0f, -1.0f};
     std::snprintf(line, sizeof(line), "Camera: %.1f %.1f %.1f", cameraPosition.x, cameraPosition.y, cameraPosition.z);
     GuiLabel(Rectangle{contentX, y, contentWidth, rowHeight}, line);
     y += rowHeight + rowGap;

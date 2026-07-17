@@ -11,120 +11,101 @@
 
 namespace
 {
-constexpr int ChunkWidth = 16;
-constexpr int ChunkRenderAddFrameInterval = 60;
-constexpr int WaterRenderAddsPerFrame = 1;
+    constexpr int ChunkWidth = 16;
+    constexpr int ChunkRenderAddFrameInterval = 60;
+    constexpr int WaterRenderAddsPerFrame = 1;
 
-struct Frustum
-{
-    std::array<glm::vec4, 6> Planes;
-};
-
-glm::vec4 MatrixRow(const glm::mat4& matrix, int row)
-{
-    return {
-        matrix[0][row],
-        matrix[1][row],
-        matrix[2][row],
-        matrix[3][row]
-    };
-}
-
-glm::vec4 NormalizePlane(const glm::vec4& plane)
-{
-    const float length = glm::length(glm::vec3(plane));
-    if (length <= 0.0f)
+    struct Frustum
     {
-        return plane;
-    }
-    return plane / length;
-}
-
-Frustum BuildCameraFrustum(const Comet::ViewCamera& camera)
-{
-    const glm::mat4 viewProjection = camera.ProjMatrix() * camera.ViewMatrix();
-    const glm::vec4 row0 = MatrixRow(viewProjection, 0);
-    const glm::vec4 row1 = MatrixRow(viewProjection, 1);
-    const glm::vec4 row2 = MatrixRow(viewProjection, 2);
-    const glm::vec4 row3 = MatrixRow(viewProjection, 3);
-
-    return {{
-        NormalizePlane(row3 + row0),
-        NormalizePlane(row3 - row0),
-        NormalizePlane(row3 + row1),
-        NormalizePlane(row3 - row1),
-        NormalizePlane(row3 + row2),
-        NormalizePlane(row3 - row2)
-    }};
-}
-
-glm::vec3 ChunkWorldOffset(const glm::ivec3& chunkIndex)
-{
-    return {
-        static_cast<float>(chunkIndex.x * ChunkWidth),
-        0.0f,
-        static_cast<float>(chunkIndex.z * ChunkWidth)
+        std::array<glm::vec4, 6> Planes;
     };
-}
 
-bool IsMeshVisible(const Frustum& frustum, const glm::ivec3& chunkIndex, const GameMesh& mesh)
-{
-    if (!mesh.HasBounds())
+    glm::vec4 MatrixRow(const glm::mat4& matrix, int row)
     {
-        return false;
+        return {matrix[0][row], matrix[1][row], matrix[2][row], matrix[3][row]};
     }
 
-    const glm::vec3 chunkOffset = ChunkWorldOffset(chunkIndex);
-    const glm::vec3 min = mesh.BoundsMin() + chunkOffset;
-    const glm::vec3 max = mesh.BoundsMax() + chunkOffset;
-
-    for (const glm::vec4& plane : frustum.Planes)
+    glm::vec4 NormalizePlane(const glm::vec4& plane)
     {
-        const glm::vec3 positiveVertex = {
-            plane.x >= 0.0f ? max.x : min.x,
-            plane.y >= 0.0f ? max.y : min.y,
-            plane.z >= 0.0f ? max.z : min.z
-        };
+        const float length = glm::length(glm::vec3(plane));
+        if (length <= 0.0f)
+        {
+            return plane;
+        }
+        return plane / length;
+    }
 
-        if (glm::dot(glm::vec3(plane), positiveVertex) + plane.w < 0.0f)
+    Frustum BuildCameraFrustum(const Comet::ViewCamera& camera)
+    {
+        const glm::mat4 viewProjection = camera.ProjMatrix() * camera.ViewMatrix();
+        const glm::vec4 row0 = MatrixRow(viewProjection, 0);
+        const glm::vec4 row1 = MatrixRow(viewProjection, 1);
+        const glm::vec4 row2 = MatrixRow(viewProjection, 2);
+        const glm::vec4 row3 = MatrixRow(viewProjection, 3);
+
+        return {{NormalizePlane(row3 + row0), NormalizePlane(row3 - row0), NormalizePlane(row3 + row1), NormalizePlane(row3 - row1), NormalizePlane(row3 + row2), NormalizePlane(row3 - row2)}};
+    }
+
+    glm::vec3 ChunkWorldOffset(const glm::ivec3& chunkIndex)
+    {
+        return {static_cast<float>(chunkIndex.x * ChunkWidth), 0.0f, static_cast<float>(chunkIndex.z * ChunkWidth)};
+    }
+
+    bool IsMeshVisible(const Frustum& frustum, const glm::ivec3& chunkIndex, const GameMesh& mesh)
+    {
+        if (!mesh.HasBounds())
         {
             return false;
         }
+
+        const glm::vec3 chunkOffset = ChunkWorldOffset(chunkIndex);
+        const glm::vec3 min = mesh.BoundsMin() + chunkOffset;
+        const glm::vec3 max = mesh.BoundsMax() + chunkOffset;
+
+        for (const glm::vec4& plane : frustum.Planes)
+        {
+            const glm::vec3 positiveVertex = {plane.x >= 0.0f ? max.x : min.x, plane.y >= 0.0f ? max.y : min.y, plane.z >= 0.0f ? max.z : min.z};
+
+            if (glm::dot(glm::vec3(plane), positiveVertex) + plane.w < 0.0f)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
-    return true;
-}
-
-void ReplaceMesh(std::unordered_map<glm::ivec3, GameMesh>& meshes, const glm::ivec3& index, const GameMesh& mesh)
-{
-    if (mesh.GetIndices().empty() && !mesh.HasExpandedGeometry())
+    void ReplaceMesh(std::unordered_map<glm::ivec3, GameMesh>& meshes, const glm::ivec3& index, const GameMesh& mesh)
     {
+        if (mesh.GetIndices().empty() && !mesh.HasExpandedGeometry())
+        {
+            if (auto entry = meshes.find(index); entry != meshes.end())
+            {
+                entry->second.Finalize();
+                meshes.erase(entry);
+            }
+            return;
+        }
+
+        GameMesh replacement(mesh);
+        replacement.Initialize();
+
         if (auto entry = meshes.find(index); entry != meshes.end())
         {
-            entry->second.Finalize();
-            meshes.erase(entry);
+            // Keep the current GPU mesh alive until its replacement has finished
+            // uploading, then transfer ownership and release the old resources.
+            entry->second = std::move(replacement);
         }
-        return;
+        else
+        {
+            meshes.emplace(index, std::move(replacement));
+        }
     }
-
-    GameMesh replacement(mesh);
-    replacement.Initialize();
-
-    if (auto entry = meshes.find(index); entry != meshes.end())
-    {
-        // Keep the current GPU mesh alive until its replacement has finished
-        // uploading, then transfer ownership and release the old resources.
-        entry->second = std::move(replacement);
-    }
-    else
-    {
-        meshes.emplace(index, std::move(replacement));
-    }
-}
 }
 
 void Renderer::Initialize()
 {
+    m_DefaultCamera.Initialize();
 }
 
 void Renderer::Finalize()
@@ -166,12 +147,7 @@ void Renderer::ClearBlockOverlay()
 void Renderer::NewFrame()
 {
     BeginDrawing();
-    ClearBackground(Color{
-        static_cast<unsigned char>(m_BackgroundColor.x * 255),
-        static_cast<unsigned char>(m_BackgroundColor.y * 255),
-        static_cast<unsigned char>(m_BackgroundColor.z * 255),
-        255
-    });
+    ClearBackground(Color{static_cast<unsigned char>(m_BackgroundColor.x * 255), static_cast<unsigned char>(m_BackgroundColor.y * 255), static_cast<unsigned char>(m_BackgroundColor.z * 255), 255});
 }
 
 void Renderer::DrawMeshQueue(Comet::ViewCamera& camera)
@@ -203,11 +179,7 @@ void Renderer::DrawMeshQueue(Comet::ViewCamera& camera)
         {
             mesh.Update();
 
-            Matrix transform = MatrixTranslate(
-                ChunkWorldOffset(index).x,
-                ChunkWorldOffset(index).y,
-                ChunkWorldOffset(index).z
-            );
+            Matrix transform = MatrixTranslate(ChunkWorldOffset(index).x, ChunkWorldOffset(index).y, ChunkWorldOffset(index).z);
 
             DrawMesh(mesh.GetRaylibMesh(), m_BlockMaterial, transform);
             drawCallCount++;
@@ -238,11 +210,7 @@ void Renderer::DrawMeshQueue(Comet::ViewCamera& camera)
             const float wireSize = fillSize + 0.01f;
             const unsigned char fillAlpha = static_cast<unsigned char>(36.0f + pulse * 24.0f);
             const unsigned char wireAlpha = static_cast<unsigned char>(150.0f + pulse * 70.0f);
-            const Vector3 position = {
-                static_cast<float>(m_BlockOverlayPosition.x),
-                static_cast<float>(m_BlockOverlayPosition.y),
-                static_cast<float>(m_BlockOverlayPosition.z)
-            };
+            const Vector3 position = {static_cast<float>(m_BlockOverlayPosition.x), static_cast<float>(m_BlockOverlayPosition.y), static_cast<float>(m_BlockOverlayPosition.z)};
             DrawCube(position, fillSize, fillSize, fillSize, Color{255, 255, 255, fillAlpha});
             DrawCubeWires(position, wireSize, wireSize, wireSize, Color{255, 255, 255, wireAlpha});
             EndBlendMode();
@@ -365,8 +333,7 @@ void Renderer::ProcessMeshQueues()
         }
 
         int waterAddsThisFrame = 0;
-        for (auto waterMeshIt = m_WaterMeshesToAdd.begin();
-             waterMeshIt != m_WaterMeshesToAdd.end() && waterAddsThisFrame < WaterRenderAddsPerFrame;)
+        for (auto waterMeshIt = m_WaterMeshesToAdd.begin(); waterMeshIt != m_WaterMeshesToAdd.end() && waterAddsThisFrame < WaterRenderAddsPerFrame;)
         {
             const glm::ivec3 index = waterMeshIt->first;
             if (waterMeshIt->second.GetIndices().empty())
@@ -400,7 +367,7 @@ void Renderer::ProcessMeshQueues()
             }
         }
         m_MeshesToUpdate.clear();
-    } 
+    }
 
     {
         std::lock_guard lock(m_QueueLock.DeleteQueue);
@@ -419,12 +386,13 @@ void Renderer::ProcessMeshQueues()
         }
         m_MeshesToDelete.clear();
     }
-
 }
 
-void Renderer::Update(LayerManager& layerManager, Comet::ViewCamera& camera)
+void Renderer::Update(LayerManager& layerManager)
 {
     COMET_PROFILE_SCOPE("Renderer::Update", "render");
+    const std::shared_ptr<Comet::ViewCamera> sharedCamera = m_Camera.lock();
+    Comet::ViewCamera& camera = sharedCamera ? *sharedCamera : m_DefaultCamera;
     NewFrame();
     DrawMeshQueue(camera);
     rlDrawRenderBatchActive();

@@ -9,6 +9,7 @@
 
 #include <glm/gtx/hash.hpp>
 
+#include <memory>
 #include <mutex>
 #include <unordered_map>
 #include <unordered_set>
@@ -30,7 +31,8 @@ public:
 
     void Initialize();
     void Finalize();
-    void Update(LayerManager& layerManager, Comet::ViewCamera& camera);
+    void Update(LayerManager& layerManager);
+    void SetCamera(const std::shared_ptr<Comet::ViewCamera>& camera) { m_Camera = camera; }
 
     void NewFrame();
     void DrawMeshQueue(Comet::ViewCamera& camera);
@@ -49,6 +51,8 @@ public:
     void ClearBlockOverlay();
 
 private:
+    std::weak_ptr<Comet::ViewCamera> m_Camera;
+    Comet::ViewCamera m_DefaultCamera;
     RenderLock m_QueueLock;
 
     unsigned int m_DrawCallsPerFrame = 0;

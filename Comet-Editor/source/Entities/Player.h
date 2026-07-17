@@ -10,13 +10,14 @@
 #include "World/World.h"
 
 #include <algorithm>
+#include <memory>
 #include <optional>
 
 class Player : public Entity
 {
 public:
     Player() = default;
-    Player(World* world, Comet::ViewCamera& camera);
+    explicit Player(World* world);
     ~Player();
 
     void Update();
@@ -33,6 +34,7 @@ public:
 
     int GetRenderDistance() { return m_RenderDistance; }
     float FlySpeedMultiplier() const { return m_FlySpeedMultiplier; }
+    const std::shared_ptr<Comet::ViewCamera>& Camera() const { return m_Camera; }
     void SetSurfaceSlipperiness(float slipperiness) { m_SurfaceSlipperiness = std::clamp(slipperiness, 0.0f, 1.0f); }
 
     void ProcessCollision();
@@ -65,7 +67,7 @@ private:
     std::optional<BlockRaycastHit> RaycastTargetBlock() const;
 
     World* m_World;
-    Comet::ViewCamera* m_Camera = nullptr;
+    std::shared_ptr<Comet::ViewCamera> m_Camera;
 
     bool m_InWater = false;
     bool m_Flying = false;

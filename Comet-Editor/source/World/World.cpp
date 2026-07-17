@@ -118,12 +118,14 @@ World::World(std::string folderName, long seed, EntityManager& entityManager, Re
 
 World::~World()
 {
+    Finalize();
 }
 
 void World::Initialize()
 {
     std::cout << "Initializing world thread...\n";
 
+    m_Finalized = false;
     m_Running = true;
     m_Thread = std::thread(&World::Update, this);
 }
@@ -168,12 +170,24 @@ void World::Update()
 
 void World::Finalize()
 {
+    if (m_Finalized)
+        return;
+
     m_Running = false;
 
     if (m_Thread.joinable())
     {
         m_Thread.join();
     }
+
+    for (const std::unique_ptr<Player>& player : m_Players)
+    {
+        m_EntityManager.RemoveFromPhysicsUpdater(player.get());
+        m_EntityManager.RemoveFromFrameUpdater(player.get());
+        m_EntityManager.RemoveFromUpdater(player.get());
+    }
+    SetMainPlayer(nullptr);
+    m_Players.clear();
 
     std::println("Saving currently loaded chunks...");
 
@@ -186,6 +200,7 @@ void World::Finalize()
     m_ChunksToPriorityRerender.clear();
     m_ChunksToRerender.clear();
     m_ChunksToUnrender.clear();
+    m_Finalized = true;
 }
 
 Block World::GetBlock(glm::ivec3 worldCoord)
@@ -357,8 +372,7 @@ void World::ProcessRequestedChunks(const StreamingSnapshot& snapshot)
         return dx * dx + dz * dz;
     };
 
-    auto isChunkWithinRadius = [&chunkDistanceSquared](const glm::ivec3& chunkIndex, int radius)
-    { return chunkDistanceSquared(chunkIndex) <= radius * radius; };
+    auto isChunkWithinRadius = [&chunkDistanceSquared](const glm::ivec3& chunkIndex, int radius) { return chunkDistanceSquared(chunkIndex) <= radius * radius; };
 
     auto sortClosestFirst = [&chunkDistanceSquared](std::vector<glm::ivec3>& chunks)
     {
@@ -650,7 +664,32 @@ void World::GenerateMesh(glm::ivec3 index, bool prioritize)
     m_Renderer.AddWaterMeshToQueue(index, waterMesh);
 }
 
+Player& World::AddPlayer()
+{
+    std::unique_ptr<Player> player = std::make_unique<Player>(this);
+    Player& playerReference = *player;
+    m_Players.push_back(std::move(player));
+
+    m_EntityManager.AddToUpdater(&playerReference);
+    m_EntityManager.AddToFrameUpdater(&playerReference);
+    m_EntityManager.AddToPhysicsUpdater(&playerReference);
+
+    if (m_MainPlayer == nullptr)
+        SetMainPlayer(&playerReference);
+
+    return playerReference;
+}
+
 void World::SetMainPlayer(Player* player)
 {
+    if (player != nullptr)
+    {
+        const bool belongsToWorld = std::ranges::any_of(m_Players, [player](const std::unique_ptr<Player>& ownedPlayer) { return ownedPlayer.get() == player; });
+        assert(belongsToWorld && "Main player must belong to this world");
+        if (!belongsToWorld)
+            return;
+    }
+
     m_MainPlayer = player;
+    m_Renderer.SetCamera(player != nullptr ? player->Camera() : std::shared_ptr<Comet::ViewCamera>{});
 }
