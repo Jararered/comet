@@ -97,19 +97,29 @@ bool IsMeshVisible(const Frustum& frustum, const glm::ivec3& chunkIndex, const G
 
 void ReplaceMesh(std::unordered_map<glm::ivec3, GameMesh>& meshes, const glm::ivec3& index, const GameMesh& mesh)
 {
-    if (auto entry = meshes.find(index); entry != meshes.end())
-    {
-        entry->second.Finalize();
-        meshes.erase(entry);
-    }
-
     if (mesh.GetIndices().empty() && !mesh.HasExpandedGeometry())
     {
+        if (auto entry = meshes.find(index); entry != meshes.end())
+        {
+            entry->second.Finalize();
+            meshes.erase(entry);
+        }
         return;
     }
 
-    meshes.insert_or_assign(index, mesh);
-    meshes.at(index).Initialize();
+    GameMesh replacement(mesh);
+    replacement.Initialize();
+
+    if (auto entry = meshes.find(index); entry != meshes.end())
+    {
+        // Keep the current GPU mesh alive until its replacement has finished
+        // uploading, then transfer ownership and release the old resources.
+        entry->second = std::move(replacement);
+    }
+    else
+    {
+        meshes.emplace(index, std::move(replacement));
+    }
 }
 }
 
